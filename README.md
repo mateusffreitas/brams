@@ -66,10 +66,12 @@ make and make install: ~\>make; sudo make install
 Before run the model, You must get the input data. There are two packages for initial tests:
 
 a) Small meteorological case for laptops and desktops (722MB)
-Click to get it
+
+* [Meteo-only](ftp://ftp.cptec.inpe.br/brams/BRAMS/data/meteo-only.tgz) - Meteorological small case
 
 b) Small chemical case (using RELACS_TUV) for laptops and desktops (945 MB)
-Click to get it
+
+* [Meteo-chem](ftp://ftp.cptec.inpe.br/brams/BRAMS/data/meteo-chem.tgz) - Meteorological/Chemical small case
 
 Both cases are just for testing and learning processes. To get data for any different runs, visit the Input Data page.
 
