@@ -167,8 +167,8 @@ subroutine top_write(ifm)
   call rams_f_open (25,flnm(1:len_trim(flnm)),'FORMATTED','REPLACE','WRITE',1)
   rewind 25
 
-  write(25,99) 999999,3
-99 format(2i8)
+  write(25,fmt='(2(i8))') 999999,3
+!99 format(2i8)
 
   write(25,100) nnxp(ifm),nnyp(ifm)  &
        ,deltaxn(ifm),deltayn(ifm),platn(ifm),plonn(ifm)  &
