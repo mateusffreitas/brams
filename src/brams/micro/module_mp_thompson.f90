@@ -54,6 +54,9 @@
         mchnum, &
         master_num
 
+      USE io_params, only: &
+        tables_dir
+
       IMPLICIT NONE
 
       LOGICAL, PARAMETER, PRIVATE:: iiwarm = .false.
@@ -3608,7 +3611,7 @@
       good = 0
 !     IF ( wrf_dm_on_monitor() ) THEN
       IF ( wrf_dm_on_monitor) THEN
-        INQUIRE(FILE="./tables/micro_GT/qr_acr_qg.dat",EXIST=lexist)
+        INQUIRE(FILE=trim(tables_dir)//"/micro_GT/qr_acr_qg.dat",EXIST=lexist)
         IF ( lexist ) THEN
           
           if(mchnum==master_num) then 
@@ -3617,7 +3620,7 @@
             close(unit=22)
           endif
           
-          OPEN(63,file="./tables/micro_GT/qr_acr_qg.dat",form="unformatted",err=1234)
+          OPEN(63,file=trim(tables_dir)//"/micro_GT/qr_acr_qg.dat",form="unformatted",err=1234)
           READ(63,err=1234) tcg_racg
           READ(63,err=1234) tmr_racg
           READ(63,err=1234) tcr_gacr
@@ -3753,7 +3756,7 @@
 !       IF ( write_thompson_tables .AND. wrf_dm_on_monitor() ) THEN
         IF ( write_thompson_tables .AND. wrf_dm_on_monitor ) THEN
           CALL wrf_message("Writing qr_acr_qg.dat in Thompson MP init")
-          OPEN(63,file="./tables/micro_GT/qr_acr_qg.dat",form="unformatted",err=9234)
+          OPEN(63,file=trim(tables_dir)//"/micro_GT/qr_acr_qg.dat",form="unformatted",err=9234)
 !         CALL wrf_message("Writing qr_acr_qg.dat in Thompson MP init")
 !         OPEN(63,file="qr_acr_qg.dat",form="unformatted",err=9234)
           WRITE(63,err=9234) tcg_racg
@@ -3806,7 +3809,7 @@
       good = 0
       IF ( wrf_dm_on_monitor ) THEN
 !       INQUIRE(FILE="qr_acr_qs.dat",EXIST=lexist)
-        INQUIRE(FILE="./tables/micro_GT/qr_acr_qs.dat",EXIST=lexist)
+        INQUIRE(FILE=trim(tables_dir)//"/micro_GT/qr_acr_qs.dat",EXIST=lexist)
         IF ( lexist ) THEN
           !CALL wrf_message("ThompMP: read qr_acr_qs.dat instead of computing")
           if(mchnum==master_num) then 
@@ -3814,7 +3817,7 @@
             write (unit=22,fmt='(A)') "ThompMP: read qr_acr_qs.dat instead of computing"
             close(unit=22)
           endif
-          OPEN(63,file="./tables/micro_GT/qr_acr_qs.dat",form="unformatted",err=1234)
+          OPEN(63,file=trim(tables_dir)//"/micro_GT/qr_acr_qs.dat",form="unformatted",err=1234)
           READ(63,err=1234)tcs_racs1
           READ(63,err=1234)tmr_racs1
           READ(63,err=1234)tcs_racs2
@@ -4100,7 +4103,7 @@
 
       good = 0
       IF ( wrf_dm_on_monitor ) THEN
-        INQUIRE(FILE="./tables/micro_GT/freezeH2O.dat",EXIST=lexist)
+        INQUIRE(FILE=trim(tables_dir)//"/micro_GT/freezeH2O.dat",EXIST=lexist)
         IF ( lexist ) THEN
           !CALL wrf_message("ThompMP: read freezeH2O.dat instead of computing")
           if(mchnum==master_num) then 
@@ -4108,7 +4111,7 @@
             write (unit=22,fmt='(A)') "ThompMP: read freezeH2O.dat instead of computing"
             close(unit=22)
           endif
-          OPEN(63,file="./tables/micro_GT/freezeH2O.dat",form="unformatted",err=1234)
+          OPEN(63,file=trim(tables_dir)//"/micro_GT/freezeH2O.dat",form="unformatted",err=1234)
           READ(63,err=1234)tpi_qrfz
           READ(63,err=1234)tni_qrfz
           READ(63,err=1234)tpg_qrfz
@@ -4251,7 +4254,7 @@
 
         IF ( write_thompson_tables .AND. wrf_dm_on_monitor ) THEN
           CALL wrf_message("Writing freezeH2O.dat in Thompson MP init")
-          OPEN(63,file="./tables/micro_GT/freezeH2O.dat",form="unformatted",err=9234)
+          OPEN(63,file=trim(tables_dir)//"/micro_GT/freezeH2O.dat",form="unformatted",err=9234)
           WRITE(63,err=9234)tpi_qrfz
           WRITE(63,err=9234)tni_qrfz
           WRITE(63,err=9234)tpg_qrfz

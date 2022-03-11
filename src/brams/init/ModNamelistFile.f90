@@ -281,6 +281,7 @@ module ModNamelistFile
      character(len=f_name_length) :: ivegtfn(maxgrds)
      character(len=f_name_length) :: isoilfn(maxgrds)
      character(len=f_name_length) :: ndvifn(maxgrds)
+     character(len=f_name_length) :: tables_dir
      integer :: itopsflg(maxgrds)
      real  :: toptenh(maxgrds)
      real  :: toptwvl(maxgrds)
@@ -899,6 +900,7 @@ contains
     character(len=f_name_length) :: ivegtfn(maxgrds)
     character(len=f_name_length) :: isoilfn(maxgrds)
     character(len=f_name_length) :: ndvifn(maxgrds)
+    character(len=f_name_length) :: tables_dir
     integer :: itopsflg(maxgrds)
     real  :: toptenh(maxgrds)
     real  :: toptwvl(maxgrds)
@@ -915,7 +917,7 @@ contains
          initial, varfpfx, nudlat,tnudlat, tnudcent, tnudtop, znudtop,   &
          ioutput, hfilout, afilout, frqhis, frqanl, ipos, topfiles,      &
          sfcfiles, sstfpfx, ndvifpfx, itoptfn, isstfn, ivegtfn, isoilfn, &
-         ndvifn
+         ndvifn,tables_dir
 
     namelist /MODEL_FILE_INFO2/                                           &
          nud_type, varfpfx, vwait1, vwaittot, nud_hfile, &
@@ -1420,6 +1422,7 @@ contains
     isoilfn(1:4)        = (/'./oge_brams4/OGE','./oge_brams4/OGE','./oge_brams4/OGE','./oge_brams4/OGE'/)
     ndvifn              = ''
     ndvifn(1:4)         = (/'./ndvi-modis/N','./ndvi-modis/N','./ndvi-modis/N','./ndvi-modis/N'/)
+    tables_dir          = './tables/'
     itopsflg            = 0
     itopsflg(1:4)       = (/0,0,0,0/)
     toptenh             = 1
@@ -2154,6 +2157,7 @@ contains
        write (*,*) "ivegtfn=", (trim(ivegtfn(i))//";", i = 1, size(ivegtfn))
        write (*,*) "isoilfn=", (trim(isoilfn(i))//";", i = 1, size(isoilfn))
        write (*,*) "ndvifn=", (trim(ndvifn(i))//";", i=1,size(ndvifn))
+       write (*,*) "tables_dir=",(trim(tables_dir))
        call fatal_error(h//" reading namelist")
     else
        oneNamelistFile%initial=initial
@@ -2180,6 +2184,7 @@ contains
        oneNamelistFile%ivegtfn=ivegtfn
        oneNamelistFile%isoilfn=isoilfn
        oneNamelistFile%ndvifn=ndvifn
+       oneNamelistFile%tables_dir=tables_dir
     end if
 
     read (iunit2, iostat=err, NML=MODEL_FILE_INFO2)
@@ -4121,6 +4126,9 @@ contains
     call parf_bcast(oneNamelistFile%ndvifn,&
          int(len(oneNamelistFile%ndvifn(1)),i8), &
          int(size(oneNamelistFile%ndvifn,1),i8),&
+         oneParallelEnvironment%master_num)
+    call parf_bcast(oneNamelistFile%tables_dir,&
+         int(len(oneNamelistFile%tables_dir),i8),&
          oneParallelEnvironment%master_num)
     call parf_bcast(oneNamelistFile%itopsflg,&
          int(size(oneNamelistFile%itopsflg,1),i8),&

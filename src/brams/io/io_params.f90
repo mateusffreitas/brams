@@ -47,6 +47,7 @@ module io_params
   character(len=f_name_length), public :: afilout ! from RAMSIN
   character(len=f_name_length), public :: pastfn ! from RAMSIN
   character(len=f_name_length), public :: hfilin ! from RAMSIN
+  character(len=f_name_length), public :: tables_dir ! from RAMSIN
 
   character(len=20), public  :: xlite ! from RAMSIN
   character(len=20), public  :: ylite ! from RAMSIN
@@ -93,6 +94,7 @@ module io_params
   character(len=f_name_length), public :: isoilfn(maxgrds) ! from RAMSIN
   character(len=f_name_length), public :: ndvifn(maxgrds) ! from RAMSIN
   character(len=f_name_length), public :: ifusfn(maxgrds) ! from RAMSIN
+  character(len=f_name_length), public :: tables_dir ! from RAMSIN
 
 
   character(len=f_name_length), public :: sfcfiles ! from RAMSIN
@@ -367,6 +369,7 @@ contains
     lite_vars = oneNamelistFile%lite_vars
     ndviflg = oneNamelistFile%ndviflg
     ndvifn = oneNamelistFile%ndvifn
+    tables_dir = oneNamelistFile%tables_dir
     ndvifpfx = oneNamelistFile%ndvifpfx
     nlite_vars = oneNamelistFile%nlite_vars
     nofilflg = oneNamelistFile%nofilflg

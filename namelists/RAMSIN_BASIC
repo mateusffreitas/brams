@@ -123,7 +123,9 @@ $MODEL_FILE_INFO
    ISSTFN   = "./datafix_model/sst_week/W",
    IVEGTFN  = "./datafix_model/GL_OGE_INPE/OGE",
    ISOILFN  = "./datafix_model/GL_FAO_INPE/FAO",
-   NDVIFN   = "./datafix_model/NDVI-MODIS_GRADS/N",        
+   NDVIFN   = "./datafix_model/NDVI-MODIS_GRADS/N",  
+
+   TABLES_DIR = "./tables/"      
              
  $END
 
