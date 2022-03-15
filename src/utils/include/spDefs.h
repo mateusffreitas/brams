@@ -37,7 +37,7 @@
  */
 
 #include <stdio.h>
-#include <stdlib.h>
+
 
 /*
  *  If running lint, change some of the compiler options to get a more
