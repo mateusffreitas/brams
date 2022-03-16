@@ -444,9 +444,14 @@ contains
           cDay = onePostGrid%binFileName(lenFName-afterFirstDay:lenFName-afterLastDay)
           cHHMMSS = onePostGrid%binFileName(lenFName-afterFirstHHMMSS:lenFName-afterLastHHMMSS)
           chdate = cHHMMSS(1:2)//":"//cHHMMSS(3:4)//"z"//cDay//cmo(iMonth)//cYear
-          write(onePostGrid%unitCtlFile, "(a4,i4,a8,2a15)") &
-               "tdef ",1," linear ",chdate, onePostGrid%chstep
-          
+          if(trim(onePostGrid%chstep)=="mn" .or. trim(onePostGrid%chstep)=="hr" &
+            .or.  trim(onePostGrid%chstep)=="dy" .or. trim(onePostGrid%chstep)=="mo") then
+               write(onePostGrid%unitCtlFile, "(a4,i4,a8,2a15)") &
+                  "tdef ",1," linear ",chdate, onePostGrid%chstep
+          else
+               write(onePostGrid%unitCtlFile, "(a4,i4,a8,2a15)") &
+                  "tdef ",1," linear ",chdate, "1mn"
+          endif
           ! post variables
           
           call DumpFieldIDList(onePostGrid%unitCtlFile, onePostGrid)
@@ -1492,8 +1497,9 @@ contains
           ! keep the selection up to nnzp levels
 
           do iz = 1, onePostGrid%nVert
-             onePostGrid%zMap(iz) = max(1, &
-                  min(oneNamelistFile%iplevs(iz), oneBramsGrid%nnzp))
+!             onePostGrid%zMap(iz) = max(1, &
+!                  min(oneNamelistFile%iplevs(iz), oneBramsGrid%nnzp))
+             onePostGrid%zMap(iz) = iz
           end do
        end if
 
