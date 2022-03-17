@@ -9,7 +9,7 @@
 .SUFFIXES: .C .f90 .F90 .c .o
 
 version        = 5.0.1
-PREFIX         = /home/lufla
+PREFIX         = /home/oscar
 HAVE_HDF5      = @HAVE_HDF5@
 HDF5LIB        = 
 
@@ -30,8 +30,8 @@ HAVE_ZLIB      = no
 ZLIB        = 
 
 WGRIBDIR = /opt/gnu
-NETCDFFDIR = /opt/gnu/lib
-NETCDFCDIR = /opt/gnu/lib
+NETCDFFDIR = /opt/gnu
+NETCDFCDIR = /opt/gnu
 HDF5DIR = 
 MPIDIR = @MPIDIR@
 

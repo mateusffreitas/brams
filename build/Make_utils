@@ -11,7 +11,7 @@
 # Define path and compilation 
 #package        = ../src/ramsmain.f90
 version        = 5.0.1
-PREFIX         = /home/lufla
+PREFIX         = /home/oscar
 FC             = @FC@
 HAVE_HDF5      = @HAVE_HDF5@
 HDF5LIB        = 
