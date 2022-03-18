@@ -1,4 +1,4 @@
-MODULE seaSalt
+MODULE seaSalt   
   !# Module to determine the whitecap seasalt flux and mass over waves (surface)
   !#
   !# @note
@@ -85,11 +85,11 @@ MODULE seaSalt
    !# Dry seaSalt density in g/cm3
    REAL, PARAMETER :: pi=3.1415926
    !# Pi constant
-   REAL, PARAMETER :: mp1=(4/3)*Pi*(diam(1)/2)**3*DrySeaSaltDendity*1.0e-06
+   REAL, PARAMETER :: mp1=(4./3)*Pi*(diam(1)/2.)**3*DrySeaSaltDendity*1.0e-06
    !# mass of seasalt for diam in bin 1
-   REAL, PARAMETER :: mp2=(4/3)*Pi*(diam(2)/2)**3*DrySeaSaltDendity*1.0e-06
+   REAL, PARAMETER :: mp2=(4./3)*Pi*(diam(2)/2.)**3*DrySeaSaltDendity*1.0e-06
    !# mass of seasalt for diam in bin 2
-   REAL, PARAMETER :: mp3=(4/3)*Pi*(diam(3)/2)**3*DrySeaSaltDendity*1.0e-06
+   REAL, PARAMETER :: mp3=(4./3)*Pi*(diam(3)/2.)**3*DrySeaSaltDendity*1.0e-06
    !# mass of seasalt for diam in bin 3
 
    REAL, PARAMETER,DIMENSION(nbins) :: massSSaer=(/mp1,mp2,mp3/)
