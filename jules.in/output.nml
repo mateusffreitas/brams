@@ -1,13 +1,13 @@
 &jules_output
 dump_period=1,          !DSM - nao utilizado - utilizando a variavel FRQHIS do RAMSIN
-nprofiles=1,
+nprofiles=0,
 output_dir='./output',  !DSM - nao utilizado - utilizando a variavel AFILOUT do RAMSIN
 run_id='AA',            !DSM - nao utilizado - utilizando a variavel AFILOUT do RAMSIN
 /
 &jules_output_profile
 file_period=0,
 nvars=29,
-output_main_run=.true.,
+output_main_run=.false.,
 output_spinup=.false.,
 output_period=1800,     !DSM - nao utilizado - utilizando a variavel FRQANL do RAMSIN
 output_type=29*'S',
