@@ -1,5 +1,9 @@
 #logs
 *.log
+log.txt
+
+#Sources in build
+./build/*.f90
 
 # Prerequisites
 *.d
