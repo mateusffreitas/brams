@@ -1,0 +1,423 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="">
+    <meta name="author" content="">
+
+    <title>BRAMS</title>
+
+    <!-- Bootstrap Core CSS -->
+    <link href="css/bootstrap.min.css" rel="stylesheet" type="text/css">
+
+    <!-- Fonts -->
+    <link href="font-awesome/css/font-awesome.min.css" rel="stylesheet" type="text/css">
+	<link href="css/animate.css" rel="stylesheet" />
+    <!-- Squad theme CSS -->
+    <link href="css/style.css" rel="stylesheet">
+	<link href="color/default.css" rel="stylesheet">
+
+</head>
+
+<body id="page-top" data-spy="scroll" data-target=".navbar-custom">
+	<!-- Preloader -->
+	<div id="preloader">
+	  <div id="load"></div>
+	</div>
+
+    <nav class="navbar navbar-custom navbar-fixed-top" role="navigation">
+        <div class="container">
+            <div class="navbar-header page-scroll">
+                <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-main-collapse">
+                    <i class="fa fa-bars"></i>
+                </button>
+                <a class="navbar-brand" href="index.html">
+                    <figure><img src="../img/logo-brams1.jpg"></figure>
+                </a>
+            </div>
+
+            <!-- Collect the nav links, forms, and other content for toggling -->
+            <div class="collapse navbar-collapse navbar-right navbar-main-collapse">
+      <ul class="nav navbar-nav">
+        <li class="active"><a href="#intro">Home</a></li>
+        <li><a href="#papers">Papers</a></li>
+		<li><a href="#Thesis">Thesis and Dissertations</a></li>
+		<li><a href="#books">Book Chapters</a></li>
+		<li><a href="#key">Key Publications</a></li>
+        <li><a href="#presentations">Presentations</a></li>
+      </ul>
+            </div>
+            <!-- /.navbar-collapse -->
+        </div>
+        <!-- /.container -->
+    </nav>
+
+	<!-- Section: intro -->
+    <section id="intro" class="intro">
+	
+		<div class="slogan">
+			<h2>WELCOME TO <span class="text_color">BRAMS</span> </h2>
+			<h4>Library</h4>
+		</div>
+		<div class="page-scroll">
+			<a href="#about" class="btn btn-circle">
+				<i class="fa fa-angle-double-down animated"></i>
+			</a>
+		</div>
+    </section>
+	<!-- /Section: intro -->
+
+	<!-- Section: about -->
+    <section id="about" class="home-section text-left">
+		<div class="heading-about">
+			<h3>BRAMS IS A NUMERICAL MODELING SYSTEM DESIGNED FOR REGIONAL SCALE ATMOSPHERIC FORECASTING AND RESEARCH, WITH FOCUS ON ATMOSPHERIC CHEMISTRY, AIR QUALITY AND BIOGEOCHEMICAL CYCLES.</h3>
+			BRAMS is based on the Regional Atmospheric Modeling System (RAMS) originally developed at CSU/USA. BRAMS software is under a free license (CC-GPL). Currently, it is developed and maintained by CPTEC/INPE, USP and others institutions in Brazil and abroad. BRAMS/RAMS are multipurpose numerical weather prediction models that were designed to simulate atmospheric circulations spanning from hemispheric scales down to large eddy simulations (LES) of the planetary boundary layer. Several new functionalities and modifications were included to improve the numerical representation of key physical processes over tropical and subtropical regions (Freitas et al., 2005, 2009), a complete in-line module for atmospheric chemistry and aerosol processes (Longo et al., 2013), as well as a state-of-the-art model for simulation of atmosphere-surface exchange of water, energy, momentum, carbon and others biogeochemical tracers (Moreira et al., 2013).
+			</p>
+		    
+			<p>The current version of BRAMS contains the following additional physical parameterizations:</p>
+			
+			<ul>
+			<li>Radiation:  CARMA (Toon et al., 1988) and RRTMG (Iacono et al., 2008) schemes for long- and short-wave, including aerosols effects and coupled with microphysics and convection schemes</li>
+			<li>Microphysics: a double moment from RAMS CSU version, Thompson double moment and aerosol aware (Thompson and Eidhammer, 2014).</li>
+			<li>Convection schemes:  Souza (1999) for shallow convection, Grell and Deveny (2002) for deep convection and Grell and Freitas (2014) scale and aerosol aware for deep and shallow convection including convective transport and wet removal of tracers.</li>
+			<li>Turbulence parameterizations: Nakanishi & Nino (2004) TKE based formulation, Taylor’s theory based formulation (Campos Velho, 1998).</li>
+			<li>Surface interaction and carbon cycle: TEB (Town Energy Budget) scheme to simulate urban areas (Freitas et al., 2007) and the Joint UK Land Environment Simulator (JULES) model (Moreira et al. 2013).</li>
+			<li>In-line emission, deposition, transport and chemistry model (CCATT) for atmospheric composition and air pollution studies (Longo et al., 2013).</li>
+			</ul>
+			
+			<p>Besides, BRAMS includes the following features:</p>
+			
+			<ul>
+			<li>Highly accurate and monotonic scheme (Walcek 2000, Freitas et al. 2012) for advection of scalars.</li>
+			<li>Complete, mass conservative formulation for the Exner function prognostic equation (Medvigy et al. 2005).</li>
+			<li>Computational Scalability: high efficiency up to ∼10000 cores with the MPI approach.</li>
+			<li>Digital filter for model initialization.</li>
+			<li>Model output at GrADS format during the model run time.</li>
+			<li>Coupling with the STILT Lagrangian Particle Dispersion Modelling.</li>
+			<li>Output to drive air parcels trajectory model calculation.</li>
+			</ul>
+			
+			<p>And ongoing work includes:</p>
+			
+			<ul>
+			<li>Fire spread model.</li>
+			<li>MATRIX (Bauer et al., 2008) aerosol model.</li>
+			<li>Data assimilation with GSI / 3D-VAR technique.</li>
+			<li>Time integration schemes (Runge-Kutta 3rd order, Adams-Bashforth-Moulton 3rd order, leapfrog with Robert-Asselin-Williams filter 2nd order).</li>
+			<li>Advection schemes (from 2nd to 6th order) with positivity and monotonicity constraints and WENO (Weighted Essentially Non-Oscillatory) formulation.</li>
+			<li>Code reformulation for fully compliant with the current FORTRAN standards.		</li>
+			</ul>
+		</div>
+	</section>
+	<!-- /Section: about -->
+	
+	<!-- Section: further -->
+    <section id="further" class="home-section text-center bg-gray">
+		
+		<div class="heading-about">
+			<div class="container">
+			<div class="row">
+				<div class="col-lg-8 col-lg-offset-2">
+					<div class="wow bounceInDown" data-wow-delay="0.4s">
+					<div class="section-heading">
+					<h2>Further Information</h2>
+					<i class="fa fa-2x fa-angle-down"></i>
+
+					</div>
+					</div>
+				</div>
+			</div>
+			</div>
+		</div>
+		<div class="container">
+		<div class="row">
+			<div class="col-lg-2 col-lg-offset-5">
+				<hr class="marginbot-50">
+			</div>
+		</div>
+        <div class="row">
+            <div class="col-sm-3 col-md-3">
+				<div class="wow fadeInLeft" data-wow-delay="0.2s">
+                <div class="service-box">
+					<div class="service-icon">
+						<img src="img/atmosphere.420.jpg" alt="" />
+					</div>
+					<div class="service-desc">
+						<h5>THE ATMOSPHERIC MODEL</h5>
+						<p>BRAMS solves the compressible non-hydrostatic equations described by Tripoli and Cotton (1982) and is equipped with a multiple-grid nesting scheme which allows the model equations to be solved on any number of  computational meshes of increasing spatial resolution using an one-way downscalling approach. It has a set of physical parameterizations appropriate for simulating processes such as surface–air exchanges, turbulence, convection, radiation and cloud microphysics.</p>
+					</div>
+                </div>
+				</div>
+            </div>
+			<div class="col-sm-3 col-md-3">
+				<div class="wow fadeInUp" data-wow-delay="0.2s">
+                <div class="service-box">
+					<div class="service-icon">
+						<img src="img/pollution.420.jpg" alt="" />
+					</div>
+					<div class="service-desc">
+						<h5>CHEMISTRY AND TRACER TRANSPORT</h5>
+						<p>CCATT (Longo et al., 2013) is a Eulerian transport model coupled online with BRAMS and developed to simulate the transport, dispersion, chemical transformation and removal processes associated with gases and aerosols. CCATT models the tracer transport online with the simulation of the atmospheric state by BRAMS, using the same dynamical and physical parameterizations. The tracer mass mixing ratio, which is a prognostic variable, includes the effects of sub-grid-scale turbulence in the planetary boundary layer and convective transport by shallow and deep moist convection, in addition to grid-scale advective transport. The model also includes gaseous/aqueous chemistry, photochemistry, scavenging and dry deposition. The CCATT-BRAMS model takes advantage of BRAMS-specific development for the tropics/subtropics as well as the recent availability of preprocessing tools for chemical mechanisms and fast codes for photolysis rates. This on-line coupling of meteorology and chemistry allows the system to be used for simultaneous weather and chemical composition forecasts as well as potential feedback between the two. The entire system is made of three pre-processing software tools for user-defined chemical mechanisms, aerosol and trace gas emissions fields and the interpolation of initial and boundary conditions for meteorology and chemistry.
+
+							Besides this tool, BRAMS also contains the TEB-SPM (Town Energy Budget – Simple Photochemical Module) scheme, which was designed to simulate urban areas and its interaction with meteorology and air pollution and implemented by the University of São Paulo (Freitas et al., 2007, Freitas et al., 2005).</p>
+					</div>
+                </div>
+				</div>
+            </div>
+			<div class="col-sm-3 col-md-3">
+				<div class="wow fadeInRight" data-wow-delay="0.2s">
+                <div class="service-box">
+					<div class="service-icon">
+						<img src="img/surface.420.jpg" alt="" />
+					</div>
+					<div class="service-desc">
+						<h5>LAND SURFACE PROCESSES AND CARBON CYCLE</h5>
+						<p>Integration with the Joint UK Land Environment Simulator (JULES) resulted in a new system that represents the state of the art in regional atmospheric modeling, including fully coupled chemical processes, aerosols and biogeochemical cycles (Moreira et al., 2013). This development provided a significant gain in accuracy in comparison to the LEAF (version 3) surface model originally employed by BRAMS. In addition, the new system significantly increases the ability to simulate processes involving air–surface interactions, due to the JULES’ ability to simulate photosynthesis, respiration and dynamic vegetation, among other processes.</p>
+					</div>
+                </div>
+				</div>
+            </div>
+			<div class="col-sm-3 col-md-3">
+				<div class="wow fadeInRight" data-wow-delay="0.2s">
+                <div class="service-box">
+					<div class="service-icon">
+						<img src="img/jules-ccatt-brams.jpg" alt="" />
+					</div>
+					<div class="service-desc">
+						<h5>INTERACTIONS BETWEEN THE COMPONENTS (LAND – ATMOSPHERE – CHEMICAL COMPOSITION) OF BRAMS</h5>
+						<p>For each of BRAMS’ time step, the atmospheric component provides to JULES the current near-surface wind speed, air temperature, pressure, condensed water and downward radiation fluxes, as well as water vapor and trace gas (for example, carbon dioxide and monoxide, methane and volatile organic compounds) mixing ratios. After its processing, JULES advances its state variables over the time step and feeds back to the atmospheric component the sensible and latent heat and momentum surface fluxes, upward short-wave and long-wave radiation fluxes, as well as a set of trace gas fluxes.The chemical component performs non biogenic emissions, deposition, transport, chemical reactivity and aerosol processes, including feedbacks to the meteorology, closing the cycle. The image depicts some of the sub-grid scale processes simulated by the three components in the unified (CCATT+JULES) BRAMS model.</p>
+					</div>
+                </div>
+				</div>
+            </div>
+		</div>		
+		</div>
+	</section>
+	<!-- /Section: further -->
+
+	<!-- Section: services -->
+    <section id="getStarted" class="home-section text-center bg-gray">
+		
+		<div class="heading-about">
+			<div class="container">
+			<div class="row">
+				<div class="col-lg-8 col-lg-offset-2">
+					<div class="wow bounceInDown" data-wow-delay="0.4s">
+					<div class="section-heading">
+					<h2>Get Started</h2>
+					<i class="fa fa-2x fa-angle-down"></i>
+
+					</div>
+					</div>
+				</div>
+			</div>
+			</div>
+		</div>
+		<div class="container">
+		<div class="row">
+			<div class="col-lg-2 col-lg-offset-5">
+				<hr class="marginbot-50">
+			</div>
+		</div>
+        <div class="row">
+            <div class="col-sm-3 col-md-3">
+				<div class="wow fadeInLeft" data-wow-delay="0.2s">
+                <div class="service-box">
+					<div class="service-icon">
+						<img src="img/icons/screwdriver-and-wrench.png" alt="" />
+					</div>
+					<div class="service-desc">
+						<h5>Install Pre requisites</h5>
+						<p>Vestibulum tincidunt enim in pharetra malesuada. Duis semper magna metus electram accommodare.</p>
+					</div>
+                </div>
+				</div>
+            </div>
+			<div class="col-sm-3 col-md-3">
+				<div class="wow fadeInUp" data-wow-delay="0.2s">
+                <div class="service-box">
+					<div class="service-icon">
+						<img src="img/icons/columns_gap_icon_160222.png" alt="" />
+					</div>
+					<div class="service-desc">
+						<h5>Install Model</h5>
+						<p>Vestibulum tincidunt enim in pharetra malesuada. Duis semper magna metus electram accommodare.</p>
+					</div>
+                </div>
+				</div>
+            </div>
+			<div class="col-sm-3 col-md-3">
+				<div class="wow fadeInUp" data-wow-delay="0.2s">
+                <div class="service-box">
+					<div class="service-icon">
+						<img src="img/icons/skateboarding_icon_218108.png" alt="" />
+					</div>
+					<div class="service-desc">
+						<h5>Run the Model</h5>
+						<p>Vestibulum tincidunt enim in pharetra malesuada. Duis semper magna metus electram accommodare.</p>
+					</div>
+                </div>
+				</div>
+            </div>
+			<div class="col-sm-3 col-md-3">
+				<div class="wow fadeInRight" data-wow-delay="0.2s">
+                <div class="service-box">
+					<div class="service-icon">
+						<img src="img/icons/snowfall_frost_rain_hail_sleet_snowy_icon_220101.png" alt="" />
+					</div>
+					<div class="service-desc">
+						<h5>See results</h5>
+						<p>Vestibulum tincidunt enim in pharetra malesuada. Duis semper magna metus electram accommodare.</p>
+					</div>
+                </div>
+				</div>
+            </div>
+        </div>		
+		</div>
+	</section>
+	<!-- /Section: services -->
+	
+
+	
+
+	<!-- Section: contact -->
+    <section id="contact" class="home-section text-center">
+		<div class="heading-contact">
+			<div class="container">
+			<div class="row">
+				<div class="col-lg-8 col-lg-offset-2">
+					<div class="wow bounceInDown" data-wow-delay="0.4s">
+					<div class="section-heading">
+					<h2>Get in touch</h2>
+					<i class="fa fa-2x fa-angle-down"></i>
+
+					</div>
+					</div>
+				</div>
+			</div>
+			</div>
+		</div>
+		<div class="container">
+
+		<div class="row">
+			<div class="col-lg-2 col-lg-offset-5">
+				<hr class="marginbot-50">
+			</div>
+		</div>
+    <div class="row">
+        <div class="col-lg-8">
+            <div class="boxed-grey">
+                <form id="contact-form">
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label for="name">
+                                Name</label>
+                            <input type="text" class="form-control" id="name" placeholder="Enter name" required="required" />
+                        </div>
+                        <div class="form-group">
+                            <label for="email">
+                                Email Address</label>
+                            <div class="input-group">
+                                <span class="input-group-addon"><span class="glyphicon glyphicon-envelope"></span>
+                                </span>
+                                <input type="email" class="form-control" id="email" placeholder="Enter email" required="required" /></div>
+                        </div>
+                        <div class="form-group">
+                            <label for="subject">
+                                Subject</label>
+                            <select id="subject" name="subject" class="form-control" required="required">
+                                <option value="na" selected="">Choose One:</option>
+                                <option value="instalation">General Instalation Issue</option>
+                                <option value="run">Run problem</option>
+                                <option value="Data">Data aquisition</option>
+								<option value="bug">Inform a Bug</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label for="name">
+                                Message</label>
+                            <textarea name="message" id="message" class="form-control" rows="9" cols="25" required="required"
+                                placeholder="Message"></textarea>
+                        </div>
+                    </div>
+                    <div class="col-md-12">
+                        <button type="submit" class="btn btn-skin pull-right" id="btnContactUs">
+                            Send Message</button>
+                    </div>
+                </div>
+                </form>
+            </div>
+        </div>
+		
+		<div class="col-lg-4">
+			<div class="widget-contact">
+				<h5>Main Office</h5>
+				
+				<address>
+				  <strong>Instituto Nacional de Pesquisas Espaciais - INPE</strong><br>
+				  Rod Pres Dutra Km 40<br>
+				  Cachoeira Paulista - SP 12630000<br>
+				  <abbr title="Phone">P:</abbr> (+55) 12 8136-8100
+				</address>
+
+				<address>
+				  <strong>Email</strong><br>
+				  <a href="mailto:#">luiz.rodrigues@inpe.br</a>
+				</address>	
+				<address>
+				  <strong>We're on social networks</strong><br>
+                       	<ul class="company-social">
+                            <li class="social-facebook"><a href="#" target="_blank"><i class="fa fa-facebook"></i></a></li>
+                            <li class="social-twitter"><a href="#" target="_blank"><i class="fa fa-twitter"></i></a></li>
+                            <li class="social-dribble"><a href="#" target="_blank"><i class="fa fa-dribbble"></i></a></li>
+                            <li class="social-google"><a href="#" target="_blank"><i class="fa fa-google-plus"></i></a></li>
+                        </ul>	
+				</address>					
+			
+			</div>	
+		</div>
+    </div>	
+
+		</div>
+	</section>
+	<!-- /Section: contact -->
+
+	<footer>
+		<div class="container">
+			<div class="row">
+				<div class="col-md-12 col-lg-12">
+					<div class="wow shake" data-wow-delay="0.4s">
+					<div class="page-scroll marginbot-30">
+						<a href="#intro" id="totop" class="btn btn-circle">
+							<i class="fa fa-angle-double-up animated"></i>
+						</a>
+					</div>
+					</div>
+					<p>&copy;Copyright 2014 - Squad. All rights reserved. <a href="http://bootstraptaste.com/">Bootstrap Themes</a> by BootstrapTaste</p>
+                    <!-- 
+                        All links in the footer should remain intact. 
+                        Licenseing information is available at: http://bootstraptaste.com/license/
+                        You can buy this theme without footer links online at: http://bootstraptaste.com/buy/?theme=Squadfree
+                    -->
+				</div>
+			</div>	
+		</div>
+	</footer>
+
+    <!-- Core JavaScript Files -->
+    <script src="js/jquery.min.js"></script>
+    <script src="js/bootstrap.min.js"></script>
+    <script src="js/jquery.easing.min.js"></script>	
+	<script src="js/jquery.scrollTo.js"></script>
+	<script src="js/wow.min.js"></script>
+    <!-- Custom Theme JavaScript -->
+    <script src="js/custom.js"></script>
+
+</body>
+
+</html>
