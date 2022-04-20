@@ -8,7 +8,9 @@ Before You install the prerequisites You must have at least one version of gfort
 
 In most system there are a lot of libraries pre-installed. Yes, if possible use them. But, unfortunatelly, some times a library require other dependencies and the configure may be broken. The instructions bellow in this documents will guide You to install in a particular way. If You got others problems please, contact your system manager.
 
-1. ## Create the prerequisites folder's strucuture:
+If You wanto more information abaout gfortran, please, see the manual https://gcc.gnu.org/onlinedocs/gcc-8.4.0/gfortran.pdf
+
+1. ## Create the prerequisites folder's structure:
    
    You will need a folder (**{YOUR_DIR}**) to put the libraries, includes and executables. You can choose a system folder or a local home folder. If You prefer a system folder remember that commands must be preceeded by a sudo command. Another folder (**{INSTALL_DIR}**) will be used only for create the sctrucuture and can bem erased after all instalation.
    
@@ -47,18 +49,22 @@ In most system there are a lot of libraries pre-installed. Yes, if possible use 
    
    The necessary packages are:
    
-   | Package        | Site                                                   | File                        |
-   |:--------------:|:------------------------------------------------------:|:---------------------------:|
-   | mpich3         | http://www.mpich.org/static/downloads/4.0a2/           | mpich-4.0a2.tar.gz          |
-   | zlib           | ftp://ftp.unidata.ucar.edu/pub/netcdf/netcdf-4/        | zlib-1.2.8.tar.gz           |
-   | szip           | ftp://ftp.unidata.ucar.edu/pub/netcdf/netcdf-4/        | szip-2.1.tar.gz             |
-   | curl           | ftp://ftp.unidata.ucar.edu/pub/netcdf/netcdf-4/        | curl-7.26.0.tar.gz          |
-   | netCDF C       | https://downloads.unidata.ucar.edu/netcdf-c/4.8.1/src/ | netcdf-c-4.8.1.tar.gz       |
-   | netCDF Fortran | https://www.unidata.ucar.edu/downloads/netcdf/ftp/     | netcdf-fortran-4.5.3.tar.gz |
-   | grib2          | https://www.ftp.cpc.ncep.noaa.gov/wd51we/wgrib2/       | wgrib2.tgz                  |
-   | hdf5           | https://www.hdfgroup.org/downloads/hdf5/source-code/   | hdf5-1.12.1.tar.gz          |
+   | Package        | Site                                                                           | File                        |
+   |:--------------:|:------------------------------------------------------------------------------:|:---------------------------:|
+   | mpich3         | http://www.mpich.org/static/downloads/4.0a2/                                   | mpich-4.0a2.tar.gz          |
+   | zlib           | ftp://ftp.unidata.ucar.edu/pub/netcdf/netcdf-4/                                | zlib-1.2.8.tar.gz           |
+   | szip           | https://support.hdfgroup.org/ftp/lib-external/szip/2.1.1/src/szip-2.1.1.tar.gz | szip-2.1.tar.gz             |
+   | curl           | https://curl.se/download/curl-7.82.0.tar.gz                                    | curl-7.26.0.tar.gz          |
+   | netCDF C       | https://downloads.unidata.ucar.edu/netcdf-c/4.8.1/src/                         | netcdf-c-4.8.1.tar.gz       |
+   | netCDF Fortran | https://www.unidata.ucar.edu/downloads/netcdf/ftp/                             | netcdf-fortran-4.5.3.tar.gz |
+   | grib2          | https://www.ftp.cpc.ncep.noaa.gov/wd51we/wgrib2/                               | wgrib2.tgz                  |
+   | hdf5           | https://www.hdfgroup.org/downloads/hdf5/source-code/                           | hdf5-1.12.1.tar.gz          |
    
-   > Notice: the grib2 file has diferent names if You get it from NCEP or if You get it from BRAMS ftp.
+   > Notices: 
+   > 
+   > 1. the grib2 file has diferent names if You get it from NCEP or if You get it from BRAMS ftp.
+   > 
+   > 2. The packages may have new version. You can try to install the new versions. Check the web page of each one.
 
 3. You must have sure about where are the libraries, includes and binaries You will build the system.  Is necessary to make a symbolic link between the gfortran compiler (version 8) of your system using just "gfortran" in your bin area. The same for gcc. Let's setup the paths:
    
@@ -112,6 +118,43 @@ In most system there are a lot of libraries pre-installed. Yes, if possible use 
    sudo make install
    cd ..
    ```
+   
+   After the install check if the mpich is installed and all the library is present. 
+
+```bash
+ls {YOUR_DIR}/bin
+.rwxr-xr-x 593k root 19 Apr 15:44  hydra_nameserver
+.rwxr-xr-x 587k root 19 Apr 15:44  hydra_persist
+.rwxr-xr-x 819k root 19 Apr 15:44  hydra_pmi_proxy
+lrwxrwxrwx    6 root 19 Apr 15:44  mpic++ -> mpicxx
+.rwxr-xr-x  11k root 19 Apr 15:44  mpicc
+.rwxr-xr-x  17k root 19 Apr 15:44  mpichversion
+.rwxr-xr-x  11k root 19 Apr 15:44  mpicxx
+lrwxrwxrwx   13 root 19 Apr 15:44  mpiexec -> mpiexec.hydra
+.rwxr-xr-x 1,1M root 19 Apr 15:44  mpiexec.hydra
+lrwxrwxrwx    7 root 19 Apr 15:44  mpif77 -> mpifort
+lrwxrwxrwx    7 root 19 Apr 15:44  mpif90 -> mpifort
+.rwxr-xr-x  14k root 19 Apr 15:44  mpifort
+lrwxrwxrwx   13 root 19 Apr 15:44  mpirun -> mpiexec.hydra
+.rwxr-xr-x  35k root 19 Apr 15:44  mpivars
+.rwxr-xr-x 3,5k root 19 Apr 15:44  parkill
+```
+
+To check the version (compiler and options) of mpich:
+
+```bash
+{YOUR_DIR}/bin/mpirun --version
+HYDRA build details:
+    Version:                                 4.0b1
+    Release Date:                            Mon Nov 15 10:22:52 CST 2021
+    CC:                              gcc-8   -O2   
+    Configure options:                       '--disable-option-checking' '--prefix=/home/lufla/apps' '-disable-fast' 'CC=gcc-8' 'FC=gfortran-8' 'CFLAGS=-O2 -O0' 'FFLAGS=-O2 -O0' 'CXXFLAGS=-O2 -O0' 'FCFLAGS=-O2 -O0' '--with-device=ch3' '--cache-file=/dev/null' '--srcdir=.' 'LDFLAGS=' 'LIBS=' 'CPPFLAGS=-D__HIP_PLATFORM_AMD__ -I/home/lufla/install/mpich-4.0b1/src/mpl/include -I/home/lufla/install/mpich-4.0b1/modules/json-c -D_REENTRANT -I/home/lufla/install/mpich-4.0b1/src/mpi/romio/include'
+    Process Manager:                         pmi
+    Launchers available:                     ssh rsh fork slurm ll lsf sge manual persist
+    Topology libraries available:            hwloc
+    Resource management kernels available:   user slurm ll lsf sge pbs cobalt
+    Demux engines available:                 poll select
+```
 
 5. ## Building zlib, szip and curl
    
@@ -135,7 +178,7 @@ In most system there are a lot of libraries pre-installed. Yes, if possible use 
    #Curl
    tar -xzvf curl-7.26.0.tar.gz 
    cd curl-7.26.0/
-   CC=<Your_C_compiler> ./configure --prefix={YOUR_DIR} --without-libssh2
+   CC=<Your_C_compiler> ./configure --prefix={YOUR_DIR} --without-libssh2  --with-openssl
    make
    make install
    cd ..
@@ -152,13 +195,13 @@ In most system there are a lot of libraries pre-installed. Yes, if possible use 
    cd ..
    ```
    
-    If You used **NVIDIA** (pgf90/pgcc) to build mpich, instead the configure above,  make the configure using the command lines bellow
+   --with-openssl If You used **NVIDIA** (pgf90/pgcc) to build mpich, instead the configure above,  make the configure using the command lines bellow
    
    ```bash
    ./configure --prefix={YOUR_DIR} FFLAGS=-fPIC FCFLAGS=-fPIC CC={YOUR_DIR}/bin/mpicc FC={YOUR_DIR}/bin/mpif90 --with-zlib={YOUR_DIR} --with-szlib={YOUR_DIR} --enable-parallel --enable-fortran
    make
    sudo make install
-   cd ..
+   cd ..--with-openssl
    ```
 
 7. ## Building NetCDF libraries
@@ -352,8 +395,6 @@ source ~/.bashrc
 and the two alias will be available. Now You can choose the correct before run the model. If You will run the gnu install execute the alias gnu8 on terminal and You will be ready to go.
 
 ---
-
-
 
 ```
    All the required prerequisites are installed. Have fun!
