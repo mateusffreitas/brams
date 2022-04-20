@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Install Pre-Requisites</title>
+  <title>Pre-requisites BRAMS</title>
   <style>
   @font-face {
   font-family: octicons-link;
@@ -1257,8 +1257,9 @@ pre[class*="language-"] {
 <p>In body of text bellow we will use  <strong></strong> for your C compiler choice and  for Your Fortran compiler choice.</p>
 </blockquote>
 <p>In most system there are a lot of libraries pre-installed. Yes, if possible use them. But, unfortunatelly, some times a library require other dependencies and the configure may be broken. The instructions bellow in this documents will guide You to install in a particular way. If You got others problems please, contact your system manager.</p>
+<p>If You wanto more information abaout gfortran, please, see the manual <a href="https://gcc.gnu.org/onlinedocs/gcc-8.4.0/gfortran.pdf">https://gcc.gnu.org/onlinedocs/gcc-8.4.0/gfortran.pdf</a></p>
 <ol>
-<li><h2 class="atx" id="create-the-prerequisites-folderand39s-strucuture">Create the prerequisites folder's strucuture:</h2>
+<li><h2 class="atx" id="create-the-prerequisites-folderand39s-structure">Create the prerequisites folder's structure:</h2>
 <p>You will need a folder (<strong>{YOUR_DIR}</strong>) to put the libraries, includes and executables. You can choose a system folder or a local home folder. If You prefer a system folder remember that commands must be preceeded by a sudo command. Another folder (<strong>{INSTALL_DIR}</strong>) will be used only for create the sctrucuture and can bem erased after all instalation.</p>
 <pre><code class="fenced-code-block language-bash"><span class="token function">mkdir</span> <span class="token punctuation">{</span>YOUR_DIR<span class="token punctuation">}</span>
 <span class="token function">mkdir</span> <span class="token punctuation">{</span>YOUR_DIR<span class="token punctuation">}</span>/bin
@@ -1303,12 +1304,12 @@ pre[class*="language-"] {
 </tr>
 <tr>
 <td align="center">szip</td>
-<td align="center"><a href="ftp://ftp.unidata.ucar.edu/pub/netcdf/netcdf-4/">ftp://ftp.unidata.ucar.edu/pub/netcdf/netcdf-4/</a></td>
+<td align="center"><a href="https://support.hdfgroup.org/ftp/lib-external/szip/2.1.1/src/szip-2.1.1.tar.gz">https://support.hdfgroup.org/ftp/lib-external/szip/2.1.1/src/szip-2.1.1.tar.gz</a></td>
 <td align="center">szip-2.1.tar.gz</td>
 </tr>
 <tr>
 <td align="center">curl</td>
-<td align="center"><a href="ftp://ftp.unidata.ucar.edu/pub/netcdf/netcdf-4/">ftp://ftp.unidata.ucar.edu/pub/netcdf/netcdf-4/</a></td>
+<td align="center"><a href="https://curl.se/download/curl-7.82.0.tar.gz">https://curl.se/download/curl-7.82.0.tar.gz</a></td>
 <td align="center">curl-7.26.0.tar.gz</td>
 </tr>
 <tr>
@@ -1333,7 +1334,13 @@ pre[class*="language-"] {
 </tr>
 </tbody></table>
 <blockquote>
-<p>Notice: the grib2 file has diferent names if You get it from NCEP or if You get it from BRAMS ftp.</p>
+<p>Notices: </p>
+<ol>
+<li><p>the grib2 file has diferent names if You get it from NCEP or if You get it from BRAMS ftp.</p>
+</li>
+<li><p>The packages may have new version. You can try to install the new versions. Check the web page of each one.</p>
+</li>
+</ol>
 </blockquote>
 </li>
 <li><p>You must have sure about where are the libraries, includes and binaries You will build the system.  Is necessary to make a symbolic link between the gfortran compiler (version 8) of your system using just "gfortran" in your bin area. The same for gcc. Let's setup the paths:</p>
@@ -1370,7 +1377,38 @@ warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.</cod
 <span class="token function">make</span>
 <span class="token function">sudo</span> <span class="token function">make</span> <span class="token function">install</span>
 <span class="token builtin class-name">cd</span> <span class="token punctuation">..</span></code></pre>
+<p>After the install check if the mpich is installed and all the library is present. </p>
 </li>
+</ol>
+<pre><code class="fenced-code-block language-bash"><span class="token function">ls</span> <span class="token punctuation">{</span>YOUR_DIR<span class="token punctuation">}</span>/bin
+.rwxr-xr-x 593k root <span class="token number">19</span> Apr <span class="token number">15</span>:44  hydra_nameserver
+.rwxr-xr-x 587k root <span class="token number">19</span> Apr <span class="token number">15</span>:44  hydra_persist
+.rwxr-xr-x 819k root <span class="token number">19</span> Apr <span class="token number">15</span>:44  hydra_pmi_proxy
+lrwxrwxrwx    <span class="token number">6</span> root <span class="token number">19</span> Apr <span class="token number">15</span>:44  mpic++ -<span class="token operator">&gt;</span> mpicxx
+.rwxr-xr-x  11k root <span class="token number">19</span> Apr <span class="token number">15</span>:44  mpicc
+.rwxr-xr-x  17k root <span class="token number">19</span> Apr <span class="token number">15</span>:44  mpichversion
+.rwxr-xr-x  11k root <span class="token number">19</span> Apr <span class="token number">15</span>:44  mpicxx
+lrwxrwxrwx   <span class="token number">13</span> root <span class="token number">19</span> Apr <span class="token number">15</span>:44  mpiexec -<span class="token operator">&gt;</span> mpiexec.hydra
+.rwxr-xr-x <span class="token number">1</span>,1M root <span class="token number">19</span> Apr <span class="token number">15</span>:44  mpiexec.hydra
+lrwxrwxrwx    <span class="token number">7</span> root <span class="token number">19</span> Apr <span class="token number">15</span>:44  mpif77 -<span class="token operator">&gt;</span> mpifort
+lrwxrwxrwx    <span class="token number">7</span> root <span class="token number">19</span> Apr <span class="token number">15</span>:44  mpif90 -<span class="token operator">&gt;</span> mpifort
+.rwxr-xr-x  14k root <span class="token number">19</span> Apr <span class="token number">15</span>:44  mpifort
+lrwxrwxrwx   <span class="token number">13</span> root <span class="token number">19</span> Apr <span class="token number">15</span>:44  mpirun -<span class="token operator">&gt;</span> mpiexec.hydra
+.rwxr-xr-x  35k root <span class="token number">19</span> Apr <span class="token number">15</span>:44  mpivars
+.rwxr-xr-x <span class="token number">3</span>,5k root <span class="token number">19</span> Apr <span class="token number">15</span>:44  parkill</code></pre>
+<p>To check the version (compiler and options) of mpich:</p>
+<pre><code class="fenced-code-block language-bash"><span class="token punctuation">{</span>YOUR_DIR<span class="token punctuation">}</span>/bin/mpirun --version
+HYDRA build details:
+    Version:                                 <span class="token number">4</span>.0b1
+    Release Date:                            Mon Nov <span class="token number">15</span> <span class="token number">10</span>:22:52 CST <span class="token number">2021</span>
+    CC:                              gcc-8   -O2   
+    Configure options:                       <span class="token string">'--disable-option-checking'</span> <span class="token string">'--prefix=/home/lufla/apps'</span> <span class="token string">'-disable-fast'</span> <span class="token string">'CC=gcc-8'</span> <span class="token string">'FC=gfortran-8'</span> <span class="token string">'CFLAGS=-O2 -O0'</span> <span class="token string">'FFLAGS=-O2 -O0'</span> <span class="token string">'CXXFLAGS=-O2 -O0'</span> <span class="token string">'FCFLAGS=-O2 -O0'</span> <span class="token string">'--with-device=ch3'</span> <span class="token string">'--cache-file=/dev/null'</span> <span class="token string">'--srcdir=.'</span> <span class="token string">'LDFLAGS='</span> <span class="token string">'LIBS='</span> <span class="token string">'CPPFLAGS=-D__HIP_PLATFORM_AMD__ -I/home/lufla/install/mpich-4.0b1/src/mpl/include -I/home/lufla/install/mpich-4.0b1/modules/json-c -D_REENTRANT -I/home/lufla/install/mpich-4.0b1/src/mpi/romio/include'</span>
+    Process Manager:                         pmi
+    Launchers available:                     <span class="token function">ssh</span> rsh fork slurm ll lsf sge manual persist
+    Topology libraries available:            hwloc
+    Resource management kernels available:   user slurm ll lsf sge pbs cobalt
+    Demux engines available:                 poll <span class="token keyword">select</span></code></pre>
+<ol start="5">
 <li><h2 class="atx" id="building-zlib-szip-and-curl">Building zlib, szip and curl</h2>
 <pre><code class="fenced-code-block language-bash"><span class="token comment">#zlib</span>
 <span class="token function">tar</span> -xzvf zlib-1.2.8.tar.gz 
@@ -1391,7 +1429,7 @@ warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.</cod
 <span class="token comment">#Curl</span>
 <span class="token function">tar</span> -xzvf curl-7.26.0.tar.gz 
 <span class="token builtin class-name">cd</span> curl-7.26.0/
-<span class="token assign-left variable">CC</span><span class="token operator">=</span><span class="token operator">&lt;</span>Your_C_compiler<span class="token operator">&gt;</span> ./configure --prefix<span class="token operator">=</span><span class="token punctuation">{</span>YOUR_DIR<span class="token punctuation">}</span> --without-libssh2
+<span class="token assign-left variable">CC</span><span class="token operator">=</span><span class="token operator">&lt;</span>Your_C_compiler<span class="token operator">&gt;</span> ./configure --prefix<span class="token operator">=</span><span class="token punctuation">{</span>YOUR_DIR<span class="token punctuation">}</span> --without-libssh2  --with-openssl
 <span class="token function">make</span>
 <span class="token function">make</span> <span class="token function">install</span>
 <span class="token builtin class-name">cd</span> <span class="token punctuation">..</span></code></pre>
@@ -1403,11 +1441,11 @@ warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.</cod
 <span class="token function">make</span>
 <span class="token function">sudo</span> <span class="token function">make</span> <span class="token function">install</span>
 <span class="token builtin class-name">cd</span> <span class="token punctuation">..</span></code></pre>
-<p> If You used <strong>NVIDIA</strong> (pgf90/pgcc) to build mpich, instead the configure above,  make the configure using the command lines bellow</p>
+<p>--with-openssl If You used <strong>NVIDIA</strong> (pgf90/pgcc) to build mpich, instead the configure above,  make the configure using the command lines bellow</p>
 <pre><code class="fenced-code-block language-bash">./configure --prefix<span class="token operator">=</span><span class="token punctuation">{</span>YOUR_DIR<span class="token punctuation">}</span> <span class="token assign-left variable">FFLAGS</span><span class="token operator">=</span>-fPIC <span class="token assign-left variable">FCFLAGS</span><span class="token operator">=</span>-fPIC <span class="token assign-left variable">CC</span><span class="token operator">=</span><span class="token punctuation">{</span>YOUR_DIR<span class="token punctuation">}</span>/bin/mpicc <span class="token assign-left variable">FC</span><span class="token operator">=</span><span class="token punctuation">{</span>YOUR_DIR<span class="token punctuation">}</span>/bin/mpif90 --with-zlib<span class="token operator">=</span><span class="token punctuation">{</span>YOUR_DIR<span class="token punctuation">}</span> --with-szlib<span class="token operator">=</span><span class="token punctuation">{</span>YOUR_DIR<span class="token punctuation">}</span> --enable-parallel --enable-fortran
 <span class="token function">make</span>
 <span class="token function">sudo</span> <span class="token function">make</span> <span class="token function">install</span>
-<span class="token builtin class-name">cd</span> <span class="token punctuation">..</span></code></pre>
+<span class="token builtin class-name">cd</span> <span class="token punctuation">..</span>--with-openssl</code></pre>
 </li>
 <li><h2 class="atx" id="building-netcdf-libraries">Building NetCDF libraries</h2>
 <pre><code class="fenced-code-block language-bash"><span class="token function">tar</span> -xzvf netcdf-c-4.8.1.tar.gz 
