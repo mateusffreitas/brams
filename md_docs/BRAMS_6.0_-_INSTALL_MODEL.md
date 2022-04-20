@@ -1,6 +1,6 @@
 # BRAMS 6.0 - INSTALL GUIDE
 
-Before You install the model BRAMS-6.0  You must have the prerequisites installed. See the document  [BRAMS_6.0_-_INSTALL_PREREQUISITES](http://ftp.cptec.inpe.br/pesquisa/bramsrd/BRAMS-6.0/docs/BRAMS_6.0_-_INSTALL_PREREQUISITES.html) (extension md or html) to see how to install the requisites. **Even You believe the system are ready, please, read the prerequisites document.**
+Before You install the model BRAMS-6.0  You must have the prerequisites installed. See the document  [BRAMS_6.0_-_INSTALL_PREREQUISITES](https://luflarois.github.io/brams/BRAMS_6.0_INSTALL_PREREQUISITES.html) to see how to install the requisites. **Even You believe the system are ready, please, read the prerequisites document.**
 
 1. Building PATHS and linking compilers.
    
@@ -47,12 +47,12 @@ Before You install the model BRAMS-6.0  You must have the prerequisites installe
    ```
 
 2. ## Configure the model
-   
-   Now You must configure the model passing all libreries You will be use. The **{YOUR_BIN_AREA}** is the folder you want to put the binary and namelists of model. 
-   
-   ```bash
-   ./configure --program-prefix=BRAMS_6.0 --prefix={YOUR_BIN_AREA} --enable-jules    --with-chem=RELACS_TUV --with-aer=SIMPLE --with-fpcomp={YOUR_DIR}/bin/mpif90    --with-cpcomp={YOUR_DIR}/bin/mpicc --with-fcomp={your_ortran_compiler} --with-ccomp={your_C_compiler} --with-netcdff={YOUR_DIR} --with-netcdfc={YOUR_DIR} --with-wgrib2={YOUR_DIR}
-   ```
+
+Now You must configure the model passing all libreries You will be use. The **{YOUR_BIN_AREA}** is the folder you want to put the binary and namelists of model. 
+
+```bash
+./configure --program-prefix=BRAMS_6.0 --prefix={YOUR_BIN_AREA} --enable-jules    --with-chem=RELACS_TUV --with-aer=SIMPLE --with-fpcomp={YOUR_DIR}/bin/mpif90    --with-cpcomp={YOUR_DIR}/bin/mpicc --with-fcomp={your_ortran_compiler} --with-ccomp={your_C_compiler} --with-netcdff={YOUR_DIR} --with-netcdfc={YOUR_DIR} --with-wgrib2={YOUR_DIR}
+```
 
 Bellow an example of use using Gnu, where {YOUR_BIN_AREA} is /home/oscar.
 
@@ -62,14 +62,14 @@ Bellow an example of use using Gnu, where {YOUR_BIN_AREA} is /home/oscar.
 
 3. ## Make and Make install
    
-   The make command will create the brams-6.0 executable. After creation it is necessary to run the make install command so that the basic files for the run are copied to the area set in {YOUR_BIN_AREA}
+   The make command will create the brams-6.0 executable. After creation it is necessary to run the make install command so that the basic files for the run are copied to the area set in **{YOUR_BIN_AREA}**
    
    ```bash
    make
    make install
    ```
    
-   The output of BRAMS's model is presented with colors in terminal. If You save the output log (by ">&" use) may be a problem if You want to edit the file. Is possibles to make a filter to extract all special symbols used to color the output. To make the filter just
+   The output of BRAMS's model is presented with colors in terminal. If You save the output log file by using ">&" or ">", You may got a problem when edit the file. Use the filter to extract all special symbols used to color the output. To make the filter just
    
    ```bash
    make filter
@@ -97,14 +97,4 @@ Bellow an example of use using Gnu, where {YOUR_BIN_AREA} is /home/oscar.
    tar -xvf brams6.0_test_bin.tar.xz
    ```
 
-5. The output of model as You read above is in GRADS file. May be used another formats but we will show how in expert users guide. If You are using Ubuntu Linux or some Debia derivated Linux You can install grads in a simple way, using apt-get command
-   
-   ```bash
-   sudo apt-get install grads
-   ```
-   
-   To install grads right from source, please, see the information on site [GrADS Downloads](http://cola.gmu.edu/grads/downloads.php). Pay attention on the necessary libraries explained on [GrADS Supplibs](http://cola.gmu.edu/grads/gadoc/supplibs2.html)
-   
-   To learn about grads we recommend to read the document [Grads Manual from NCEP](https://www.cpc.ncep.noaa.gov/products/international/grads/Advanced_GrADS_Manual.pdf).
-
-6. # 
+5.  
