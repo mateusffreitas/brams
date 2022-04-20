@@ -43,3 +43,9 @@ log.txt
 ./doc/src/*
 ./doc/src
 
+#Makes e status
+build/Make_utils
+build/Makefile
+build/config.status
+
+
