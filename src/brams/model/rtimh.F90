@@ -160,8 +160,7 @@ subroutine timestep(OneGrid,oneNamelistFile)
 
   use ModTimeStamp, only: SynchronizedTimeStamp, TimeStamp
 
-  use cuparm_grell3, only: cuparm_grell3_catt &  ! subroutine
-                          ,g3d_g
+  use cuparm_grell3, only: cuparm_grell3_catt 
 
   use digitalFilter, only: 	        &
                     applyDigitalFilter, & ! subroutine
@@ -182,8 +181,6 @@ subroutine timestep(OneGrid,oneNamelistFile)
 
   USE mem_radiate, ONLY: &
          ilwrtyp, iswrtyp
-
-  use CUPARM_GRELL3, only: g3d_g
 
   USE wind_Farm, ONLY: wind_farm_driver,windfarm
 
@@ -509,6 +506,10 @@ subroutine timestep(OneGrid,oneNamelistFile)
   endif
   if (mcphys_type == 4 ) then
         call micro_gfdl()
+        
+  elseif(mcphys_type >= 5 ) then
+        call micro_wsm()
+  
   endif
 
   !----------------------------------------

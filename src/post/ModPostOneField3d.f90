@@ -190,6 +190,13 @@ contains
          call GetVarFromMemToOutput ('VARTP', oneBramsGrid%currGrid, ScrT3N01)
          call GetVarFromMemToOutput ('VARTF', oneBramsGrid%currGrid, ScrT3N02)
          OutputField = ScrT3N01 +(ScrT3N02-ScrT3N01 )*tfact
+      case ('RAD_ICE')
+         call GetVarFromMemToOutput ('REI', oneBramsGrid%currGrid, OutputField)
+      case ('RAD_LIQ')
+         call GetVarFromMemToOutput ('REL', oneBramsGrid%currGrid, OutputField)   
+      case ('MPCLDFR') 
+         call GetVarFromMemToOutput ('CLDFR', oneBramsGrid%currGrid, OutputField)   
+
       case ('AGGREGATES')
          !-For GThompson microphysics micphys_type>1 : RAP does not exist
          if(mcphys_type .le. 1) then
@@ -200,9 +207,13 @@ contains
          OutputField = OutputField * 1.e3
          OutputField = max(OutputField, 0.0)
       case ('GRAUPEL')
-         call GetVarFromMemToOutput ('RGP', oneBramsGrid%currGrid, OutputField)
-         OutputField = OutputField * 1.e3
-         OutputField = max(OutputField, 0.0)
+         if(mcphys_type .ne. 5) then
+           call GetVarFromMemToOutput ('RGP', oneBramsGrid%currGrid, OutputField)
+           OutputField = OutputField * 1.e3
+           OutputField = max(OutputField, 0.0)
+         else
+           OutputField = 0.0
+         endif
       case ('PRISTINE')
          call GetVarFromMemToOutput ('RGP', oneBramsGrid%currGrid, OutputField)
          OutputField = OutputField * 1.e3
@@ -310,9 +321,11 @@ contains
             call GetVarFromMemToOutput ('RAP', oneBramsGrid%currGrid, ScrT3N01)
             OutputField = OutputField + ScrT3N01
          endif
-         call GetVarFromMemToOutput ('RGP', oneBramsGrid%currGrid, ScrT3N01)
-         OutputField = OutputField + ScrT3N01
-         if(mcphys_type .le. 1) then
+         if(mcphys_type .ne. 5) then
+            call GetVarFromMemToOutput ('RGP', oneBramsGrid%currGrid, ScrT3N01)  
+            OutputField = OutputField + ScrT3N01
+         endif
+         if(mcphys_type .le. 1 .or. mcphys_type == 7) then
             call GetVarFromMemToOutput ('RHP', oneBramsGrid%currGrid, ScrT3N01)
             OutputField = OutputField + ScrT3N01
          endif
@@ -449,15 +462,20 @@ contains
          OutputField = OutputField * 86400.0
       case ('CUCLDP')
          call GetVarFromMemToOutput ('CLSRC', oneBramsGrid%currGrid, OutputField)
-
       case ('ZMFUP')
          call GetVarFromMemToOutput ('ZMFUP', oneBramsGrid%currGrid, OutputField)
       case ('ZMFDD')
          call GetVarFromMemToOutput ('ZMFDD', oneBramsGrid%currGrid, OutputField)
       case ('ZMFSH')
          call GetVarFromMemToOutput ('ZMFSH', oneBramsGrid%currGrid, OutputField)
-      case ('ZUPMD')
-         call GetVarFromMemToOutput ('ZUPMD', oneBramsGrid%currGrid, OutputField)
+      case ('ZMFMD')
+         call GetVarFromMemToOutput ('ZMFMD', oneBramsGrid%currGrid, OutputField)
+      case ('ENTUP')
+         call GetVarFromMemToOutput ('ENTUP', oneBramsGrid%currGrid, OutputField)
+         OutputField = OutputField * 1000.0
+      case ('DETUP')
+         call GetVarFromMemToOutput ('DETUP', oneBramsGrid%currGrid, OutputField)
+         OutputField = OutputField * 1000.0
       case ('CUBUDP')
          call GetVarFromMemToOutput ('BUOYSRC', oneBramsGrid%currGrid, OutputField)
          OutputField = OutputField * 86400.0
@@ -620,7 +638,8 @@ contains
          call GetVarFromMemToOutput ('v_ash10P', oneBramsGrid%currGrid, OutputField)
          OutputField = max(OutputField, 0.0)
 !End vaviaveis do recycle
-
+      case ('CLOUD_FRACTION')
+         call GetVarFromMemToOutput ('CLOUD_FRACTION', oneBramsGrid%currGrid, OutputField)
 
       case default
          write(*, "(a)") "**(OnePostField)** Post field 3d " // one_post_variable%fieldName // " not implemented!"
