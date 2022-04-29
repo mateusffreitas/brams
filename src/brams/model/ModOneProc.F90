@@ -547,6 +547,9 @@ module ModOneProc
     initComIau, &
     applyIAU
 
+ use modTimeLineFRN, only: &
+    readSites
+
 
   implicit none
   private
@@ -911,12 +914,6 @@ contains
 !    do while (IAU_phase <= applyIAU)
 !     IAU_phase = IAU_phase + 1
 !======XXXXXsrf
-
-
-
-
-
-
        !**(JP)** Code brought from old "rams_node" initialization. Its execution
        ! was antecipated to allow message passing during initialization, required
        ! for binary reproducibility (see subroutine FilDn0uv)
@@ -1052,6 +1049,14 @@ contains
           oneAllPostTypes => null()
           call CreatePostProcess(oneNamelistFile, oneAllPostTypes)
        endif
+       
+       !LFR: Fazendo a inicialização dos sites para séries temporais
+       !print *,mchnum,master_num,'Chamando....'
+       !if(mchnum == master_num) then
+         !print *,'Chamando readsites ::::::::'
+         call readSites(mchnum,master_num,oneNamelistFile)
+       !endif
+
 
        select case (IPOS)
 
@@ -1059,7 +1064,7 @@ contains
       !!$        ! post process initial state of the atmosphere in HDF5
       !!$        call PostProcessHDF5(oneNamelistFile, oneAllPostTypes)
 
-       case (2,3)
+       case (2,3,10,11)
           ! post process initial state of the atmosphere in Grads
           call PostProcess(AllGrids, oneNamelistFile, oneAllPostTypes)
        end select
@@ -1430,7 +1435,7 @@ contains
 
             !!$              call PostProcessHDF5(oneNamelistFile, oneAllPostTypes)
 
-             case (2,3)
+             case (2,3,10,11)
                 call PostProcess(AllGrids, oneNamelistFile, oneAllPostTypes)
              end select
 

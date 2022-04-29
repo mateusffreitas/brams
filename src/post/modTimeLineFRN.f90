@@ -1,0 +1,797 @@
+module modTimeLineFRN
+   !! Módulo para tratar das saídas da timeline para o projeto Furnas
+   !!
+   !! @note
+   !!
+   !! **Project**: BRAMS-FURNAS
+   !! **Author(s)**: Rodrigues, L.F. [LFR]
+   !! **e-mail**: <mailto:luiz.rodrigues@inpe.br>
+   !! **Date**:  26Abril2022 17:26
+   !!
+   !! **Full description**:
+   !! Módulo para tratar das saídas da timeline para o projeto Furnas.
+   !! Este módulo contem rotinas que identificam as variáveis para os pontos selecionados
+   !! no arquivo "pontos.csv" e escreve a linha temporal com os valores para os pontos.
+   !! São escritas as variáveis definidas em uma lista.
+   !!
+   !! @endnote
+   !!
+   !! @warning
+   !!
+   !!  [](https://www.gnu.org/graphics/gplv3-127x51.png'')
+   !!
+   !!     This program is free software: you can redistribute it and/or modify
+   !!     it under the terms of the GNU General Public License as published by
+   !!     the  Free  Software  Foundation, either version 3 of the License, or
+   !!     (at your option) any later version.
+   !!
+   !!     This program is distributed in the hope that it  will be useful, but
+   !!     WITHOUT  ANY  WARRANTY;  without  even  the   implied   warranty  of
+   !!     MERCHANTABILITY or FITNESS FOR A  PARTICULAR PURPOSE.  See  the, GNU
+   !!     GNU General Public License for more details.
+   !!
+   !!     You should have received a copy  of the GNU General  Public  License
+   !!     along with this program.  If not, see <https://www.gnu.org/licenses/>.
+   !!
+   !! @endwarning
+
+   use dump
+   implicit none
+   include 'constants.f90'
+   character(len=*), parameter :: sourceName = 'modTimeLineFRN.f90' ! Nome do arquivo fonte
+   character(len=*), parameter :: moduleName = 'modTimeLIneFRN' ! Nome do módulo
+
+   integer, parameter :: maxSites = 16
+   !! Número máximo de sites permitidos
+
+   private
+   public :: writeTimeLineFRN, readSites
+
+   interface writeTimeLineFRN
+    module procedure writeTimeLineFRN_2D
+    module procedure writeTimeLineFRN_3D
+   end interface
+
+   type t_sit
+    character(len=32) :: nome
+    real :: lat 
+    real :: lon
+    integer :: xpos
+    integer :: ypos
+    integer :: fileNumber
+    integer :: localXpos
+    integer :: localYpos
+   end type
+   !! Tipo com informações dos sites
+   type(t_sit) :: sites(maxSites)
+   !! Descrição dos sites lidos e suas posições
+   integer :: nSites
+   !! Número total de sites (obtidos do arquivo de entrada)
+   integer :: count_var
+   !! Numero de variáveis por estação
+   character(len=8), allocatable :: estvar(:)
+
+contains
+
+   subroutine writeTimeLineFRN_3d(fieldName,OutputField,mxp,myp,mzp,time,oneNamelistFile)
+      !! Escreve a time line da variável 3D recebida do Pós
+      !!
+      !! @note
+      !!
+      !! **Project**: BRAMS-Furnas
+      !! **Author(s)**: Rodrigues, L.F. [LFR]
+      !! **e-mail**: <mailto:luiz.rodrigues@inpe.br>
+      !! **Date**:  26Abril2022 17:31
+      !!
+      !! **Full description**:
+      !! Escreve a time line da variável 3D recebida do Pós
+      !!
+      !! @endnote
+      !!
+      !! @warning
+      !!
+      !!  [](https://www.gnu.org/graphics/gplv3-127x51.png'')
+      !!
+      !!     Under the terms of the GNU General Public version 3
+      !!
+      !! @endwarning
+   
+      USE node_mod, only: &
+      ia, iz, ja, jz, mynum
+
+      USE ModDateUtils, only: &
+      date_add_to_dble
+
+      USE mem_grid, ONLY: &
+      iyear1,        & ! (IN)
+      imonth1,       & ! (IN)
+      idate1,        & ! (IN)
+      itime1,        &   ! (IN)
+      zt              ! (IN) read_sourcemaps()
+
+      use ModNamelistFile, only: namelistFile
+
+      implicit none
+      !Parameters:
+      character(len=*), parameter :: procedureName = 'writeTimeLineFRN_3d' ! Nome da subrotina
+   
+      !Variables (input, output, inout)
+      type(NamelistFile), pointer :: oneNamelistFile
+      character(len=*), intent(in) :: fieldName
+      !! Nome do campo a ser avaliado
+      integer, intent(in) :: mxp,myp,mzp
+      real, intent(in) :: OutputField(mxp,myp,mzp)
+      real, intent(in) :: time
+   
+      !Local variables:
+      integer :: i,j,k,n,sout
+      integer :: iyy,imm,idd,ihh,hh,mm,ss
+   
+      !Code:
+      if(.not. checkVar(fieldName)) return
+
+      call date_add_to_dble(iyear1,imonth1,idate1,itime1,dble(time),'s' &
+      ,iyy,imm,idd,ihh)
+      hh=int(ihh/10000)
+      mm=int((ihh-hh*10000)/100)
+      ss=int(ihh-hh*10000-mm*100)
+
+      !Code:
+      do n = 1,nsites  
+         if(sites(n)%localXpos>0 .and. sites(n)%localYpos>0) then !Existe algum ponto preenchido
+            sout = writeVar3D(n,trim(fieldName),OutputField,mxp,myp,mzp,iyy,imm,idd,hh,mm,ss,oneNamelistFile%inplevs)
+         endif
+      enddo
+
+
+   end subroutine writeTimeLineFRN_3d
+
+   function checkVar(varName) result(isthere)
+      !! Verifica se a variável passada está no array de variáveis
+      !!
+      !! @note
+      !!
+      !! **Project**: BRAMS_FURNAS
+      !! **Author(s)**: Rodrigues, L.F. [LFR]
+      !! **e-mail**: <mailto:luiz.rodrigues@inpe.br>
+      !! **Date**:  29Abril2022 16:12
+      !!
+      !! **Full description**:
+      !! Verifica se a variável passada está no array de variáveis
+      !!
+      !! @endnote
+      !!
+      !! @warning
+      !!
+      !!  [](https://www.gnu.org/graphics/gplv3-127x51.png'')
+      !!
+      !!     Under the terms of the GNU General Public version 3
+      !!
+      !! @endwarning
+   
+      implicit none
+      !Parameters:
+      character(len=*), parameter :: procedureName = 'checkVar' ! Nome da função
+   
+      !Variables (input):
+      character(len=*), intent(in) :: varName
+      logical :: isthere
+   
+      !Local variables:
+      integer :: i
+
+      isthere = .false.
+   
+      !Code:
+      !print *,count_var
+      do i = 1,count_var
+         !print *,i!,to_lower(trim(varName))
+         if(trim(varName)==trim(estvar(i))) isthere = .true.
+      enddo
+   
+   end function checkVar
+
+   subroutine writeTimeLineFRN_2d(fieldName,OutputField,mxp,myp,time)
+      !! Escreve a time line da variável 2D recebida do Pós
+      !!
+      !! @note
+      !!
+      !! **Project**: BRAMS-Furnas
+      !! **Author(s)**: Rodrigues, L.F. [LFR]
+      !! **e-mail**: <mailto:luiz.rodrigues@inpe.br>
+      !! **Date**:  26Abril2022 17:31
+      !!
+      !! **Full description**:
+      !! Escreve a time line da variável 2D recebida do Pós
+      !!
+      !! @endnote
+      !!
+      !! @warning
+      !!
+      !!  [](https://www.gnu.org/graphics/gplv3-127x51.png'')
+      !!
+      !!     Under the terms of the GNU General Public version 3
+      !!
+      !! @endwarning
+   
+      USE node_mod, only: &
+      ia, iz, ja, jz, mynum
+
+      USE ModDateUtils, only: &
+      date_add_to_dble
+
+      USE mem_grid, ONLY: &
+      iyear1,        & ! (IN)
+      imonth1,       & ! (IN)
+      idate1,        & ! (IN)
+      itime1,        & ! (IN)
+      zt
+
+      implicit none
+      !Parameters:
+      character(len=*), parameter :: procedureName = 'writeTimeLineFRN_2d' ! Nome da subrotina
+   
+      !Variables (input, output, inout)
+      character(len=*), intent(in) :: fieldName
+      !! Nome do campo a ser avaliado
+      integer, intent(in) :: mxp,myp
+      real, intent(in) :: OutputField(mxp,myp)
+      real, intent(in) :: time
+
+      !Local variables:
+      integer :: i,j,k,n,sout
+      integer :: iyy,imm,idd,ihh,hh,mm,ss
+   
+      !Code:
+
+      if(.not. checkVar(fieldName)) return
+
+      call date_add_to_dble(iyear1,imonth1,idate1,itime1,dble(time),'s' &
+      ,iyy,imm,idd,ihh)
+      hh=int(ihh/10000)
+      mm=int((ihh-hh*10000)/100)
+      ss=int(ihh-hh*10000-mm*100)
+
+
+      do n = 1,nsites  
+         if(sites(n)%localXpos>0 .and. sites(n)%localYpos>0) then !Existe algum ponto preenchido
+            sout = writeVar2D(n,trim(fieldName),OutputField,mxp,myp,iyy,imm,idd,hh,mm,ss)
+         endif
+      enddo
+
+
+   end subroutine writeTimeLineFRN_2d
+
+ !=============================================================================================
+ subroutine readSites(mchnum,master_num,oneNamelistFile)
+    !! Lê o arquivo de sites de localização de pontos
+    !!
+    !! @note
+    !!
+    !! **Project**  : BRAMS/FURNAS
+    !! **Author(s)**: Luiz Flávio Rodrigues [lufla]
+    !! **e-mail**   : <luiz.rodrigues@inpe.br>
+    !! **Date**: 13 December 2021 (Monday)
+    !!
+    !! **Full Description**: 
+    !! Lê o arquivo de sites de localização de pontos
+    !!
+    !! @endnote
+    !!
+    !! @warning
+    !! ![](https://licensebuttons.net/l/by-sa/3.0/88x31.png"")
+    !! Now is under CC Attribution-ShareAlike 4.0 International, please see:
+    !! &copy; <https://creativecommons.org/licenses/by-sa/4.0/>
+    !! @endwarning
+    !!
+     
+    !Uses 
+   use mem_grid, only: &
+      oneGlobalGridData, ngrids, nnxp, nnyp 
+
+   USE ReadBcst, ONLY: &
+      Broadcast
+
+   USE node_mod, only: &
+      ia, iz, ja, jz, &
+      nodei0, nodej0, &
+      mynum
+
+   use ModNamelistFile, only: namelistFile
+ 
+    implicit none
+    
+    !Parameters
+    character(len=*),parameter :: procedureName='**readSites**' !Name of this procedure
+
+    type(NamelistFile), pointer :: oneNamelistFile
+    integer, intent(in) :: mchnum
+    !! Número do processador atual
+    integer, intent(in) :: master_num
+    !! Número do processador mestre
+
+    !Local Variables
+    integer :: fileNum
+    character(len=256) :: linha
+    character(len=256) :: campos(3)
+    integer :: count, rsp, i, j, n
+    real :: val, dist, d1, d2
+    character(len=32) :: nome
+    real :: lat 
+    real :: lon
+    integer :: xpos
+    integer :: ypos
+    integer :: fileNumber
+    integer :: localXpos
+    integer :: localYpos
+    character(len=8) :: varname
+ 
+
+    !Code area
+    if(mchnum == master_num) then
+       if(.not. fileExist("estvars.dat")) iErrNumber = dumpMessage(c_tty,c_yes,'','',c_fatal &
+          ,'Arquivo de variáveis, estvars.dat, não encontrado, verifique!')
+
+      open(unit = 87, file = "estvars.dat", status = 'old', action = 'read')
+      count_var = 0
+      do
+         count_var = count_var+1
+         read(87,fmt='(A)', END=30) linha
+      enddo
+
+30    count_var = count_var-1
+      allocate(estvar(count_var))
+      
+      rewind(87)
+      do i=1, count_var
+         read(87,fmt='(A)') estvar(i)
+      enddo
+      close(unit=87)
+
+      if(.not. fileExist("estacoes.csv")) iErrNumber = dumpMessage(c_tty,c_yes,'','',c_fatal &
+      ,'Arquivo de estações, estacoes.csv, não encontrado, verifique!')
+
+       open(unit = 87, file = "estacoes.csv", status = 'old', action = 'read')
+       !Pula a linha de cabeçalho
+       read(87,*)
+       count = 0
+       do 
+          count = count+1
+          read(87,fmt='(A)',END=50) linha
+          !Faz um parse separando os campos
+          campos = parseCsv(linha,3,';')
+          sites(count)%nome = trim(campos(1))
+          read(campos(2),*) sites(count)%lat
+          read(campos(3),*) sites(count)%lon
+          !
+          sites(count)%xpos = 0
+          sites(count)%ypos = 0
+          !Procura o ponto em longitude do modelo mais próximo a lon lida 
+          !guarda esse ponto em xpos
+          dist = 1000.0
+          do i = 2,nnxp(1)
+             d1 = abs(sites(count)%lon-oneGlobalGridData(1)%global_glon(i-1,1))
+             d2 = abs(sites(count)%lon-oneGlobalGridData(1)%global_glon(i,1))
+             if(d1 < dist .and. d1 < d2) then 
+               sites(count)%xpos = i-1
+               dist = d1
+             elseif(d2 < dist .and. d2 < d1) then 
+               sites(count)%xpos = i-1
+               dist = d2
+             endif
+          enddo
+          if(sites(count)%xpos == 0) iErrNumber = dumpMessage(c_tty,c_yes,'','',c_fatal &
+          ,'Longitude do ponto fora do domínio do Modelo!',sites(count)%lon,"F6.2")    
+          !Procura o ponto em latitude do modelo mais próximo a lat lida 
+          !guarda esse ponto em ypos
+          dist = 1000.0
+          do i = 2,nnyp(1)
+             d1 = abs(sites(count)%lat-oneGlobalGridData(1)%global_glat(1,i-1))
+             d2 = abs(sites(count)%lat-oneGlobalGridData(1)%global_glat(1,i))
+             if(d1 < dist .and. d1 < d2) then 
+               sites(count)%ypos = i-1
+               dist = d1
+             elseif(d2 < dist .and. d2 < d1) then 
+               sites(count)%ypos = i-1
+               dist = d2
+             endif
+          enddo
+          if(sites(count)%ypos == 0) iErrNumber = dumpMessage(c_tty,c_yes,'','',c_fatal &
+          ,'Latitude do ponto fora do domínio do Modelo!',sites(count)%lat,"F6.2")     
+       enddo
+50     nSites = count-1
+
+      close(unit = 87)
+    endif
+    
+    CALL Broadcast(count_var, master_num, "count_var")
+    if(mchnum /= master_num) allocate(estvar(count_var))
+    do i=1,count_var
+       varname = estvar(i)
+       CALL Broadcast(varname, master_num, "varname")
+       estvar(i) = varname
+    end do
+
+    CALL Broadcast(nsites, master_num, "nsites")
+    do n=1,nsites
+      nome = sites(n)%nome
+      lat  = sites(n)%lat
+      lon  = sites(n)%lon
+      xpos = sites(n)%xpos
+      ypos = sites(n)%ypos
+      fileNumber =sites(n)%fileNumber
+      CALL Broadcast(nome, master_num, "nome")
+      CALL Broadcast(lat, master_num, "lat")
+      CALL Broadcast(lon, master_num, "lon")
+      CALL Broadcast(xpos, master_num, "xpos")
+      CALL Broadcast(ypos, master_num, "ypos")
+      CALL Broadcast(fileNumber, master_num, "fileNumber")
+      sites(n)%nome = nome
+      sites(n)%lat  = lat 
+      sites(n)%lon  = lon 
+      sites(n)%xpos = xpos
+      sites(n)%ypos = ypos
+      sites(n)%fileNumber = fileNumber
+
+      !Procura pelos pontos no processador local
+      do i=ia,iz
+         if(nodei0(mynum,1)+i == sites(n)%xpos) then 
+            do j=ja,jz
+               if(nodej0(mynum,1)+j == sites(n)%ypos) then 
+                  !Encontrou os pontos xpos e ypos nesse processador
+                  !guardar no site
+                  sites(n)%localXpos = i
+                  sites(n)%localypos = j
+                  rsp = createSitesFile(n,oneNamelistFile%inplevs)
+               endif
+            enddo
+         endif
+      enddo 
+
+    enddo
+
+
+ end subroutine readSites 
+
+ function writeVar3D(siteNumber,varName,OutputField,mxp,myp,mzp,year,month,day,hour,minute,second,levels) result(sout)
+    !! Escreve um campo 3D no arquivo correspondente
+    !!
+    !! @note
+    !!
+    !! **Project**: BRAMS_FURNAS
+    !! **Author(s)**: Rodrigues, L.F. [LFR]
+    !! **e-mail**: <mailto:luiz.rodrigues@inpe.br>
+    !! **Date**:  28Abril2022 19:34
+    !!
+    !! **Full description**:
+    !! Escreve um campo 3D no arquivo correspondente
+    !!
+    !! @endnote
+    !!
+    !! @warning
+    !!
+    !!  [](https://www.gnu.org/graphics/gplv3-127x51.png'')
+    !!
+    !!     Under the terms of the GNU General Public version 3
+    !!
+    !! @endwarning
+ 
+    implicit none
+    !Parameters:
+    character(len=*), parameter :: procedureName = 'writeVar3D' ! Nome da função
+    character(len=*), parameter :: prefixFormat="(I4.4,',',5(I2.2,','),A8,','"
+    character(len=*), parameter :: sufixFormat ="(F14.4,','),F14.4)"
+ 
+    !Variables (input):
+    character(len=*), intent(in) :: varName
+    integer, intent(in) :: siteNumber
+    integer, intent(in) :: mxp,myp,mzp,levels
+    integer, intent(in) :: year,month,day,hour,minute,second
+    real, intent(in) :: OutputField( mxp,myp,mzp)
+    character(len=2) :: clev
+
+    integer :: sout
+ 
+    !Local variables:
+ 
+    !Code:
+    write(clev,fmt='(I2.2)') levels-1
+
+    open(unit = sites(siteNumber)%fileNumber, file = trim(sites(siteNumber)%nome)//'.csv',position = "append", action = "write")
+    write(sites(siteNumber)%fileNumber,fmt=prefixFormat//clev//sufixFormat) year,month,day,hour,minute,second,varName &
+          ,OutputField(sites(siteNumber)%localXpos,sites(siteNumber)%localYpos,1:levels)
+    close(unit = sites(siteNumber)%fileNumber)
+
+    sout=1
+ 
+ end function writeVar3D
+
+ function writeVar2D(siteNumber,varName,OutputField,mxp,myp,year,month,day,hour,minute,second) result(sout)
+   !! Escreve um campo 2D no arquivo correspondente
+   !!
+   !! @note
+   !!
+   !! **Project**: BRAMS_FURNAS
+   !! **Author(s)**: Rodrigues, L.F. [LFR]
+   !! **e-mail**: <mailto:luiz.rodrigues@inpe.br>
+   !! **Date**:  28Abril2022 19:34
+   !!
+   !! **Full description**:
+   !! Escreve um campo 2D no arquivo correspondente
+   !!
+   !! @endnote
+   !!
+   !! @warning
+   !!
+   !!  [](https://www.gnu.org/graphics/gplv3-127x51.png'')
+   !!
+   !!     Under the terms of the GNU General Public version 3
+   !!
+   !! @endwarning
+
+   implicit none
+   !Parameters:
+   character(len=*), parameter :: procedureName = 'writeVar2D' ! Nome da função
+   character(len=*), parameter :: prefixFormat="(I4.4,',',5(I2.2,','),A8,','"
+   character(len=*), parameter :: sufixFormat ="F14.4)"
+
+   !Variables (input):
+   character(len=*), intent(in) :: varName
+   integer, intent(in) :: siteNumber
+   integer, intent(in) :: mxp,myp
+   integer, intent(in) :: year,month,day,hour,minute,second
+   real, intent(in) :: OutputField(mxp,myp)
+
+   integer :: sout
+
+   !Local variables:
+
+   !Code:
+
+   open(unit = sites(siteNumber)%fileNumber, file = trim(sites(siteNumber)%nome)//'.csv',position = "append", action = "write")
+   write(sites(siteNumber)%fileNumber,fmt=prefixFormat//sufixFormat) year,month,day,hour,minute,second,varName &
+         ,OutputField(sites(siteNumber)%localXpos,sites(siteNumber)%localYpos)
+   close(unit = sites(siteNumber)%fileNumber)
+
+   sout=1
+
+end function writeVar2D
+
+
+ function createSitesFile(nfile,nlevels) result(isok)
+    !! Cria os arquivos csv para saídas das timelines
+    !!
+    !! @note
+    !!
+    !! **Project**: BRAMS_Furnas
+    !! **Author(s)**: Rodrigues, L.F. [LFR]
+    !! **e-mail**: <mailto:luiz.rodrigues@inpe.br>
+    !! **Date**:  26Abril2022 17:53
+    !!
+    !! **Full description**:
+    !! Cria os arquivos csv para saídas das timelines
+    !!
+    !! @endnote
+    !!
+    !! @warning
+    !!
+    !!  [](https://www.gnu.org/graphics/gplv3-127x51.png'')
+    !!
+    !!     Under the terms of the GNU General Public version 3
+    !!
+    !! @endwarning
+   USE mem_grid, ONLY: &
+      zm, grid_g
+ 
+    implicit none
+    !Parameters:
+    character(len=*), parameter :: procedureName = 'createSitesFile' ! Nome da função
+    character(len=*), parameter :: prefixFormat="(A4,',',5(A2,','),A8,','"
+    character(len=*), parameter :: sufixFormat ="(F14.4,','),F14.4)"
+ 
+    !Variables (input):
+    integer, intent(in) :: nfile
+    integer, intent(in) :: nlevels
+     integer :: isok
+ 
+    !Local variables:
+    integer :: fn
+    character(len=2) :: clev
+
+    integer :: sout
+    integer :: l
+ 
+    !Local variables:
+ 
+    !Code:
+    write(clev,fmt='(I2.2)') nlevels-1
+
+    sites(nfile)%fileNumber = 90+fn
+    open(unit = sites(nfile)%fileNumber, file = trim(sites(nfile)%nome)//'.csv',status = "replace", action = "write")
+    write(sites(nfile)%fileNumber,fmt=prefixFormat//clev//sufixFormat) 'Ano','Me','D','H','M','S','variavel' &
+    ,(zm(l)*grid_g(1)%rtgt(sites(nfile)%localxpos,sites(nfile)%localypos),l=1,nlevels)
+    !print *,fn,trim(sites(fn)%nome),sites(fn)%fileNumber,sites(fn)%lat,sites(fn)%lon
+    close(unit = sites(nfile)%fileNumber)
+     isok = 0
+
+ 
+ end function createSitesFile
+
+ !=============================================================================================
+ function parseCsv(linha,nCampos,separador) result(campos)
+    !! Parse uma linha de csv
+    !!
+    !! @note
+    !!
+    !! **Project**  : BRAMS/FURNAS
+    !! **Author(s)**: Luiz Flávio Rodrigues [lufla]
+    !! **e-mail**   : <luiz.rodrigues@inpe.br>
+    !! **Date**: 13 December 2021 (Monday)
+    !!
+    !! **Full Description**: 
+    !! Parse uma linha de csv
+    !!
+    !! @endnote
+    !!
+    !! @warning
+    !! ![](https://licensebuttons.net/l/by-sa/3.0/88x31.png"")
+    !! Now is under CC Attribution-ShareAlike 4.0 International, please see:
+    !! &copy; <https://creativecommons.org/licenses/by-sa/4.0/>
+    !! @endwarning
+    !!
+     
+    !Uses
+ 
+    implicit none
+    
+    !Parameters
+    character(len=*),parameter :: procedureName='**parseCsv**' !Name of this procedure
+ 
+    !Variables intent(in/out)
+    character(len=*), intent(in) :: linha
+    !! linha com os campos separados pelo separador
+    integer, intent(in) :: nCAmpos
+    !! Total de campos
+    character, intent(in) :: separador
+    !! caracter que separa os campos
+
+    !Local Variables
+    character(len=256) :: campos(nCampos), resto
+    integer :: beg,ipos,i,sizeLin
+ 
+    !Code area
+    resto = trim(linha)
+    beg = 1
+    do i = 1,nCampos
+         sizeLin=len(resto)
+         !print *,'resto Ini:',resto,sizelin
+         ipos = index(resto,separador)
+         !print *,ipos
+         campos(i)=resto(beg:ipos-1)
+         resto=trim(resto(ipos+1:sizeLin))
+         !print *,'resto Fin:',resto
+         if(i == nCampos) then
+             campos(i)=resto
+         endif
+     enddo
+    
+ end function parseCsv 
+
+ !=============================================================================================
+ logical function fileExist(fileName)
+ !! Check if fileName exist
+ !!
+ !! @note
+ !! ![](http://brams.cptec.inpe.br/wp-content/uploads/2015/11/logo-brams.navigation.png "")
+ !!
+ !! **Brief**: Check if fileName exist
+ !!
+ !! **Documentation**: <http://brams.cptec.inpe.br/documentation/>
+ !!
+ !! **Author(s)**: Luiz Flavio Rodrigues **&#9993;**<luiz.rodrigues@inpe.br>
+ !!
+ !! **Date**: 26 August 2020 (Wednesday)
+ !! @endnote
+ !!
+ !! @changes
+ !! &#9744; <br/>
+ !! @endchanges
+ !! @bug
+ !!
+ !!@endbug
+ !!
+ !!@todo
+ !!  &#9744; <br/>
+ !! @endtodo
+ !!
+ !! @warning
+ !! Now is under CC-GPL License, please see
+ !! &copy; <https://creativecommons.org/licenses/GPL/2.0/legalcode.pt>
+ !! @endwarning
+ !!
+ 
+ !Use area
+ use dump
+
+ implicit none
+
+ include "constants.f90"
+ character(len=*),parameter :: procedureName='**fileExist**' !Name of this procedure
+ !
+ !Local Parameters
+
+ !Input/Output variables
+ character(len=*), intent(in) :: fileName
+
+ !Local variables
+
+ !Code
+
+ inquire(file=fileName(1:len_trim(fileName)),exist=fileExist)
+
+
+end function fileExist 
+
+    !=============================================================================================
+function to_lower(strIn) result(strOut)
+   !! Convert case to lower case
+   !!
+   !! @note
+   !! ![](http://brams.cptec.inpe.br/wp-content/uploads/2015/11/logo-brams.navigation.png "")
+   !!
+   !! **Brief**: Convert case to lower case
+   !!
+   !! **Documentation**: <http://brams.cptec.inpe.br/documentation/>
+   !!
+   !! **Author(s)**: Luiz Flavio Rodrigues **&#9993;**<luiz.rodrigues@inpe.br>
+   !!
+   !! **Date**: 26 August 2020 (Wednesday)
+   !! @endnote
+   !!
+   !! @changes
+   !! &#9744; <br/>
+   !! @endchanges
+   !! @bug
+   !!
+   !!@endbug
+   !!
+   !!@todo
+   !!  &#9744; <br/>
+   !! @endtodo
+   !!
+   !! @warning
+   !! Now is under CC-GPL License, please see
+   !! &copy; <https://creativecommons.org/licenses/GPL/2.0/legalcode.pt>
+   !! @endwarning
+   !!
+   
+   !Use area
+   use dump
+
+   implicit none
+
+   include "constants.f90"
+   character(len=*),parameter :: procedureName='**to_lower**' !Name of this procedure
+   !
+   !Local Parameters
+
+   !Input/Output variables
+   character(*), intent(in) :: strIn
+   !! String to be converted
+   character(len=len(strIn)) :: strOut
+   !! Return string converted
+
+   !Local variables
+   integer :: i
+   !Code
+   do i = 1, len(strIn)
+       select case(strIn(i:i))
+       case("A":"Z")
+          strOut(i:i) = achar(iachar(strIn(i:i))+32)
+       end select
+    end do
+
+end function to_lower
+
+
+end module modTimeLineFRN
