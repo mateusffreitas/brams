@@ -2572,7 +2572,7 @@ modIau.o : $(MODEL)/modIau.f90 dump.o
 
 modPrintInitial.o : $(INIT)/modPrintInitial.F90 dump.o
 	@cp -f $< $(<F:.F90=.F90)
-	$(F_COMMAND) $(<F:.F90=.F90) $(EXTRAFLAGSF)
+	$(F_COMMAND) -ffree-form -ffree-line-length-none $(<F:.F90=.F90) $(EXTRAFLAGSF)
 	@mv -f $(<F:.f90=.f90) ../doc/src
 
 include jules_depend_model.mk
