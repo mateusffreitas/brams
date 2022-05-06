@@ -479,7 +479,8 @@ contains
     implicit none
     !Parameters:
     character(len=*), parameter :: procedureName = 'writeVar3D' ! Nome da função
-    character(len=*), parameter :: prefixFormat="(I4.4,',',5(I2.2,','),A8,','"
+    character(len=*), parameter :: prefixFormat="(I4.4,'-',I2.2,'-',I2.2,'T',I2.2,':',I2.2,':',I2.2,'Z,',A8,','"
+    !character(len=*), parameter :: prefixFormat="(I4.4,',',5(I2.2,','),A8,','"
     character(len=*), parameter :: sufixFormat ="(F14.4,','),F14.4)"
  
     !Variables (input):
@@ -532,7 +533,8 @@ contains
    implicit none
    !Parameters:
    character(len=*), parameter :: procedureName = 'writeVar2D' ! Nome da função
-   character(len=*), parameter :: prefixFormat="(I4.4,',',5(I2.2,','),A8,','"
+   character(len=*), parameter :: prefixFormat="(I4.4,'-',I2.2,'-',I2.2,'T',I2.2,':',I2.2,':',I2.2,'Z,',A8,','"
+   !character(len=*), parameter :: prefixFormat="(I4.4,',',5(I2.2,','),A8,','"
    character(len=*), parameter :: sufixFormat ="F14.4)"
 
    !Variables (input):
@@ -586,7 +588,7 @@ end function writeVar2D
     implicit none
     !Parameters:
     character(len=*), parameter :: procedureName = 'createSitesFile' ! Nome da função
-    character(len=*), parameter :: prefixFormat="(A4,',',5(A2,','),A8,','"
+    character(len=*), parameter :: prefixFormat="(A19,',',A8,','"
     character(len=*), parameter :: sufixFormat ="(F14.4,','),F14.4)"
  
     !Variables (input):
@@ -608,7 +610,7 @@ end function writeVar2D
 
     sites(nfile)%fileNumber = 90+fn
     open(unit = sites(nfile)%fileNumber, file = trim(sites(nfile)%nome)//'.csv',status = "replace", action = "write")
-    write(sites(nfile)%fileNumber,fmt=prefixFormat//clev//sufixFormat) 'Ano','Me','D','H','M','S','variavel' &
+    write(sites(nfile)%fileNumber,fmt=prefixFormat//clev//sufixFormat) 'Tempo','variavel' &
     ,(zm(l)*grid_g(1)%rtgt(sites(nfile)%localxpos,sites(nfile)%localypos),l=1,nlevels)
     !print *,fn,trim(sites(fn)%nome),sites(fn)%fileNumber,sites(fn)%lat,sites(fn)%lon
     close(unit = sites(nfile)%fileNumber)
