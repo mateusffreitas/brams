@@ -43,9 +43,10 @@ module modTimeLineFRN
 
    integer, parameter :: maxSites = 16
    !! Número máximo de sites permitidos
+   integer, parameter :: maxVars = 32
 
    private
-   public :: writeTimeLineFRN, readSites
+   public :: writeTimeLineFRN, readSites, createSitesFile
 
    interface writeTimeLineFRN
     module procedure writeTimeLineFRN_2D
@@ -61,6 +62,7 @@ module modTimeLineFRN
     integer :: fileNumber
     integer :: localXpos
     integer :: localYpos
+    real, pointer, dimension(:,:,:) :: varValues ! (var,time,z)
    end type
    !! Tipo com informações dos sites
    type(t_sit) :: sites(maxSites)
@@ -99,16 +101,6 @@ contains
       USE node_mod, only: &
       ia, iz, ja, jz, mynum
 
-      USE ModDateUtils, only: &
-      date_add_to_dble
-
-      USE mem_grid, ONLY: &
-      iyear1,        & ! (IN)
-      imonth1,       & ! (IN)
-      idate1,        & ! (IN)
-      itime1,        &   ! (IN)
-      zt              ! (IN) read_sourcemaps()
-
       use ModNamelistFile, only: namelistFile
 
       implicit none
@@ -125,28 +117,23 @@ contains
    
       !Local variables:
       integer :: i,j,k,n,sout
-      integer :: iyy,imm,idd,ihh,hh,mm,ss
+      integer :: vpos
    
       !Code:
-      if(.not. checkVar(fieldName)) return
-
-      call date_add_to_dble(iyear1,imonth1,idate1,itime1,dble(time),'s' &
-      ,iyy,imm,idd,ihh)
-      hh=int(ihh/10000)
-      mm=int((ihh-hh*10000)/100)
-      ss=int(ihh-hh*10000-mm*100)
+      vpos = checkVar(fieldName)
+      if( vpos == 0) return
 
       !Code:
       do n = 1,nsites  
          if(sites(n)%localXpos>0 .and. sites(n)%localYpos>0) then !Existe algum ponto preenchido
-            sout = writeVar3D(n,trim(fieldName),OutputField,mxp,myp,mzp,iyy,imm,idd,hh,mm,ss,oneNamelistFile%inplevs)
+            sout = writeVar3D(n,OutputField,mxp,myp,mzp,oneNamelistFile%inplevs,vpos,int(time))
          endif
       enddo
 
 
    end subroutine writeTimeLineFRN_3d
 
-   function checkVar(varName) result(isthere)
+   function checkVar(varName) result(varPos)
       !! Verifica se a variável passada está no array de variáveis
       !!
       !! @note
@@ -175,18 +162,21 @@ contains
    
       !Variables (input):
       character(len=*), intent(in) :: varName
-      logical :: isthere
+      integer :: varPos
    
       !Local variables:
       integer :: i
 
-      isthere = .false.
+      varPos = 0
    
       !Code:
       !print *,count_var
       do i = 1,count_var
          !print *,i!,to_lower(trim(varName))
-         if(trim(varName)==trim(estvar(i))) isthere = .true.
+         if(trim(varName)==trim(estvar(i))) then
+            varPos = i
+            return
+         endif
       enddo
    
    end function checkVar
@@ -217,16 +207,6 @@ contains
       USE node_mod, only: &
       ia, iz, ja, jz, mynum
 
-      USE ModDateUtils, only: &
-      date_add_to_dble
-
-      USE mem_grid, ONLY: &
-      iyear1,        & ! (IN)
-      imonth1,       & ! (IN)
-      idate1,        & ! (IN)
-      itime1,        & ! (IN)
-      zt
-
       implicit none
       !Parameters:
       character(len=*), parameter :: procedureName = 'writeTimeLineFRN_2d' ! Nome da subrotina
@@ -240,22 +220,15 @@ contains
 
       !Local variables:
       integer :: i,j,k,n,sout
-      integer :: iyy,imm,idd,ihh,hh,mm,ss
+      integer :: vpos
    
       !Code:
-
-      if(.not. checkVar(fieldName)) return
-
-      call date_add_to_dble(iyear1,imonth1,idate1,itime1,dble(time),'s' &
-      ,iyy,imm,idd,ihh)
-      hh=int(ihh/10000)
-      mm=int((ihh-hh*10000)/100)
-      ss=int(ihh-hh*10000-mm*100)
-
+      vpos = checkVar(fieldName)
+      if( vpos == 0) return
 
       do n = 1,nsites  
          if(sites(n)%localXpos>0 .and. sites(n)%localYpos>0) then !Existe algum ponto preenchido
-            sout = writeVar2D(n,trim(fieldName),OutputField,mxp,myp,iyy,imm,idd,hh,mm,ss)
+            sout = writeVar2D(n,OutputField,mxp,myp,vpos,int(time))
          endif
       enddo
 
@@ -287,7 +260,14 @@ contains
      
     !Uses 
    use mem_grid, only: &
-      oneGlobalGridData, ngrids, nnxp, nnyp 
+      oneGlobalGridData, ngrids, nnxp, nnyp, &
+      iyear1,        & ! (IN)
+      imonth1,       & ! (IN)
+      idate1,        & ! (IN)
+      itime1,        &  ! (IN)
+      timmax,        &
+      dtlong,        &
+      timeunit
 
    USE ReadBcst, ONLY: &
       Broadcast
@@ -325,10 +305,12 @@ contains
     integer :: localXpos
     integer :: localYpos
     character(len=8) :: varname
+    integer :: totsec
  
 
     !Code area
     if(mchnum == master_num) then
+      
        if(.not. fileExist("estvars.dat")) iErrNumber = dumpMessage(c_tty,c_yes,'','',c_fatal &
           ,'Arquivo de variáveis, estvars.dat, não encontrado, verifique!')
 
@@ -442,18 +424,20 @@ contains
                   !guardar no site
                   sites(n)%localXpos = i
                   sites(n)%localypos = j
-                  rsp = createSitesFile(n,oneNamelistFile%inplevs)
+                  !rsp = createSitesFile(n,oneNamelistFile%inplevs)
                endif
             enddo
          endif
       enddo 
 
-    enddo
+      if(sites(n)%localXpos>0 .and. sites(n)%localypos>0) &
+         allocate(sites(n)%varValues(count_var,int(timmax),oneNamelistFile%inplevs))
 
+    enddo
 
  end subroutine readSites 
 
- function writeVar3D(siteNumber,varName,OutputField,mxp,myp,mzp,year,month,day,hour,minute,second,levels) result(sout)
+ function writeVar3D(siteNumber,OutputField,mxp,myp,mzp,levels,vpos,time) result(sout)
     !! Escreve um campo 3D no arquivo correspondente
     !!
     !! @note
@@ -479,35 +463,29 @@ contains
     implicit none
     !Parameters:
     character(len=*), parameter :: procedureName = 'writeVar3D' ! Nome da função
-    character(len=*), parameter :: prefixFormat="(I4.4,'-',I2.2,'-',I2.2,'T',I2.2,':',I2.2,':',I2.2,'Z,',A8,','"
-    !character(len=*), parameter :: prefixFormat="(I4.4,',',5(I2.2,','),A8,','"
-    character(len=*), parameter :: sufixFormat ="(F14.4,','),F14.4)"
- 
+
     !Variables (input):
-    character(len=*), intent(in) :: varName
     integer, intent(in) :: siteNumber
     integer, intent(in) :: mxp,myp,mzp,levels
-    integer, intent(in) :: year,month,day,hour,minute,second
     real, intent(in) :: OutputField( mxp,myp,mzp)
-    character(len=2) :: clev
+    integer, intent(in) :: vpos
+    integer, intent(in) :: time
 
-    integer :: sout
- 
+   
     !Local variables:
+    integer :: sout,lev
+    character(len=2) :: clev
  
     !Code:
-    write(clev,fmt='(I2.2)') levels-1
-
-    open(unit = sites(siteNumber)%fileNumber, file = trim(sites(siteNumber)%nome)//'.csv',position = "append", action = "write")
-    write(sites(siteNumber)%fileNumber,fmt=prefixFormat//clev//sufixFormat) year,month,day,hour,minute,second,varName &
-          ,OutputField(sites(siteNumber)%localXpos,sites(siteNumber)%localYpos,1:levels)
-    close(unit = sites(siteNumber)%fileNumber)
+    do lev = 1,levels
+      sites(siteNumber)%varValues(vPos,time,lev) = OutputField(sites(siteNumber)%localXpos,sites(siteNumber)%localYpos,lev)
+    enddo
 
     sout=1
  
  end function writeVar3D
 
- function writeVar2D(siteNumber,varName,OutputField,mxp,myp,year,month,day,hour,minute,second) result(sout)
+ function writeVar2D(siteNumber,OutputField,mxp,myp,vpos,time) result(sout)
    !! Escreve um campo 2D no arquivo correspondente
    !!
    !! @note
@@ -533,34 +511,28 @@ contains
    implicit none
    !Parameters:
    character(len=*), parameter :: procedureName = 'writeVar2D' ! Nome da função
-   character(len=*), parameter :: prefixFormat="(I4.4,'-',I2.2,'-',I2.2,'T',I2.2,':',I2.2,':',I2.2,'Z,',A8,','"
-   !character(len=*), parameter :: prefixFormat="(I4.4,',',5(I2.2,','),A8,','"
-   character(len=*), parameter :: sufixFormat ="F14.4)"
 
    !Variables (input):
-   character(len=*), intent(in) :: varName
    integer, intent(in) :: siteNumber
    integer, intent(in) :: mxp,myp
-   integer, intent(in) :: year,month,day,hour,minute,second
    real, intent(in) :: OutputField(mxp,myp)
+   integer, intent(in) :: time
+
+   integer, intent(in) :: vpos
 
    integer :: sout
 
    !Local variables:
 
    !Code:
-
-   open(unit = sites(siteNumber)%fileNumber, file = trim(sites(siteNumber)%nome)//'.csv',position = "append", action = "write")
-   write(sites(siteNumber)%fileNumber,fmt=prefixFormat//sufixFormat) year,month,day,hour,minute,second,varName &
-         ,OutputField(sites(siteNumber)%localXpos,sites(siteNumber)%localYpos)
-   close(unit = sites(siteNumber)%fileNumber)
+   sites(siteNumber)%varValues(vPos,time,1) = OutputField(sites(siteNumber)%localXpos,sites(siteNumber)%localYpos)
 
    sout=1
 
 end function writeVar2D
 
 
- function createSitesFile(nfile,nlevels) result(isok)
+ function createSitesFile(oneNamelistFile) result(isok)
     !! Cria os arquivos csv para saídas das timelines
     !!
     !! @note
@@ -582,42 +554,120 @@ end function writeVar2D
     !!     Under the terms of the GNU General Public version 3
     !!
     !! @endwarning
-   USE mem_grid, ONLY: &
+   use mem_grid, ONLY: &
       zm, grid_g
- 
+
+   use mem_grid, ONLY: &
+      iyear1,        & ! (IN)
+      imonth1,       & ! (IN)
+      idate1,        & ! (IN)
+      itime1,        &  ! (IN)
+      timmax,        &
+      dtlong,        &
+      timeunit
+
+   use io_params         , only: frqanl
+
+   use ModNamelistFile, only: namelistFile
+
+   use ModDateUtils, only: &
+      date_add_to_dble
+
     implicit none
     !Parameters:
     character(len=*), parameter :: procedureName = 'createSitesFile' ! Nome da função
-    character(len=*), parameter :: prefixFormat="(A19,',',A8,','"
+    character(len=*), parameter :: prefixFormat="(A19,','"
     character(len=*), parameter :: sufixFormat ="(F14.4,','),F14.4)"
+
+    character(len=*), parameter :: prefixFormat2="(I4.4,'-',I2.2,'-',I2.2,'T',I2.2,':',I2.2,':',I2.2,','"
+    character(len=*), parameter :: sufixFormat2 ="(F14.4,','),F14.4)"
+
+    integer, parameter :: fileNumber = 90
  
     !Variables (input):
-    integer, intent(in) :: nfile
-    integer, intent(in) :: nlevels
+    !integer, intent(in) :: nfile
+    !integer, intent(in) :: nlevels
      integer :: isok
+     type(NamelistFile), pointer :: oneNamelistFile
  
     !Local variables:
     integer :: fn
     character(len=2) :: clev
-
     integer :: sout
-    integer :: l
- 
-    !Local variables:
- 
-    !Code:
-    write(clev,fmt='(I2.2)') nlevels-1
+    integer :: l,n,v,seconds,totsec,secc
+    character(len=10) :: cdate !"YYYYMMDDHH" 
+    integer :: iyy,imm,idd,ihh,hh,mm,ss
 
-    sites(nfile)%fileNumber = 90+fn
-    open(unit = sites(nfile)%fileNumber, file = trim(sites(nfile)%nome)//'.csv',status = "replace", action = "write")
-    write(sites(nfile)%fileNumber,fmt=prefixFormat//clev//sufixFormat) 'Tempo','variavel' &
-    ,(zm(l)*grid_g(1)%rtgt(sites(nfile)%localxpos,sites(nfile)%localypos),l=1,nlevels)
-    !print *,fn,trim(sites(fn)%nome),sites(fn)%fileNumber,sites(fn)%lat,sites(fn)%lon
-    close(unit = sites(nfile)%fileNumber)
+    !Code:
+    write(clev,fmt="(I2.2)") oneNamelistFile%inplevs
+    write(cdate,fmt='(I4,I2.2,I2.2,I2.2)') iyear1,imonth1,idate1,itime1
+
+    do n=1,nsites
+      if(sites(n)%localXpos<=0 .or. sites(n)%localYpos<=0) return
+      do v=1,count_var
+         seconds = 0
+         open(unit = fileNumber, file = trim(sites(n)%nome)//'_'//trim(estvar(v))//'_'//cdate//'.csv',status = "replace", action = "write")
+         write(fileNumber,fmt=prefixFormat//clev//sufixFormat) 'Tempo' &
+               ,(zm(l)*grid_g(1)%rtgt(sites(n)%localxpos,sites(n)%localypos),l=1,oneNamelistFile%inplevs)
+         do seconds = 1,int(timmax),int(frqanl)
+            secc = seconds-int(frqanl)
+
+            call date_add_to_dble(iyear1,imonth1,idate1,itime1,dble(secc),'s' &
+            ,iyy,imm,idd,ihh)
+            hh=int(ihh/10000)
+            mm=int((ihh-hh*10000)/100)
+            ss=int(ihh-hh*10000-mm*100)            
+
+            write(fileNumber,fmt=prefixFormat2//clev//sufixFormat2) iyy,imm,idd,hh,mm,ss &
+                  ,sites(n)%varValues(v,secc,1:oneNamelistFile%inplevs)
+         enddo
+
+         close(unit = fileNumber)
+      enddo
+   enddo
      isok = 0
 
  
  end function createSitesFile
+
+ function closeSitesFile() result(stt)
+    !! Close the sites files
+    !!
+    !! @note
+    !!
+    !! **Project**: BRAMS-FURNAS
+    !! **Author(s)**: Rodrigues, L.F. [LFR]
+    !! **e-mail**: <mailto:luiz.rodrigues@inpe.br>
+    !! **Date**:  09Maio2022 12:51
+    !!
+    !! **Full description**:
+    !! Close the sites files
+    !!
+    !! @endnote
+    !!
+    !! @warning
+    !!
+    !!  [](https://www.gnu.org/graphics/gplv3-127x51.png'')
+    !!
+    !!     Under the terms of the GNU General Public version 3
+    !!
+    !! @endwarning
+ 
+    implicit none
+    !Parameters:
+    character(len=*), parameter :: procedureName = 'closeSitesFile' ! Nome da função
+ 
+    !Variables (input):
+    integer :: stt
+ 
+    !Local variables:
+ 
+    !Code:
+    !close(unit = sites(nfile)%fileNumber)
+
+    stt = 0
+ 
+ end function closeSitesFile
 
  !=============================================================================================
  function parseCsv(linha,nCampos,separador) result(campos)

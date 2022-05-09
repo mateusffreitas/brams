@@ -548,7 +548,8 @@ module ModOneProc
     applyIAU
 
  use modTimeLineFRN, only: &
-    readSites
+    readSites, &
+    createSitesFile
 
 
   implicit none
@@ -1530,7 +1531,9 @@ contains
 !==== simulation ended =======
 
     wtime_end = walltime()
+    iErrNumber = createSitesFile(oneNamelistFile)
     if (mchnum==master_num) then
+
       write(c0,"(f10.1)") wtime_end - wtime_start
       write(*,fmt='(A)') c_empty
 #ifdef color
