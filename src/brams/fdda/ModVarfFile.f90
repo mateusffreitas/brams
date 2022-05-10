@@ -313,20 +313,17 @@ contains
        endif
 
        ! Compute weighting factors for grid 1
-!(LFR) Foi colocado o IF abaixo para solucionar o problema de queda quando a grade está aninhada            
-!(LFR) fazer as variáveis wt_nudge_uv,wt_nudge_th,wt_nudge_pi e wt_nudge_rt maior que zero para
-!(LFR) não passar pela VariableWeight
-            if(wt_nudge_uv<0 .or. wt_nudge_th<0 .or. wt_nudge_pi<0 .or. wt_nudge_rt<0) then
-               call VariableWeight(nnzp(1), nodemxp(mynum,1), nodemyp(mynum,1), nnxp(1),&
-                   nnyp(1), nodei0(mynum,1), nodej0(mynum,1),  &
-                  grid_g(1)%topt(1,1), grid_g(1)%rtgt(1,1), varinit_g(1)%varwts(1,1,1))
-
-               if(chem_assim == 1 .and. chemistry >= 0) &
-                  call VariableWeightChem(nnzp(1), nodemxp(mynum,1), nodemyp(mynum,1), nnxp(1),&
-                  nnyp(1), nodei0(mynum,1), nodej0(mynum,1),  &
-                  grid_g(1)%topt(1,1), grid_g(1)%rtgt(1,1), &
-                  varinit_g(1)%varwts_chem(1,1,1))
-            endif
+      call VariableWeight(nnzp(1), nodemxp(mynum,1), nodemyp(mynum,1), nnxp(1),&
+          nnyp(1), nodei0(mynum,1), nodej0(mynum,1),  &
+         grid_g(1)%topt(1,1), grid_g(1)%rtgt(1,1), varinit_g(1)%varwts(1,1,1),&
+         varwts_for_operations_only)
+      if(chem_assim == 1 .and. chemistry >= 0) &
+         call VariableWeightChem(nnzp(1), nodemxp(mynum,1), nodemyp(mynum,1), nnxp(1),&
+         nnyp(1), nodei0(mynum,1), nodej0(mynum,1),  &
+         grid_g(1)%topt(1,1), grid_g(1)%rtgt(1,1), &
+         varinit_g(1)%varwts_chem(1,1,1),&
+         varwts_for_operations_only)
+       
        ! Read files
 
        do ifm=1,ngrids

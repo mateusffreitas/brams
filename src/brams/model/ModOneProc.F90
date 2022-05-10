@@ -1055,7 +1055,7 @@ contains
        !print *,mchnum,master_num,'Chamando....'
        !if(mchnum == master_num) then
          !print *,'Chamando readsites ::::::::'
-         call readSites(mchnum,master_num,oneNamelistFile)
+       if(IPOS == 10 .or. IPOS == 11) call readSites(mchnum,master_num,oneNamelistFile)
        !endif
 
 
@@ -1531,7 +1531,7 @@ contains
 !==== simulation ended =======
 
     wtime_end = walltime()
-    iErrNumber = createSitesFile(oneNamelistFile)
+    if(IPOS == 10 .or. IPOS == 11) iErrNumber = createSitesFile(oneNamelistFile)
     if (mchnum==master_num) then
 
       write(c0,"(f10.1)") wtime_end - wtime_start
