@@ -44,6 +44,7 @@ module ModPostOneField3d
    !--(DMK-CCATT-FIM)-------------------------------------------------------
 
    public :: Brams2Post_3d
+   include "constants.f90"
 
 contains
 
@@ -137,6 +138,54 @@ contains
                oneBramsGrid%xtn(firstX : lastX), oneBramsGrid%ytn(firstY : lastY), &
                oneBramsGrid%polelat, oneBramsGrid%polelon)
          call rams_comp_avgv (OutputField)
+!Introduzir o cálculo de Magnitude e Direção do vento
+      case ('MAGUV')
+         !Pega UE_AVG
+         firstX = oneBramsGrid%nodei0(oneBramsGrid%mynum) + 1
+         lastX = oneBramsGrid%nodei0(oneBramsGrid%mynum) + oneBramsGrid%mxp
+         firstY = oneBramsGrid%nodej0(oneBramsGrid%mynum) + 1
+         lastY = oneBramsGrid%nodej0(oneBramsGrid%mynum) + oneBramsGrid%myp
+         call GetVarFromMemToOutput ('UP', oneBramsGrid%currGrid, ScrT3N02)
+         call GetVarFromMemToOutput ('VP', oneBramsGrid%currGrid, ScrT3N01)
+         !UE_AVG
+         call rams_comp_rotate (ScrT3N02, ScrT3N01, &
+               oneBramsGrid%xtn(firstX : lastX), oneBramsGrid%ytn(firstY : lastY), &
+               oneBramsGrid%polelat, oneBramsGrid%polelon)
+         call rams_comp_avgu (ScrT3N02) 
+         !VE_AVG
+         call GetVarFromMemToOutput ('UP', oneBramsGrid%currGrid, ScrT3N03)
+         call GetVarFromMemToOutput ('VP', oneBramsGrid%currGrid, ScrT3N01)
+         call rams_comp_rotate (ScrT3N01, ScrT3N03, &
+               oneBramsGrid%xtn(firstX : lastX), oneBramsGrid%ytn(firstY : lastY), &
+               oneBramsGrid%polelat, oneBramsGrid%polelon)
+         call rams_comp_avgv (ScrT3N03)    
+         OutputField = sqrt(ScrT3N02*ScrT3N02+ScrT3N03*ScrT3N03)
+
+      case('DIRUV')
+         !Pega UE_AVG
+         firstX = oneBramsGrid%nodei0(oneBramsGrid%mynum) + 1
+         lastX = oneBramsGrid%nodei0(oneBramsGrid%mynum) + oneBramsGrid%mxp
+         firstY = oneBramsGrid%nodej0(oneBramsGrid%mynum) + 1
+         lastY = oneBramsGrid%nodej0(oneBramsGrid%mynum) + oneBramsGrid%myp
+         call GetVarFromMemToOutput ('UP', oneBramsGrid%currGrid, ScrT3N02)
+         call GetVarFromMemToOutput ('VP', oneBramsGrid%currGrid, ScrT3N01)
+         !UE_AVG
+         call rams_comp_rotate (ScrT3N02, ScrT3N01, &
+               oneBramsGrid%xtn(firstX : lastX), oneBramsGrid%ytn(firstY : lastY), &
+               oneBramsGrid%polelat, oneBramsGrid%polelon)
+         call rams_comp_avgu (ScrT3N02) 
+         !VE_AVG
+         call GetVarFromMemToOutput ('UP', oneBramsGrid%currGrid, ScrT3N03)
+         call GetVarFromMemToOutput ('VP', oneBramsGrid%currGrid, ScrT3N01)
+         call rams_comp_rotate (ScrT3N01, ScrT3N03, &
+               oneBramsGrid%xtn(firstX : lastX), oneBramsGrid%ytn(firstY : lastY), &
+               oneBramsGrid%polelat, oneBramsGrid%polelon)
+         call rams_comp_avgv (ScrT3N03)    
+         ScrT3N04 = atan(ScrT3N03/ScrT3N02)
+         OutputField = c_i_pi180*ScrT3N04
+
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
       case ('TEMPC')
          call GetVarFromMemToOutput ('THETA', oneBramsGrid%currGrid, OutputField)
          call GetVarFromMemToOutput ('PI', oneBramsGrid%currGrid, ScrT3N01)
