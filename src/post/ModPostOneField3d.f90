@@ -137,6 +137,48 @@ contains
                oneBramsGrid%xtn(firstX : lastX), oneBramsGrid%ytn(firstY : lastY), &
                oneBramsGrid%polelat, oneBramsGrid%polelon)
          call rams_comp_avgv (OutputField)
+!Introduzir o cálculo de Magnitude e Direção do vento
+      case ('MAGUV')
+         !Pega UE_AVG
+         firstX = oneBramsGrid%nodei0(oneBramsGrid%mynum) + 1
+         lastX = oneBramsGrid%nodei0(oneBramsGrid%mynum) + oneBramsGrid%mxp
+         firstY = oneBramsGrid%nodej0(oneBramsGrid%mynum) + 1
+         lastY = oneBramsGrid%nodej0(oneBramsGrid%mynum) + oneBramsGrid%myp
+         call GetVarFromMemToOutput ('UP', oneBramsGrid%currGrid, OutputField)
+         call GetVarFromMemToOutput ('VP', oneBramsGrid%currGrid, ScrT3N01)
+         !UE_AVG
+         call rams_comp_rotate (OutputField, ScrT3N01, &
+               oneBramsGrid%xtn(firstX : lastX), oneBramsGrid%ytn(firstY : lastY), &
+               oneBramsGrid%polelat, oneBramsGrid%polelon)
+         call rams_comp_avgu (OutputField) !Mudar para 1
+         !VE_AVG
+         call rams_comp_rotate (ScrT3N01, OutputField, &
+               oneBramsGrid%xtn(firstX : lastX), oneBramsGrid%ytn(firstY : lastY), &
+               oneBramsGrid%polelat, oneBramsGrid%polelon)
+         call rams_comp_avgv (OutputField) !muidar para 2      
+         !mag=sqrt(1*1+2*2)
+
+      case('DIRUV')
+         !Pega UE_AVG
+         firstX = oneBramsGrid%nodei0(oneBramsGrid%mynum) + 1
+         lastX = oneBramsGrid%nodei0(oneBramsGrid%mynum) + oneBramsGrid%mxp
+         firstY = oneBramsGrid%nodej0(oneBramsGrid%mynum) + 1
+         lastY = oneBramsGrid%nodej0(oneBramsGrid%mynum) + oneBramsGrid%myp
+         call GetVarFromMemToOutput ('UP', oneBramsGrid%currGrid, OutputField)
+         call GetVarFromMemToOutput ('VP', oneBramsGrid%currGrid, ScrT3N01)
+         !UE_AVG
+         call rams_comp_rotate (OutputField, ScrT3N01, &
+               oneBramsGrid%xtn(firstX : lastX), oneBramsGrid%ytn(firstY : lastY), &
+               oneBramsGrid%polelat, oneBramsGrid%polelon)
+         call rams_comp_avgu (OutputField) !Mudar para 1
+         !VE_AVG
+         call rams_comp_rotate (ScrT3N01, OutputField, &
+               oneBramsGrid%xtn(firstX : lastX), oneBramsGrid%ytn(firstY : lastY), &
+               oneBramsGrid%polelat, oneBramsGrid%polelon)
+         call rams_comp_avgv (OutputField) !muidar para 2      
+         !mag=calculo do angulo
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
       case ('TEMPC')
          call GetVarFromMemToOutput ('THETA', oneBramsGrid%currGrid, OutputField)
          call GetVarFromMemToOutput ('PI', oneBramsGrid%currGrid, ScrT3N01)
