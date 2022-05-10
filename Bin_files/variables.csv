@@ -92,6 +92,8 @@
 3, 'GEO', 'geopotential height', 'm'
 3, 'UE_AVG', 'ue_avg', 'm/s'
 3, 'VE_AVG', 've_avg', 'm/s'
+3, 'MAGUV', 'Wind Magnitude', 'm/s'
+3, 'DIRUV', 'Wind Direction', 'Degrees'
 3, 'TEMPC', 'temperature', 'C'
 3, 'REF_TEMPC', 'temperature @ analysis file', 'C'
 3, 'RH', 'relative humidity', 'pct'
