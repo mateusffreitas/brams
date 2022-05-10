@@ -616,7 +616,7 @@ ModOneProc.o : $(MODEL)/ModOneProc.F90 ModNamelistFile.o \
 	tuvParameter.o ModTuv2.7.o ModTuvDriver2.7.o ModGridTree.o \
 	ModGrid.o rtimh.o rtimh_rk.o rtimh_abm.o meteogram.o \
 	module_rams_microphysics_2M.o initComm.o dam.o mod_aer.o \
-	initMicThompson.o modIau.o \
+	initMicThompson.o modIau.o modTimeLineFRN.o \
 	$(UTILS_INCS)/i8.h $(UTILS_INCS)/tsNames.h
 	@cp -f $< $(<F:.f90=.f90)
 	$(F_COMMAND) $(<F:.f90=.f90) $(EXTRAFLAGSF)
@@ -1788,14 +1788,15 @@ ModPostOneField.o : $(POST_SRC)/ModPostOneField.f90 \
 
 ModPostOneField2d.o : $(POST_SRC)/ModPostOneField2d.f90 \
 	ModPostOneFieldUtils.o ModBramsGrid.o ModPostGrid.o \
-	ModPostUtils.o ModOutputUtils.o mem_grid.o micphys.o
+	ModPostUtils.o ModOutputUtils.o mem_grid.o micphys.o \
+	modTimeLineFRN.o
 	@cp -f $< $(<F:.f90=.f90)
 	$(F_COMMAND) $(<F:.f90=.f90) $(EXTRAFLAGSF)
 	@mv -f $(<F:.f90=.f90) ../doc/src
 
 ModPostOneField3d.o : $(POST_SRC)/ModPostOneField3d.f90 \
 	ModPostOneFieldUtils.o ModBramsGrid.o ModPostGrid.o \
-	ModPostUtils.o ModOutputUtils.o micphys.o
+	ModPostUtils.o ModOutputUtils.o micphys.o modTimeLineFRN.o
 	@cp -f $< $(<F:.f90=.f90)
 	$(F_COMMAND) $(<F:.f90=.f90) $(EXTRAFLAGSF)
 	@mv -f $(<F:.f90=.f90) ../doc/src
@@ -1825,6 +1826,11 @@ ModPostUtils.o : $(POST_SRC)/ModPostUtils.f90 ModNamelistFile.o \
 	node_mod.o mem_grid.o mem_aerad.o ref_sounding.o \
 	ModParallelEnvironment.o $(UTILS_INCS)/files.h \
 	$(POST_INCS)/post_rconfig.h $(POST_INCS)/post_rconstants.h
+	@cp -f $< $(<F:.f90=.f90)
+	$(F_COMMAND) $(<F:.f90=.f90) $(EXTRAFLAGSF)
+	@mv -f $(<F:.f90=.f90) ../doc/src
+
+modTimeLineFRN.o : $(POST_SRC)/modTimeLineFRN.f90 
 	@cp -f $< $(<F:.f90=.f90)
 	$(F_COMMAND) $(<F:.f90=.f90) $(EXTRAFLAGSF)
 	@mv -f $(<F:.f90=.f90) ../doc/src

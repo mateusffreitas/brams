@@ -27,6 +27,14 @@ module ModPostOneField3d
    use ModPostUtils, only : rams_comp_avgv
    use ModPostUtils, only : calc_omeg
 
+   use io_params, only : & ! 
+       IPOS
+
+   !LFR
+   use modTimeLineFRN, only: writeTimeLineFRN
+
+   use ModNamelistFile, only: namelistFile
+
    implicit none
 
    private
@@ -40,7 +48,8 @@ module ModPostOneField3d
 contains
 
 
-   subroutine Brams2Post_3d (one_post_variable, oneBramsGrid, onePostGrid)
+   subroutine Brams2Post_3d (one_post_variable, oneBramsGrid, onePostGrid, oneNamelistFile)
+      type(NamelistFile), pointer :: oneNamelistFile
       type(PostVarType) :: one_post_variable
       type(BramsGrid), pointer :: oneBramsGrid
       type(PostGrid), pointer :: onePostGrid
@@ -133,7 +142,6 @@ contains
          call GetVarFromMemToOutput ('PI', oneBramsGrid%currGrid, ScrT3N01)
          call rams_comp_tempk (OutputField, ScrT3N01)
          call rams_comp_tempc (OutputField)
-
       case ('REF_TEMPC')
          call GetVarFromMemToOutput ('VARTP', oneBramsGrid%currGrid, ScrT3N01)
          call GetVarFromMemToOutput ('VARPP', oneBramsGrid%currGrid, ScrT3N02)
@@ -145,7 +153,6 @@ contains
 	 ScrT3N01=ScrT3N02+ScrT3N03 !exner function
          call rams_comp_tempk (OutputField, ScrT3N01)
          call rams_comp_tempc (OutputField)
-
       case ('RH')
          call GetVarFromMemToOutput ('RV', oneBramsGrid%currGrid, OutputField)
          call GetVarFromMemToOutput ('PI', oneBramsGrid%currGrid, ScrT3N01)
@@ -627,8 +634,11 @@ contains
          stop
       end select
 
+      if(IPOS == 11 .or. IPOS == 10) call writeTimeLineFRN(one_post_variable%fieldName,OutputField,oneBramsGrid%mxp &
+      , oneBramsGrid%myp, oneBramsGrid%mzp,time,oneNamelistFile)
+
       ! most of cases run this. Some just returns before
-      call PrepareAndOutputGradsField(one_post_variable, oneBramsGrid, onePostGrid, OutputField)
+      if(IPOS == 2 .or. IPOS == 10) call PrepareAndOutputGradsField(one_post_variable, oneBramsGrid, onePostGrid, OutputField)
 
    end subroutine Brams2Post_3d
 

@@ -1968,7 +1968,7 @@ integer :: ix, iy
              end do
           end do
 
-          if(IPOS==2) then
+          if(IPOS==2.or. IPOS==10) then
             write (onePostGrid%unitBinFile, rec=onePostGrid%lastRec) OutputArray
 #ifdef cdf
           elseif(IPOS==3) then
@@ -2053,7 +2053,7 @@ integer :: ix, iy
 
        if (oneBramsGrid%mchnum == oneBramsGrid%master_num) then
           onePostGrid%lastRec = onePostGrid%lastRec + 1
-            if(IPOS==2) then
+            if(IPOS==2 .or. IPOS==10) then
               write (onePostGrid%unitBinFile, rec=onePostGrid%lastRec) &
                   gathered(onePostGrid%unpackMap(:))
 #ifdef cdf
