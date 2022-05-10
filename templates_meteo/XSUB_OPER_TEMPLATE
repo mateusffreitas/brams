@@ -1,0 +1,19 @@
+#PBS -q {PBS_QUEUE}
+#PBS -l select={SELECT}:ncpus={NCPUS}:mpiprocs={MPIPROCS}
+#PBS -l walltime={WALL}
+#PBS -l place=scatter
+#PBS -o {JOBNAME}.log
+#PBS -e {JOBNAME}.err
+#PBS -j oe
+#PBS -A CPTEC
+#PBS -N {JOBNAME}
+
+cd {DIRBASE}
+export TMPDIR={DIRBASE}/tmp
+export ATP_ENABLED=1    
+export OMP_WAIT_POLICY=PASSIVE
+export CRAY_OMP_CHECK_AFFINITY=TRUE
+
+
+ulimit    –c    unlimited
+aprun -n {NPROC} {EXECUTABLE} -f {RAMSIN}

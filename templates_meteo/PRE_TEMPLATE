@@ -1,0 +1,41 @@
+$ARGS_INPUT
+
+!!!!! DATE !!!!!
+
+init_year  = {IYEAR1},
+init_month = {IMONTH1},
+init_day   = {IDATE1},
+init_hour  = {ITIME1},
+final_year = {IYEAR2},
+final_month= {IMONTH2},
+final_day = {IDATE2},
+final_hour = {ITIME2},
+
+!!!!! TIME STEP !!!!!!!
+
+step  = {PRE_STEP}, !Timestep in hours
+
+!!!!! ATMOS !!!!!
+atmos_type   = 1, !0=DP, 1=GFS Grib2
+atmos_prefix ='gfs.t{TIME_FILE_GFS}z.pgrb2.0p25.f',
+atmos_sufix  ='.{DATE}{TIME_FILE_GFS}.grib2',
+atmos_idir   ='{ATMOS_IDIR_PREFIX}/{DATE}{TIME_FILE_GFS}/dataout/GFS_0p25/',
+levels = 23,
+initial_latitude = -70., !initial latitude for domain of model (-90 to 90)  
+final_latitude  = 22., !final latitude for domain of model(-90 to 90)
+initial_longitude = 250., !initial longitude for domain of model (0 to 360)
+final_longitude = 358., !Final longitude for domain of model (0 to 360)
+
+!!!!! CHEM !!!!!! 
+chem_type     = 0, !0 = no Chem, 1 = CAMS 
+chem_idir  = "{CAMS}",
+chem1_prefix ='',
+chem1_sufix  ='-CAMS-EC-2010-2019-AMS',
+
+!!!!! OUTPUT !!!!!
+out_type   = 2, !0=text, 1=VFM, 2=Grads
+out_prefix = 'IC',
+out_sufix  = '',
+out_dir    = '{PREP_OUT_DIR}',
+	
+$END
