@@ -135,7 +135,7 @@ $CCATT_INFO2
 
    IPASTIN   = 0,            ! Initialize various fields from analysis file?
                              !  1=yes, 0=no
-   PASTFN    = './ANL/OPQUE-A-2020-08-03-000000-head.txt', ! usar a linha abaixo para o primeiro dia somente
+   PASTFN    = '{PASTFN}', ! usar a linha abaixo para o primeiro dia somente
 
 !   PASTFN    = 'NONE',
                              ! Input analysis file name
