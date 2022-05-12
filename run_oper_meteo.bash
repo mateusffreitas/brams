@@ -18,7 +18,7 @@
 # - INITIAL_IAU0: Executa a fase INITIAL com IAU=0, por 171 horas, utilizando os demais arquivos gerados pela fase VFL.
 #
 
-
+#set -x
 # ~~~~~~~~~~~~~~~ Início do script ~~~~~~~~~~~~~~~
 
 _fase=$4
@@ -55,10 +55,11 @@ expnme=BRAMS-8km
 timmax=6
 timmax_vfl=${timmax}
 timmax_pre=${timmax}
-imonth1=${mes}
-idate1=${dia}
-iyear1=${ano}
-itime1=21
+imonth1=${_mes}
+idate1=${_dia}
+iyear1=${_ano}
+itime1=00
+
 nnxp=1017
 nnyp=993
 nnzp=45
