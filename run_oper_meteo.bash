@@ -369,7 +369,7 @@ if [ ${_fase} == "PREPARAR_AMBIENTE" ]; then
   # TODO CHECK file ***************************************************
   file_for_smoist="${my_atmos_idir}/gfs.t00z.pgrb2.0p25.f001.${hoje}.grib2"
 
-  wgrib2 ${file_for_smoist} -s | grep 'TSOIL\|SOILW' | wgrib2 -i ${file_for_smoist} -netcdf tmp_out.nc
+  ./wgrib2 ${file_for_smoist} -s | grep 'TSOIL\|SOILW' | ./wgrib2 -i ${file_for_smoist} -netcdf tmp_out.nc
   smoist_file="${dir_local}/my_external/"${hoje}"/dataout/umid_solo/GFS.SOIL:UMID_TEMP.${hoje}"
   grads -lc "run ./gerabin.gs tmp_out.nc ${smoist_file}"
   rm tmp_out.nc
