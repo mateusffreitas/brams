@@ -18,7 +18,7 @@
 # - INITIAL_IAU0: Executa a fase INITIAL com IAU=0, por 171 horas, utilizando os demais arquivos gerados pela fase VFL.
 #
 
-#set -x
+set -x
 # ~~~~~~~~~~~~~~~ Início do script ~~~~~~~~~~~~~~~
 
 _fase=$4
@@ -102,11 +102,22 @@ yyyymmdd2_pre=${iyear2_pre}${imonth2_pre}${idate2_pre}
 # diretórios
 dir_local=`pwd`
 dirbase_escaped="\/mnt\/beegfs\/denis.eiras\/ioper_brams6.0"
-my_atmos_idir="${dir_local}/my_external/${hoje}/dataout/GFS_0p25/"
+
+# my_atmos_idir="${dir_local}/my_external/${hoje}/dataout/GFS_0p25/"
+cams="$dirbase_escaped\/datafix\/CAMS\/"
+atmos_idir_prefix_escaped="${dirbase_escaped}\/data\/external"
+external_dir="${dir_local}/data/external"
+my_external_dir="${dir_local}/my_external"
+atmos_idir="${external_dir}/${hoje}/dataout/GFS_0p25/"
+umid_solo_dir="${my_external_dir}/${hoje}/dataout/umid_solo"
+
+
 xsub_ini_iau0_name="xsub_ini_iau0_${hoje}.sh"
 
 
 if [ ${_fase} == "PREPARAR_AMBIENTE" ]; then
+  rm -rf ${my_external_dir}
+
   echo
   echo "Criando diretórios ..."
   mkdir -p "./${hoje}"
@@ -123,11 +134,8 @@ if [ ${_fase} == "PREPARAR_AMBIENTE" ]; then
   mkdir -p "./${hoje}/datain/GRADS"
   mkdir -p "./${hoje}/datain/QUEIMA"
 
-  mkdir -p "./${hoje}/dataout/IAU_tendencies"
-  mkdir -p "./my_external/${hoje}/dataout/umid_solo"
-  rm -rf ${my_atmos_idir}
-  mkdir -p ${my_atmos_idir}
-
+  mkdir -p "./${hoje}/dataout/IAU_tendencies"  # TODO precisa ?
+  mkdir -p ${umid_solo_dir}
 
 
   # ~~~~~~~~~~~~~~~ Criação de RAMSINS ~~~~~~~~~~~~~~~
@@ -331,16 +339,13 @@ if [ ${_fase} == "PREPARAR_AMBIENTE" ]; then
 
   # ~~~~~~~~~~~~~~~ Criação de namelists para o Prep ~~~~~~~~~~~~~~~
 
-  cams="$dirbase_escaped\/datafix\/CAMS\/"
-
   echo "Criando namelist para o Prep à partir das 00h do dia atual - pre_${hoje}.nml até ${yyyymmdd2_pre}"
-  cams="$dirbase_escaped\/datafix\/CAMS\/"
 
   pre_step="3"  # fix = vfl
-  atmos_idir_prefix="${dirbase_escaped}\/data\/external"
+
   cat < ./templates_meteo/PRE_TEMPLATE \
        | sed "s/{TIME_FILE_GFS}/00/g" \
-       | sed "s/{ATMOS_IDIR_PREFIX}/${atmos_idir_prefix}/g" \
+       | sed "s/{ATMOS_IDIR_PREFIX}/${atmos_idir_prefix_escaped}/g" \
        | sed "s/{PRE_STEP}/${pre_step}/g" \
        | sed "s/{IMONTH1}/${_mes}/g" \
        | sed "s/{IDATE1}/${_dia}/g" \
@@ -366,11 +371,10 @@ if [ ${_fase} == "PREPARAR_AMBIENTE" ]; then
   echo
   echo "Extraindo os dados de umidade do GFS ..."
 
-  # TODO CHECK file ***************************************************
-  file_for_smoist="${my_atmos_idir}/gfs.t00z.pgrb2.0p25.f001.${hoje}.grib2"
+  file_for_smoist="${atmos_idir}/gfs.t00z.pgrb2.0p25.f001.${hoje}.grib2"
 
   ./wgrib2 ${file_for_smoist} -s | grep 'TSOIL\|SOILW' | ./wgrib2 -i ${file_for_smoist} -netcdf tmp_out.nc
-  smoist_file="${dir_local}/my_external/"${hoje}"/dataout/umid_solo/GFS.SOIL:UMID_TEMP.${hoje}"
+  smoist_file="${umid_solo_dir}/GFS.SOIL:UMID_TEMP.${hoje}"
   grads -lc "run ./gerabin.gs tmp_out.nc ${smoist_file}"
   rm tmp_out.nc
 
