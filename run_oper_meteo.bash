@@ -371,7 +371,7 @@ if [ ${_fase} == "PREPARAR_AMBIENTE" ]; then
   echo
   echo "Extraindo os dados de umidade do GFS ..."
 
-  file_for_smoist="${atmos_idir}/gfs.t00z.pgrb2.0p25.f001.${hoje}.grib2"
+  file_for_smoist="${atmos_idir}/gfs.t00z.pgrb2.0p25.f000.${hoje}.grib2"
 
   ./wgrib2 ${file_for_smoist} -s | grep 'TSOIL\|SOILW' | ./wgrib2 -i ${file_for_smoist} -netcdf tmp_out.nc
   smoist_file="${umid_solo_dir}/GFS.SOIL:UMID_TEMP.${hoje}"
