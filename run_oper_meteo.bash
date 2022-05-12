@@ -11,20 +11,12 @@
 #
 # - SFC: Executar o MAKESFC para a data informada
 #
-# - VFL: Extrai os dados de umidade do Solo do GFS; Executa o PRE do BRAMS usando os arquivo do GFS do dia anterior (18H) com relação à linha
-#        de comando informada, gerando os arquivos de condições iniciais das 21H do dia anterior. Depois gera as condições iniciais das 00h
-#        do dia atual até 7 dias pra frente (171h no total). Em seguida, executa a fase MAKEVFILE, utilizando os arquivos gerados pelo PRE.
-#        *** Observação ***: Verifique o comentário abaixo 'hack provisório executar o pré somente para 2 horários', que explica um workaround a ser
-#        utilizado, até que uma correção no PRE seja feita.
+# - VFL: Extrai os dados de umidade do Solo do GFS; Executa o PRE do BRAMS usando os arquivo do GFS do dia da linha de comando informada, 
+#        gerando as condições iniciais das0h do dia atual até 7 dias pra frente (171h no total). Em seguida, executa a fase MAKEVFILE,
+#        utilizando os arquivos gerados pelo PRE.
 #
-# - INITIAL_IAU1: Executa a fase INITIAL às 21h do dia anterior com IAU=1, por 3 horas, utilizado o arquivo das 21H que foi gerado à partir do arquivo das 18h do GFS
+# - INITIAL_IAU0: Executa a fase INITIAL com IAU=0, por 171 horas, utilizando os demais arquivos gerados pela fase VFL.
 #
-# - INITIAL_IAU2: Executa a fase INITIAL às 21h do dia anterior com IAU=2, por 171 horas, utilizando os demais arquivos gerados pela fase VFL.
-#
-# - INITIAL_IAU0: *** Essa fase não deve ser executada operacionalmente ***
-#                 Executa a fase INITIAL às 21h do dia anterior com IAU=0, por 171 horas, utilizando os demais arquivos gerados pela fase VFL.
-#
-
 
 
 # ~~~~~~~~~~~~~~~ Início do script ~~~~~~~~~~~~~~~
@@ -253,7 +245,7 @@ if [ ${_fase} == "PREPARAR_AMBIENTE" ]; then
 
   xsub_sfc_name="xsub_sfc_${hoje}.sh"
   echo "Criando Submit para o MAKESFC - "${xsub_sfc_name}" ..."
-  queue="pesq2"
+  queue="PESQ2"
   select=1
   ncpus=1
   mpiprocs=1
