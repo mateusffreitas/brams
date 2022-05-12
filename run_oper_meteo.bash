@@ -254,7 +254,7 @@ if [ ${_fase} == "PREPARAR_AMBIENTE" ]; then
   jobname="BRS_${hoje}"
   nproc=1
   ramsin="RAMSIN_BASIC_SFC_${hoje}"
-  exec_and_ramsin = "${executable_escaped} -f ${ramsin}"
+  exec_and_ramsin="${executable_escaped} -f ${ramsin}"
 
   cat < ./templates_meteo/SLURM_EGEON_TEMPLATE \
        | sed "s/{QUEUE}/${queue}/g" \
@@ -282,7 +282,7 @@ if [ ${_fase} == "PREPARAR_AMBIENTE" ]; then
     jobname="BRV_${tstart}"
     ramsin="RAMSIN_BASIC_VFL_${tstart}"
     xsub_vfl_name="xsub_vfl_${tstart}.sh"
-    exec_and_ramsin = "${executable_escaped} -f ${ramsin}"
+    exec_and_ramsin="${executable_escaped} -f ${ramsin}"
     cat < ./templates_meteo/SLURM_EGEON_TEMPLATE \
        | sed "s/{QUEUE}/${queue}/g" \
        | sed "s/{SELECT}/${select}/g" \
@@ -314,7 +314,7 @@ if [ ${_fase} == "PREPARAR_AMBIENTE" ]; then
   wall="04:00:00"
   jobname="BRI0_${hoje}"
   ramsin="RAMSIN_INI_IAU0_${hoje}"
-  exec_and_ramsin = "${executable_escaped} -f ${ramsin}"
+  exec_and_ramsin="${executable_escaped} -f ${ramsin}"
   cat < ./templates_meteo/SLURM_EGEON_TEMPLATE \
        | sed "s/{QUEUE}/${queue}/g" \
        | sed "s/{SELECT}/${select}/g" \
@@ -376,7 +376,7 @@ if [ ${_fase} == "PREPARAR_AMBIENTE" ]; then
 
   echo
   echo "Gerando os dados de SST ..."
-  ./geraSST2RAMS.bash "${hoje}"
+  ./geraSST2RAMS.bash "${hoje}" ${atmos_idir_prefix}
 
 fi  # fim fase PREPARAR_AMBIENTE
 

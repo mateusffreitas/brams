@@ -7,11 +7,9 @@
 # $ geraSST2RAMS.bash YYYYMMDD00
 #
 
-module swap PrgEnv-cray/6.0.4 PrgEnv-gnu
-
 function copy_sst_files() {
   semana=$1
-  external='/lustre_xc50/ioper/data/external'
+  external=$2
   ncep_dirs="${semana}00/dataout/NCEP"
   sst_week_dir="./data/BRAMS/SST_WEEK"
 
@@ -30,6 +28,8 @@ function copy_sst_files() {
 }
 
    edate=$1
+   external=$2 
+   
    sst_week_dir="./data/BRAMS/SST_WEEK"
 
    sem_edate=$(date -u "+%w" -d "${edate:8:2}:00 ${edate:0:8}")
@@ -40,8 +40,8 @@ function copy_sst_files() {
    antipenultima_sem=$(date -u "+%Y%m%d" -d "${edate:8:2}:00 ${edate:0:8} $(($dif_sem+7)) days ago")
    penultima_sem=$(date -u "+%Y%m%d" -d "${edate:8:2}:00 ${edate:0:8} $dif_sem days ago") #"
 
-   copy_sst_files $antipenultima_sem
-   copy_sst_files $penultima_sem
+   copy_sst_files $antipenultima_sem $external
+   copy_sst_files $penultima_sem $external
 
    #--- escevendo o header ---
    file_wheader="${sst_week_dir}/WHEADER"
