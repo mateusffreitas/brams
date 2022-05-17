@@ -27,6 +27,14 @@ module ModPostOneField3d
    use ModPostUtils, only : rams_comp_avgv
    use ModPostUtils, only : calc_omeg
 
+   use io_params, only : & ! 
+       IPOS
+
+   !LFR
+   use modTimeLineFRN, only: writeTimeLineFRN
+
+   use ModNamelistFile, only: namelistFile
+
    implicit none
 
    private
@@ -36,11 +44,13 @@ module ModPostOneField3d
    !--(DMK-CCATT-FIM)-------------------------------------------------------
 
    public :: Brams2Post_3d
+   include "constants.f90"
 
 contains
 
 
-   subroutine Brams2Post_3d (one_post_variable, oneBramsGrid, onePostGrid)
+   subroutine Brams2Post_3d (one_post_variable, oneBramsGrid, onePostGrid, oneNamelistFile)
+      type(NamelistFile), pointer :: oneNamelistFile
       type(PostVarType) :: one_post_variable
       type(BramsGrid), pointer :: oneBramsGrid
       type(PostGrid), pointer :: onePostGrid
@@ -128,12 +138,59 @@ contains
                oneBramsGrid%xtn(firstX : lastX), oneBramsGrid%ytn(firstY : lastY), &
                oneBramsGrid%polelat, oneBramsGrid%polelon)
          call rams_comp_avgv (OutputField)
+!Introduzir o cálculo de Magnitude e Direção do vento
+      case ('MAGUV')
+         !Pega UE_AVG
+         firstX = oneBramsGrid%nodei0(oneBramsGrid%mynum) + 1
+         lastX = oneBramsGrid%nodei0(oneBramsGrid%mynum) + oneBramsGrid%mxp
+         firstY = oneBramsGrid%nodej0(oneBramsGrid%mynum) + 1
+         lastY = oneBramsGrid%nodej0(oneBramsGrid%mynum) + oneBramsGrid%myp
+         call GetVarFromMemToOutput ('UP', oneBramsGrid%currGrid, ScrT3N02)
+         call GetVarFromMemToOutput ('VP', oneBramsGrid%currGrid, ScrT3N01)
+         !UE_AVG
+         call rams_comp_rotate (ScrT3N02, ScrT3N01, &
+               oneBramsGrid%xtn(firstX : lastX), oneBramsGrid%ytn(firstY : lastY), &
+               oneBramsGrid%polelat, oneBramsGrid%polelon)
+         call rams_comp_avgu (ScrT3N02) 
+         !VE_AVG
+         call GetVarFromMemToOutput ('UP', oneBramsGrid%currGrid, ScrT3N03)
+         call GetVarFromMemToOutput ('VP', oneBramsGrid%currGrid, ScrT3N01)
+         call rams_comp_rotate (ScrT3N01, ScrT3N03, &
+               oneBramsGrid%xtn(firstX : lastX), oneBramsGrid%ytn(firstY : lastY), &
+               oneBramsGrid%polelat, oneBramsGrid%polelon)
+         call rams_comp_avgv (ScrT3N03)    
+         OutputField = sqrt(ScrT3N02*ScrT3N02+ScrT3N03*ScrT3N03)
+
+      case('DIRUV')
+         !Pega UE_AVG
+         firstX = oneBramsGrid%nodei0(oneBramsGrid%mynum) + 1
+         lastX = oneBramsGrid%nodei0(oneBramsGrid%mynum) + oneBramsGrid%mxp
+         firstY = oneBramsGrid%nodej0(oneBramsGrid%mynum) + 1
+         lastY = oneBramsGrid%nodej0(oneBramsGrid%mynum) + oneBramsGrid%myp
+         call GetVarFromMemToOutput ('UP', oneBramsGrid%currGrid, ScrT3N02)
+         call GetVarFromMemToOutput ('VP', oneBramsGrid%currGrid, ScrT3N01)
+         !UE_AVG
+         call rams_comp_rotate (ScrT3N02, ScrT3N01, &
+               oneBramsGrid%xtn(firstX : lastX), oneBramsGrid%ytn(firstY : lastY), &
+               oneBramsGrid%polelat, oneBramsGrid%polelon)
+         call rams_comp_avgu (ScrT3N02) 
+         !VE_AVG
+         call GetVarFromMemToOutput ('UP', oneBramsGrid%currGrid, ScrT3N03)
+         call GetVarFromMemToOutput ('VP', oneBramsGrid%currGrid, ScrT3N01)
+         call rams_comp_rotate (ScrT3N01, ScrT3N03, &
+               oneBramsGrid%xtn(firstX : lastX), oneBramsGrid%ytn(firstY : lastY), &
+               oneBramsGrid%polelat, oneBramsGrid%polelon)
+         call rams_comp_avgv (ScrT3N03)    
+         ScrT3N04 = atan(ScrT3N03/ScrT3N02)
+         OutputField = c_i_pi180*ScrT3N04
+
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
       case ('TEMPC')
          call GetVarFromMemToOutput ('THETA', oneBramsGrid%currGrid, OutputField)
          call GetVarFromMemToOutput ('PI', oneBramsGrid%currGrid, ScrT3N01)
          call rams_comp_tempk (OutputField, ScrT3N01)
          call rams_comp_tempc (OutputField)
-
       case ('REF_TEMPC')
          call GetVarFromMemToOutput ('VARTP', oneBramsGrid%currGrid, ScrT3N01)
          call GetVarFromMemToOutput ('VARPP', oneBramsGrid%currGrid, ScrT3N02)
@@ -145,7 +202,6 @@ contains
 	 ScrT3N01=ScrT3N02+ScrT3N03 !exner function
          call rams_comp_tempk (OutputField, ScrT3N01)
          call rams_comp_tempc (OutputField)
-
       case ('RH')
          call GetVarFromMemToOutput ('RV', oneBramsGrid%currGrid, OutputField)
          call GetVarFromMemToOutput ('PI', oneBramsGrid%currGrid, ScrT3N01)
@@ -627,8 +683,11 @@ contains
          stop
       end select
 
+      if(IPOS == 11 .or. IPOS == 10) call writeTimeLineFRN(one_post_variable%fieldName,OutputField,oneBramsGrid%mxp &
+      , oneBramsGrid%myp, oneBramsGrid%mzp,time,oneNamelistFile)
+
       ! most of cases run this. Some just returns before
-      call PrepareAndOutputGradsField(one_post_variable, oneBramsGrid, onePostGrid, OutputField)
+      if(IPOS == 2 .or. IPOS == 10) call PrepareAndOutputGradsField(one_post_variable, oneBramsGrid, onePostGrid, OutputField)
 
    end subroutine Brams2Post_3d
 

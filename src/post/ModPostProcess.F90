@@ -163,7 +163,7 @@ contains
          igrid = OneGrid%Id
 
          ! open grads files
-         if(IPOS==2) then
+         if(IPOS==2 .or. IPOS==10) then
             call OpenGradsBinaryFile(oneNamelistFile, &
                oneAllPostTypes%allGrids(igrid)%pg, &
                oneAllPostTypes%allGrids(igrid)%bg, igrid)
@@ -214,12 +214,12 @@ contains
             end if
             call PostOneField(trim(oneNamelistFile%vp(ivp)), &
                   oneAllPostTypes%allGrids(igrid)%bg, &
-                  oneAllPostTypes%allGrids(igrid)%pg)
+                  oneAllPostTypes%allGrids(igrid)%pg,oneNamelistFile)
          end do
          call finalize_post_variables()
          ! control file contents
 
-         if(IPOS==2) then
+         if(IPOS==2 .or. IPOS==10) then
             call FillGradsControlFile(&
                oneAllPostTypes%allGrids(igrid)%pg, &
                oneAllPostTypes%allGrids(igrid)%bg)

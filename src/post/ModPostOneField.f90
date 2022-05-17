@@ -54,7 +54,7 @@ contains
    end subroutine
 
 
-subroutine PostOneField(varName, oneBramsGrid, onePostGrid)
+subroutine PostOneField(varName, oneBramsGrid, onePostGrid, oneNamelistFile)
       use dump
       use node_mod, only: &
        mchnum,        &
@@ -62,6 +62,7 @@ subroutine PostOneField(varName, oneBramsGrid, onePostGrid)
 
       include "constants.f90"
       character(len = *), intent(in) :: varName
+      type(NamelistFile), pointer :: oneNamelistFile
       type(BramsGrid), pointer :: oneBramsGrid
       type(PostGrid), pointer :: onePostGrid
       type(PostVarType) :: one_post_variable
@@ -79,7 +80,7 @@ subroutine PostOneField(varName, oneBramsGrid, onePostGrid)
          case (2)
             call Brams2Post_2d(one_post_variable, oneBramsGrid, onePostGrid)
          case (3)
-            call Brams2Post_3d(one_post_variable, oneBramsGrid, onePostGrid)
+            call Brams2Post_3d(one_post_variable, oneBramsGrid, onePostGrid, oneNamelistFile)
          case (7)
             call Brams2Post_7d(one_post_variable, oneBramsGrid, onePostGrid)
          case (8)
