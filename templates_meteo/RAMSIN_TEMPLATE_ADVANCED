@@ -1,4 +1,4 @@
- $MODEL_GRIDS
+ $MODEL_GRIDS2
    NGRIDS   = 1,            ! Number of grids to run
  
    IF_ADAP  = 0,
@@ -390,8 +390,11 @@ $MODEL_SOUND
    VS       = 0.,0.,0.,0.,0.,0.,0.,0.,0.,0.,0.,
  
 $END
+ 
+ 
+$MODEL_PRINT
 
-
+!-----------------------------------
 ! Specifies the fields to be printed during the simulation
 !-----------------------------------
 
@@ -466,6 +469,9 @@ $ISAN_CONTROL2
    IOFLGVAR  = 1,           ! Var file flag: 0 = no write, 1 = write
 
 $END
+
+
+
 
 !-----------------------------------
 ! Isentropic and sigma-z processing 

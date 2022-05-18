@@ -9,13 +9,13 @@
 # onde TIPO: 
 # - PREPARAR_AMBIENTE: criar os diretórios, namelists, arquivos de submissão".
 #
-# - SFC: Executar o MAKESFC para a data informada
+# - MAKESFC: Executar o MAKESFC para a data informada
 #
-# - VFL: Extrai os dados de umidade do Solo do GFS; Executa o PRE do BRAMS usando os arquivo do GFS do dia da linha de comando informada, 
+# - MAKEVFL: Extrai os dados de umidade do Solo do GFS; Executa o PRE do BRAMS usando os arquivo do GFS do dia da linha de comando informada, 
 #        gerando as condições iniciais das0h do dia atual até 7 dias pra frente (171h no total). Em seguida, executa a fase MAKEVFILE,
 #        utilizando os arquivos gerados pelo PRE.
 #
-# - INITIAL_IAU0: Executa a fase INITIAL com IAU=0, por 171 horas, utilizando os demais arquivos gerados pela fase VFL.
+# - INITIAL: Executa a fase INITIAL com IAU=0, por 171 horas, utilizando os demais arquivos gerados pela fase MAKEVFL.
 #
 
 set -x
@@ -75,10 +75,11 @@ chem_assim=0
 aer_assim=0
 srcmapfn="'NONE'"
 recycle_tracers=0
+applyiau=0
 frqanl=10800.
 hfilout="'.\/${hoje}\/dataout\/ANL\/HOPQUE'"
 afilout="'.\/${hoje}\/dataout\/ANL\/OPQUE'"
-pastfn="'.\/$ontem\/dataout\/ANL\/OPQUE-A-$1-$2-$3-000000-head.txt'"  # TODO - não usado ?
+pastfn=".\/$ontem\/dataout\/ANL\/OPQUE-A-$1-$2-$3-000000-head.txt"
 topfiles="'.\/${hoje}\/dataout\/sfc\/top_oq3g'"
 sfcfiles="'.\/${hoje}\/dataout\/sfc\/sfc_oq3g'"
 sstfpfx="'.\/${hoje}\/dataout\/sfc\/sst_oq3g'"
@@ -167,31 +168,33 @@ if [ ${_fase} == "PREPARAR_AMBIENTE" ]; then
     | sed "s/{USMODEL_IN}/${usmodel_in}/g"          \
     | sed "s/{ICPREFIX}/${icprefix}/g"  > RAMSIN_TEMPLATE_BASIC_TMP
 
-  cat < ./templates_meteo/RAMSIN_TEMPLATE_ADVANCED \
-    | sed "s/{DATE}/${hoje}/g" \
+  cat < ./templates_meteo/RAMSIN_TEMPLATE_ADVANCED  \
+    | sed "s/{DATE}/${hoje}/g"                      \
     | sed "s/{RECYCLE_TRACERS}/${recycle_tracers}/g"\
     | sed "s/{PASTFN}/${pastfn}/g"                  \
+    | sed "s/{APPLYIAU}/${applyiau}/g"              \
+    | sed "s/{IMONTH1}/${imonth1}/g"                \
+    | sed "s/{IDATE1}/${idate1}/g"                  \
+    | sed "s/{IYEAR1}/${iyear1}/g"                  \
+    | sed "s/{ITIME1}/${itime1}/g"                  \
     | sed "s/{GPREFIX}/${gprefix}/g" > RAMSIN_TEMPLATE_ADVANCED_TMP
 
 
   # para makesfc e makevfile 
-
-  applyiau=0
   ipos=0
   expnme=$expnme-IAU${applyiau}
 
   # MAKESFC
-  cat < RAMSIN_TEMPLATE_BASIC_TMP \
-    | sed "s/{RUNTYPE}/MAKESFC/g" \
-    | sed "s/{EXPNME}/${expnme}/g" \
-    | sed "s/{APPLYIAU}/${applyiau}/g" \
-    | sed "s/{IPOS}/${ipos}/g" \
+  cat < RAMSIN_TEMPLATE_BASIC_TMP    \
+    | sed "s/{RUNTYPE}/MAKESFC/g"    \
+    | sed "s/{EXPNME}/${expnme}/g"   \
+    | sed "s/{IPOS}/${ipos}/g"       \
     | sed "s/{IMONTH1}/${imonth1}/g" \
-    | sed "s/{IDATE1}/${idate1}/g" \
-    | sed "s/{IYEAR1}/${iyear1}/g" \
-    | sed "s/{ITIME1}/${itime1}/g" \
-    | sed "s/{TIMMAX}/${timmax}/g" > RAMSIN_BASIC_SFC_${hoje}
-  cp RAMSIN_TEMPLATE_ADVANCED_TMP RAMSIN_ADVANCED_SFC_${hoje}
+    | sed "s/{IDATE1}/${idate1}/g"   \
+    | sed "s/{IYEAR1}/${iyear1}/g"   \
+    | sed "s/{ITIME1}/${itime1}/g"   \
+    | sed "s/{TIMMAX}/${timmax}/g" > RAMSIN_BASIC_MAKESFC_${hoje}
+  cp RAMSIN_TEMPLATE_ADVANCED_TMP RAMSIN_ADVANCED_MAKESFC_${hoje}
 
   # MAKEVFILE
 
@@ -206,14 +209,13 @@ if [ ${_fase} == "PREPARAR_AMBIENTE" ]; then
     cat < RAMSIN_TEMPLATE_BASIC_TMP \
       | sed "s/{RUNTYPE}/MAKEVFILE/g" \
       | sed "s/{EXPNME}/${expnme}/g" \
-      | sed "s/{APPLYIAU}/${applyiau}/g" \
       | sed "s/{IPOS}/${ipos}/g" \
       | sed "s/{IYEAR1}/${x_ano}/g" \
       | sed "s/{IMONTH1}/${x_mes}/g" \
       | sed "s/{IDATE1}/${x_dia}/g" \
       | sed "s/{ITIME1}/${x_hora}/g" \
-      | sed "s/{TIMMAX}/3/g" > RAMSIN_BASIC_VFL_$tstart
-      cp RAMSIN_TEMPLATE_ADVANCED_TMP RAMSIN_ADVANCED_VFL_${tstart}
+      | sed "s/{TIMMAX}/3/g" > RAMSIN_BASIC_MAKEVFILE_$tstart
+      cp RAMSIN_TEMPLATE_ADVANCED_TMP RAMSIN_ADVANCED_MAKEVFILE_${tstart}
 
       curr_hour=$(($curr_hour+$inc_hour))
       # soma de novo caso não esteja no último horário (vfl faz 2 horários por vez)
@@ -232,13 +234,14 @@ if [ ${_fase} == "PREPARAR_AMBIENTE" ]; then
   cat < RAMSIN_TEMPLATE_BASIC_TMP \
        | sed "s/{RUNTYPE}/INITIAL/g" \
        | sed "s/{EXPNME}/${expnme}/g" \
-       | sed "s/{APPLYIAU}/${applyiau}/g" \
        | sed "s/{IPOS}/${ipos}/g" \
        | sed "s/{IMONTH1}/${imonth1}/g" \
        | sed "s/{IDATE1}/${idate1}/g" \
        | sed "s/{IYEAR1}/${iyear1}/g" \
        | sed "s/{ITIME1}/${itime1}/g" \
-       | sed "s/{TIMMAX}/${timmax}/g" > RAMSIN_INI_IAU0_${hoje}
+       | sed "s/{TIMMAX}/${timmax}/g" > RAMSIN_BASIC_INITIAL_${hoje}
+  
+  cp RAMSIN_TEMPLATE_ADVANCED_TMP RAMSIN_ADVANCED_INITIAL_${tstart}
 
   # rm RAMSIN_TEMPLATE_BASIC_TMP RAMSIN_TEMPLATE_ADVANCED_TMP
 
@@ -261,7 +264,7 @@ if [ ${_fase} == "PREPARAR_AMBIENTE" ]; then
   wall="01:00:00"
   jobname="BRS_${hoje}"
   nproc=1
-  ramsin="RAMSIN_BASIC_SFC_${hoje}"
+  ramsin="RAMSIN_BASIC_MAKESFC_${hoje}"
   exec_and_ramsin="${executable_escaped} -f ${ramsin}"
 
   cat < ./templates_meteo/SLURM_EGEON_TEMPLATE \
@@ -288,7 +291,7 @@ if [ ${_fase} == "PREPARAR_AMBIENTE" ]; then
     x_hora=${tstart:8:2}
 
     jobname="BRV_${tstart}"
-    ramsin="RAMSIN_BASIC_VFL_${tstart}"
+    ramsin="RAMSIN_BASIC_MAKEVFILE_${tstart}"
     xsub_vfl_name="xsub_vfl_${tstart}.sh"
     exec_and_ramsin="${executable_escaped} -f ${ramsin}"
     cat < ./templates_meteo/SLURM_EGEON_TEMPLATE \
@@ -314,14 +317,14 @@ if [ ${_fase} == "PREPARAR_AMBIENTE" ]; then
 
   done
 
-  echo "Criando Submit para o INITIAL_IAU0 - ${xsub_ini_iau0_name} ..."
+  echo "Criando Submit para o INITIAL - ${xsub_ini_iau0_name} ..."
   select=8
   ncpus=128
   mpiprocs=128
   nproc=1040
   wall="04:00:00"
   jobname="BRI0_${hoje}"
-  ramsin="RAMSIN_INI_IAU0_${hoje}"
+  ramsin="RAMSIN_INITIAL_${hoje}"
   exec_and_ramsin="${executable_escaped} -f ${ramsin}"
   cat < ./templates_meteo/SLURM_EGEON_TEMPLATE \
        | sed "s/{QUEUE}/${queue}/g" \
@@ -361,6 +364,7 @@ if [ ${_fase} == "PREPARAR_AMBIENTE" ]; then
        | sed "s/{DIRBASE}/${dirbase_escaped}/g" \
        > pre_${hoje}.nml
 
+
   echo
   echo "Entrando no diretório "${dir_local}
   cd ${dir_local}
@@ -375,12 +379,12 @@ if [ ${_fase} == "PREPARAR_AMBIENTE" ]; then
 
   ./wgrib2 ${file_for_smoist} -s | grep 'TSOIL\|SOILW' | ./wgrib2 -i ${file_for_smoist} -netcdf tmp_out.nc
   smoist_file="${umid_solo_dir}/GFS.SOIL:UMID_TEMP.${hoje}"
-  grads -lc "run ./gerabin.gs tmp_out.nc ${smoist_file}"
+  grads -lc "run ./auxProgs/gerabin.gs tmp_out.nc ${smoist_file}"
   rm tmp_out.nc
 
   echo
   echo "Gerando os dados de SST ..."
-  ./geraSST2RAMS.bash "${hoje}" ${atmos_idir_prefix}
+  ./geraSST2RAMS.bash "${hoje}" ${external_dir}
 
 fi  # fim fase PREPARAR_AMBIENTE
 
@@ -388,14 +392,14 @@ fi  # fim fase PREPARAR_AMBIENTE
 
 # ~~~~~~~~~~~~~~~ Submissão de Jobs ~~~~~~~~~~~~~~~
 
-if [ ${_fase} == "SFC" ]; then
+if [ ${_fase} == "MAKESFC" ]; then
   echo
   echo "Submeterndo job xsub_sfc_${hoje}.sh"
-  qsub xsub_sfc_${hoje}.sh
+  sbatch xsub_sfc_${hoje}.sh
 fi
 
 
-if [ ${_fase} == "VFL" ]; then
+if [ ${_fase} == "MAKEVFL" ]; then
   rm -f *.ctl *.inv *.blow *.gra  # caso parar o PRE no meio do processo
 
 
@@ -407,7 +411,7 @@ if [ ${_fase} == "VFL" ]; then
   nproc=1
   wall="00:30:00"
   jobname="BR_PRE_${hoje}"
-  pre_exec_escaped='\.\/EXEC\/prep_1.0'
+  pre_exec_escaped='\.\/EXEC\/pre'
   cat < ./templates_meteo/SLURM_EGEON_TEMPLATE \
        | sed "s/{QUEUE}/${queue}/g" \
        | sed "s/{SELECT}/${select}/g" \
@@ -452,7 +456,7 @@ if [ ${_fase} == "VFL" ]; then
 fi
 
 
-if [ ${_fase} == "INITIAL_IAU0" ]; then
+if [ ${_fase} == "INITIAL" ]; then
   echo "Submeterndo job ${xsub_ini_iau0_name}"
   sbatch ${xsub_ini_iau0_name}
 fi

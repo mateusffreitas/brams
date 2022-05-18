@@ -39,12 +39,7 @@ function exec_fase() {
     return
   fi
 
-  ./run_oper_meteo.bash "$1" "$2" "$3" ${fase}
-  while [ ! -f ${arquivo_teste} ]; do
-    echo "Executando fase ${fase} há ${tempo} segundos. Aguardando arquivo ${arquivo_teste} por até ${tempo_max} segundos"
-    sleep ${tempo_inc}
-    tempo=$((${tempo}+${tempo_inc}))
-    if [ ${tempo} -gt ${tempo_max} ]; then
+  ./run_oper_meteo.bash "$1" "$2" "$3" ${fase}/mnt/beegfs/denis.eiras/ioper_brams6.0/my_external/2021010400/dataout/umid_solo/GFS.SOIL
       echo
       echo "***************************************************"
       echo "Tempo de execução excedido para a fase ${fase} !!! Parando execução"
@@ -122,12 +117,7 @@ while [ ${contador_rodada} -lt ${_num_rodadas} ]; do
     continue
   fi
 
-  fase="INITIAL_IAU1"
-  test_ok_file_name="${dir_dataout_base}/IAU_tendencies/BRAMS-8km-IAU1-IBC:GFS-8km-IC:${ano_ontem}-${mes_ontem}-${dia_ontem}-21-V-${ano_ontem}-${mes_ontem}-${dia_ontem}-210000-g1.bin" # prefix of the file to store the IAU's tendencies'
-#test_ok_file_name="${dir_dataout_base}/POST/meteo-A-${ano_ontem}-${mes_ontem}-${dia_ontem}-210000-g1.gra"
-  exec_fase ${x_ano} ${x_mes} ${x_dia} ${fase} ${test_ok_file_name} 10800
-
-  fase="INITIAL_IAU2"
+  fase="INITIAL_IAU0"
   test_ok_file_name="${dir_dataout_base}/POST/meteo-A-${x_ano_fim}-${x_mes_fim}-${x_dia_fim}-000000-g1.gra"
   exec_fase ${x_ano} ${x_mes} ${x_dia} ${fase} ${test_ok_file_name} 14400
 

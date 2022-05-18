@@ -27,7 +27,6 @@ export TMPDIR={DIRBASE}/tmp
 ulimit -s unlimited
 MPI_PARAMS="-iface ib0 -bind-to core -map-by core"
 export OMP_NUM_THREADS=1
-export MKL_NUM_THREADS=1
-export I_MPI_DEBUG=5
-export MKL_DEBUG_CPU_TYPE=5
-mpirun -env MKL_DEBUG_CPU_TYPE=5 -env UCX_NET_DEVICES=mlx5_0:1 -genvall {EXECUTABLE} &> {JOBNAME}.out
+mpirun {EXECUTABLE} &> {JOBNAME}.out
+
+exit

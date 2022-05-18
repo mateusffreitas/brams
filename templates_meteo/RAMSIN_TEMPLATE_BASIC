@@ -1,7 +1,7 @@
 $MODEL_ADV_RAMSIN    
     ADVANCED_RAMSIN = 'RAMSIN_ADVANCED_{RUNTYPE}_{IYEAR1}{IMONTH1}{IDATE1}{ITIME1}', !The RAMSIN continuation
 $END
-!=======================================================================
+
  $MODEL_GRIDS
 
    EXPNME   = '{EXPNME}',
@@ -22,8 +22,6 @@ $END
 
 ! Grid specifications
 
-   NGRIDS   = 1,            ! Number of grids to run
- 
    NNXP     = {NNXP},         ! Number of x gridpoints
    NNYP     = {NNYP},      ! Number of y gridpoints
    NNZP     = {NNZP}, 47,         ! Number of z gridpoints
@@ -36,9 +34,9 @@ $END
    DELTAX   = {DELTAX},
    DELTAY   = {DELTAY},       ! X and Y grid spacing
 
-   DELTAZ   = 70.,         ! Z grid spacing (set to 0. to use ZZ)
-   DZRAT    = 1.09,       ! Vertical grid stretch ratio
-   DZMAX    = 750.,        ! Maximum delta Z for vertical stretch
+   DELTAZ   = 70.0,   ! Z grid spacing (set to 0. to use ZZ)
+   DZRAT    = 1.09,   ! Vertical grid stretch ratio
+   DZMAX    = 750.,   ! Maximum delta Z for vertical stretch
    FIXLEVELS = 0,
 
    ZZ       =    0.0,  !Vertical levels if DELTAZ = 0  !#1
@@ -57,8 +55,8 @@ $END
    POLELAT  = {POLELAT},         ! Latitude of pole point
    POLELON  = {POLELON},         ! Longitude of pole point
 
-   CENTLAT  = {CENTLAT}, -23.0, -23.5, -20.9,
-   CENTLON  = {CENTLON}, -46.65, -46.5, -47.5,
+   CENTLAT  = {CENTLAT}, ! Latitude  of grid center point
+   CENTLON  = {CENTLON}, ! Longitude of grid center point
 
  $END
 
@@ -86,7 +84,7 @@ $CCATT_INFO
                    
    AER_ASSIM = {AER_ASSIM}, ! 1- activate 4dda with mocage/cams data, 0 - off
 
-   AER_TIMESTEP = {DTLONG}., ! aerosol time step integration (sec)
+   AER_TIMESTEP = {DTLONG}, ! aerosol time step integration (sec)
                              ! should be an multiple of dtlong (max 4/try just 1X)    
                              ! 0 - off, 1 - on 
 
@@ -108,7 +106,7 @@ $MODEL_FILE_INFO
 
 ! History/analysis file output
  
-   IPOS     =  {IPOS},                ! 0-no files, 2-grads files, 1-hdf5(not available yet)
+   IPOS     =  {IPOS},                ! 0-no files, 2-grads files, 3 - NetCDF
    IOUTPUT  =  0,                ! 0-no files, 1-save ASCII, 2-save binary
    HFILOUT  = {HFILOUT},      ! History file prefix
    AFILOUT  = {AFILOUT},       ! Analysis file prefix
@@ -122,14 +120,13 @@ $MODEL_FILE_INFO
    SSTFPFX  = './{DATE}/dataout/SFC/sst_OQ3g',   ! Path and prefix for sst files
    NDVIFPFX = './{DATE}/dataout/SFC/ndv_OQ3g',  ! Path and prefix for ndvi files
 
-   ITOPTFN  = './datafix/TOPO1KM/EL',
-   ISSTFN   = './data/BRAMS/SST_WEEK/W',
-   IVEGTFN  = './datafix/GL_OGE_INPE/OGE',
-   ISOILFN  = './datafix/GL_FAO_INPE/FAO',
-   NDVIFN   = './datafix/NDVI-MODIS_GRADS/N',
+   ITOPTFN  = "./datafix/TOPO1KM/EL",
+   ISSTFN   = "./data/BRAMS/SST_WEEK/W",
+   IVEGTFN  = "./datafix/GL_OGE_INPE/OGE",
+   ISOILFN  = "./datafix/GL_FAO_INPE/FAO",
+   NDVIFN   = "./datafix/NDVI-MODIS_GRADS/N",
 
  $END
-
 
  $MODEL_OPTIONS
 
@@ -280,7 +277,7 @@ $END
     'u',
     'v',
 
-    GPREFIX = './{DATE}/dataout/POST/meteo',
+
     GPREFIX = './{DATE}/dataout/POST/meteo',
     CSVFILE = './variables.csv',
     ANL2GRA = 'ONE',
