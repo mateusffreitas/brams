@@ -190,7 +190,8 @@ program pre
     iErrNumber=dumpMessage(c_tty,c_yes,'','',c_notice,'Grib2 dates inventory:')
     write (*,fmt='("+--+----+--+--+--+")') 
     do i=1,stepsBetDates
-      write (*,fmt='("|",I2.2,"|",I4.4,"|",I2.2,"|",I2.2,"|",I2.2,"|")') i,atmosDate(i)%year,atmosDate(i)%month,atmosDate(i)%day,atmosDate(i)%hour
+      write (*,fmt='("|",I2.2,"|",I4.4,"|",I2.2,"|",I2.2,"|",I2.2,"|")') i,atmosDate(i)%year,atmosDate(i)%month &
+        ,atmosDate(i)%day,atmosDate(i)%hour
       write (*,fmt='("+--+----+--+--+--+")')
     enddo
 
@@ -198,7 +199,8 @@ program pre
     !And writes output
     do iTime=1,stepsBetDates
       call concatenate(iTime)
-      write(warningFileName,fmt='(I4.4,I2.2,I2.2,I2.2,".done")')  atmosDate(ITime)%year,atmosDate(Itime)%month,atmosDate(iTime)%day,atmosDate(iTime)%hour
+      write(warningFileName,fmt='(I4.4,I2.2,I2.2,I2.2,".done")')  atmosDate(ITime)%year,atmosDate(Itime)%month &
+        ,atmosDate(iTime)%day,atmosDate(iTime)%hour
       lunit=getUnit()
       call date_and_time( dateNow, timeNow, zoneNow, valuesNow )
       open(unit=lunit, file=warningFileName)
