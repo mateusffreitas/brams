@@ -21,6 +21,9 @@
 set -x
 # ~~~~~~~~~~~~~~~ Início do script ~~~~~~~~~~~~~~~
 
+export comp_env="intel"
+source ./env_${comp_env}.sh
+
 _fase=$4
 _dia=$3
 _mes=$2
@@ -30,14 +33,6 @@ echo
 echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
 echo "Iniciando execução da fase ${_fase} ... "
 echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
-module swap gnu9 intel
-module swap openmpi4 impi
-module load phdf5
-module load netcdf
-module load netcdf-fortran
-module load hwloc
-echo "Lista de módulos carregados: "
-module list
 
 _NOVA_DATA="-1"
 _NOVA_DATA=`echo $_NOVA_DATA | tr "-" " "`
@@ -66,9 +61,9 @@ nnzp=45
 deltax=8000.
 deltay=8000.
 dtlong=45.
-polelat=-14.0
+polelat=-19.0
 polelon=-56.0
-centlat=-14.0
+centlat=-19.0
 centlon=-56.0
 chem_timestep=320.
 chem_assim=0
@@ -197,7 +192,6 @@ if [ ${_fase} == "PREPARAR_AMBIENTE" ]; then
   cp RAMSIN_TEMPLATE_ADVANCED_TMP RAMSIN_ADVANCED_MAKESFC_${hoje}
 
   # MAKEVFILE
-
   tstart=${hoje}
   curr_hour=0
   while [ $curr_hour -lt $timmax_vfl ]; do
@@ -252,12 +246,11 @@ if [ ${_fase} == "PREPARAR_AMBIENTE" ]; then
   echo "Criando arquivos de submissão ..."
  
   # exec is a link
-  executable_escaped="${dirbase_escaped}\/EXEC\/brams_exec"
   # executable="${dir_local}/EXEC/brams-exec"
-
+  
   xsub_sfc_name="xsub_sfc_${hoje}.sh"
   echo "Criando Submit para o MAKESFC - "${xsub_sfc_name}" ..."
-  queue="PESQ2"
+  queue="batch"
   select=1
   ncpus=1
   mpiprocs=1
@@ -265,6 +258,12 @@ if [ ${_fase} == "PREPARAR_AMBIENTE" ]; then
   jobname="BRS_${hoje}"
   nproc=1
   ramsin="RAMSIN_BASIC_MAKESFC_${hoje}"
+  
+  # TODO - GNU better e 1 processor - change to one exec
+  executable_escaped_1proc="${dirbase_escaped}\/EXEC\/brams-6.0_gnu"
+  exec_and_ramsin_1proc="${executable_escaped_1proc} -f ${ramsin}"
+  
+  executable_escaped="${dirbase_escaped}\/EXEC\/brams_exec"
   exec_and_ramsin="${executable_escaped} -f ${ramsin}"
 
   cat < ./templates_meteo/SLURM_EGEON_TEMPLATE \
@@ -293,7 +292,6 @@ if [ ${_fase} == "PREPARAR_AMBIENTE" ]; then
     jobname="BRV_${tstart}"
     ramsin="RAMSIN_BASIC_MAKEVFILE_${tstart}"
     xsub_vfl_name="xsub_vfl_${tstart}.sh"
-    exec_and_ramsin="${executable_escaped} -f ${ramsin}"
     cat < ./templates_meteo/SLURM_EGEON_TEMPLATE \
        | sed "s/{QUEUE}/${queue}/g" \
        | sed "s/{SELECT}/${select}/g" \
@@ -325,7 +323,6 @@ if [ ${_fase} == "PREPARAR_AMBIENTE" ]; then
   wall="04:00:00"
   jobname="BRI0_${hoje}"
   ramsin="RAMSIN_INITIAL_${hoje}"
-  exec_and_ramsin="${executable_escaped} -f ${ramsin}"
   cat < ./templates_meteo/SLURM_EGEON_TEMPLATE \
        | sed "s/{QUEUE}/${queue}/g" \
        | sed "s/{SELECT}/${select}/g" \

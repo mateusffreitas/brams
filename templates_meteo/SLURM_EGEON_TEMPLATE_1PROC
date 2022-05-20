@@ -1,0 +1,44 @@
+#!/bin/bash
+#SBATCH --job-name={JOBNAME}
+#SBATCH --nodes={SELECT}
+#SBATCH --partition={QUEUE}
+#SBATCH --tasks-per-node={NCPUS}
+#SBATCH --ntasks={MPIPROCS}
+#SBATCH --time={WALL}
+#sbatch --mem-per-cpu=64000M
+#SBATCH --output={JOBNAME}.log
+#SBATCH --exclusive
+
+cd $SLURM_SUBMIT_DIR
+echo $SLURM_SUBMIT_DIR
+
+# gnu
+# module purge
+# module load gnu9/9.4.0
+# module load ucx/1.11.2
+# module load openmpi4/4.1.1
+# module load netcdf/4.7.4
+# module load netcdf-fortran/4.5.3
+# module load phdf5/1.10.8
+# module load hwloc
+# module load libfabric/1.13.0
+echo "Lista de módulos carregados: "
+module list
+
+# gnu
+# export LD_LIBRARY_PATH=/opt/ohpc/pub/libs/gnu9/impi/netcdf-fortran/4.5.3/lib:/opt/ohpc/pub/libs/gnu9/impi/netcdf/4.7.4/lib:$LD_LIBRARY_PATH
+
+# intel
+# export LD_LIBRARY_PATH=/mnt/beegfs/denis.eiras/libraries/lib:$LD_LIBRARY_PATH
+
+echo "============================="
+
+cd {DIRBASE}
+export TMPDIR={DIRBASE}/tmp
+
+ulimit -s unlimited
+
+export OMP_NUM_THREADS=1
+mpirun {EXECUTABLE} &> {JOBNAME}.out
+
+exit

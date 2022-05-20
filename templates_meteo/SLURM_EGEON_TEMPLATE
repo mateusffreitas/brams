@@ -11,21 +11,19 @@
 
 cd $SLURM_SUBMIT_DIR
 echo $SLURM_SUBMIT_DIR
-module swap gnu9 intel
-module swap openmpi4 impi
-module load phdf5
-module load netcdf
-module load netcdf-fortran
-module load hwloc
-echo "Lista de módulos carregados: "
-module list
+
+source ./env_${comp_env}.sh
+
 echo "============================="
 
 cd {DIRBASE}
 export TMPDIR={DIRBASE}/tmp
 
 ulimit -s unlimited
+
+#IMPI
 MPI_PARAMS="-iface ib0 -bind-to core -map-by core"
+
 export OMP_NUM_THREADS=1
 mpirun {EXECUTABLE} &> {JOBNAME}.out
 
