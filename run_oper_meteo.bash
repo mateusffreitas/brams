@@ -275,6 +275,7 @@ if [ ${_fase} == "PREPARAR_AMBIENTE" ]; then
        | sed "s/{JOBNAME}/${jobname}/g" \
        | sed "s/{DIRBASE}/${dirbase_escaped}/g" \
        | sed "s/{NPROC}/${nproc}/g" \
+       | sed "s/{COMP_ENV}/${comp_env}/g" \
        | sed "s/{EXECUTABLE}/${exec_and_ramsin}/g" > ${xsub_sfc_name}
   chmod +x ${xsub_sfc_name}
 
@@ -301,6 +302,7 @@ if [ ${_fase} == "PREPARAR_AMBIENTE" ]; then
        | sed "s/{JOBNAME}/${jobname}/g" \
        | sed "s/{DIRBASE}/${dirbase_escaped}/g" \
        | sed "s/{NPROC}/${nproc}/g" \
+       | sed "s/{COMP_ENV}/${comp_env}/g" \
        | sed "s/{EXECUTABLE}/${exec_and_ramsin}/g" > ${xsub_vfl_name}
     chmod +x ${xsub_vfl_name}
 
@@ -332,6 +334,7 @@ if [ ${_fase} == "PREPARAR_AMBIENTE" ]; then
        | sed "s/{JOBNAME}/${jobname}/g" \
        | sed "s/{DIRBASE}/${dirbase_escaped}/g" \
        | sed "s/{NPROC}/${nproc}/g" \
+       | sed "s/{COMP_ENV}/${comp_env}/g" \
        | sed "s/{EXECUTABLE}/${exec_and_ramsin}/g" > ${xsub_ini_iau0_name}
   chmod +x ${xsub_ini_iau0_name}
 
@@ -418,6 +421,7 @@ if [ ${_fase} == "MAKEVFL" ]; then
        | sed "s/{JOBNAME}/${jobname}/g" \
        | sed "s/{DIRBASE}/${dirbase_escaped}/g" \
        | sed "s/{NPROC}/${nproc}/g" \
+       | sed "s/{COMP_ENV}/${comp_env}/g" \
        | sed "s/{EXECUTABLE}/${pre_exec_escaped}/g" > ${xsub_prep_name}
   chmod +x ${xsub_prep_name}
 
