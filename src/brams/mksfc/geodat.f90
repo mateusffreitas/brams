@@ -928,7 +928,7 @@ subroutine sfcopqr_var(no, mof, np, niq, njq, n2, n3, xt, yt, platn, plonn, &
   character(len=f_name_length) :: title3
   character(len=003) :: title1
   character(len=004) :: title2
-  logical            :: l1, l2
+  logical            :: l1
   integer, parameter :: maxmiss=1000
   character(len=256) :: fnmiss(maxmiss)
   real, allocatable  :: sdq(:,:), shaq(:,:), sdr(:,:), datre(:,:)
