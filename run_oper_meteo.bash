@@ -23,6 +23,7 @@ set -x
 
 export comp_env="intel"
 source ./env_${comp_env}.sh
+rm -f *.ctl *.inv *.blow *.gra DumpMemory* ts*.out *.done
 
 _fase=$4
 _dia=$3
@@ -399,7 +400,7 @@ fi
 
 
 if [ ${_fase} == "MAKEVFL" ]; then
-  rm -f *.ctl *.inv *.blow *.gra DumpMemory* ts*.out  # caso parar o PRE no meio do processo
+  # caso parar o PRE no meio do processo
 
   xsub_prep_name='./xsub_prep.sh'
   echo "Criando Submit para o Pre - ${xsub_prep_name} ..."
