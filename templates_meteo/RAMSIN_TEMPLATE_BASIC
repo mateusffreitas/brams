@@ -206,7 +206,7 @@ $ISAN_CONTROL
 
 ! File names and dispose flags 
 
-   VARPFX    = './dataout/IVAR/OPQUE',  ! isan file names prefix
+   VARPFX    = './{DATE}/dataout/IVAR/OPQUE',  ! isan file names prefix
 
 $END
 

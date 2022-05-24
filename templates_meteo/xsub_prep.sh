@@ -14,7 +14,7 @@ umask 022
 #
 ulimit -s unlimited
 ulimit -c unlimited
-module load PrgEnv-gnu
+
 set -x
 
 cd /lustre_xc50/denis_eiras/ioper_brams5.6

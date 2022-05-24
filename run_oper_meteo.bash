@@ -42,14 +42,12 @@ hoje=${_ano}${_mes}${_dia}00
 
 # Parâmetros do RAMSIN
 expnme=BRAMS-8km
-# 7 dias mais 3 horas
-# timmax=171
-# timmax_vfl=171
-# timmax_pre=171
-# test
-timmax=6
+
+# 7 dias
+timmax=168
+
 timmax_vfl=${timmax}
-timmax_pre=${timmax}
+timmax_pre=$((${timmax}+3))
 imonth1=${_mes}
 idate1=${_dia}
 iyear1=${_ano}
@@ -81,8 +79,9 @@ sstfpfx="'.\/${hoje}\/dataout\/sfc\/sst_oq3g'"
 ndvifpfx="'.\/${hoje}\/sfc\/ndv_oq3g'"
 usdata_in="'.\/my_external\/"${hoje}"\/dataout\/umid_solo\/GFS.SOIL:UMID_TEMP.'"
 usmodel_in="'.\/${hoje}\/dataout\/UMD\/gl_sm_gpnr.'"
-icprefix="'.\/${hoje}\/datain\/grads\/ic'"
-icgradsprefix="'.\/${hoje}\/dataout\/ic\/icgrads'"
+icdir=".\/${hoje}\/datain\/GRADS\/"
+icprefix="'${icdir}ic'"
+# icgradsprefix="'.\/${hoje}\/dataout\/ic\/icgrads'"
 gprefix="'.\/${hoje}\/dataout\/post\/chem'"
 
 # outros parâmetros
@@ -108,6 +107,8 @@ atmos_idir="${external_dir}/${hoje}/dataout/GFS_0p25/"
 umid_solo_dir="${my_external_dir}/${hoje}/dataout/umid_solo"
 
 
+# outros params
+queue="batch"
 xsub_ini_iau0_name="xsub_ini_iau0_${hoje}.sh"
 
 
@@ -184,9 +185,9 @@ if [ ${_fase} == "PREPARAR_AMBIENTE" ]; then
     | sed "s/{RUNTYPE}/MAKESFC/g"    \
     | sed "s/{EXPNME}/${expnme}/g"   \
     | sed "s/{IPOS}/${ipos}/g"       \
+    | sed "s/{IYEAR1}/${iyear1}/g"   \
     | sed "s/{IMONTH1}/${imonth1}/g" \
     | sed "s/{IDATE1}/${idate1}/g"   \
-    | sed "s/{IYEAR1}/${iyear1}/g"   \
     | sed "s/{ITIME1}/${itime1}/g"   \
     | sed "s/{TIMMAX}/${timmax}/g" > RAMSIN_BASIC_MAKESFC_${hoje}
   cp RAMSIN_TEMPLATE_ADVANCED_TMP RAMSIN_ADVANCED_MAKESFC_${hoje}
@@ -194,7 +195,7 @@ if [ ${_fase} == "PREPARAR_AMBIENTE" ]; then
   # MAKEVFILE
   tstart=${hoje}
   curr_hour=0
-  while [ $curr_hour -lt $timmax_vfl ]; do
+  while [ $curr_hour -le $timmax_vfl ]; do
     x_ano=${tstart:0:4}
     x_mes=${tstart:4:2}
     x_dia=${tstart:6:2}
@@ -226,18 +227,18 @@ if [ ${_fase} == "PREPARAR_AMBIENTE" ]; then
   expnme=$expnme-IAU${applyiau}
 
   cat < RAMSIN_TEMPLATE_BASIC_TMP \
-       | sed "s/{RUNTYPE}/INITIAL/g" \
-       | sed "s/{EXPNME}/${expnme}/g" \
-       | sed "s/{IPOS}/${ipos}/g" \
-       | sed "s/{IMONTH1}/${imonth1}/g" \
-       | sed "s/{IDATE1}/${idate1}/g" \
-       | sed "s/{IYEAR1}/${iyear1}/g" \
-       | sed "s/{ITIME1}/${itime1}/g" \
-       | sed "s/{TIMMAX}/${timmax}/g" > RAMSIN_BASIC_INITIAL_${hoje}
+    | sed "s/{RUNTYPE}/INITIAL/g" \
+    | sed "s/{EXPNME}/${expnme}/g" \
+    | sed "s/{IPOS}/${ipos}/g" \
+    | sed "s/{IYEAR1}/${iyear1}/g"   \
+    | sed "s/{IMONTH1}/${imonth1}/g" \
+    | sed "s/{IDATE1}/${idate1}/g"   \
+    | sed "s/{ITIME1}/${itime1}/g"   \
+    | sed "s/{TIMMAX}/${timmax}/g" > RAMSIN_BASIC_INITIAL_${hoje}
   
-  cp RAMSIN_TEMPLATE_ADVANCED_TMP RAMSIN_ADVANCED_INITIAL_${tstart}
+  cp RAMSIN_TEMPLATE_ADVANCED_TMP RAMSIN_ADVANCED_INITIAL_${hoje}
 
-  # rm RAMSIN_TEMPLATE_BASIC_TMP RAMSIN_TEMPLATE_ADVANCED_TMP
+  rm RAMSIN_TEMPLATE_BASIC_TMP RAMSIN_TEMPLATE_ADVANCED_TMP
 
 
 
@@ -250,7 +251,6 @@ if [ ${_fase} == "PREPARAR_AMBIENTE" ]; then
   
   xsub_sfc_name="xsub_sfc_${hoje}.sh"
   echo "Criando Submit para o MAKESFC - "${xsub_sfc_name}" ..."
-  queue="batch"
   select=1
   ncpus=1
   mpiprocs=1
@@ -259,10 +259,11 @@ if [ ${_fase} == "PREPARAR_AMBIENTE" ]; then
   nproc=1
   ramsin="RAMSIN_BASIC_MAKESFC_${hoje}"
   
-  # TODO - GNU better e 1 processor - change to one exec
-  executable_escaped_1proc="${dirbase_escaped}\/EXEC\/brams-6.0_gnu"
+  # 1 proc
+  executable_escaped_1proc="${dirbase_escaped}\/EXEC\/brams_exec_1proc"
   exec_and_ramsin_1proc="${executable_escaped_1proc} -f ${ramsin}"
   
+  # + de 1 proc - INTEL 
   executable_escaped="${dirbase_escaped}\/EXEC\/brams_exec"
   exec_and_ramsin="${executable_escaped} -f ${ramsin}"
 
@@ -276,7 +277,7 @@ if [ ${_fase} == "PREPARAR_AMBIENTE" ]; then
        | sed "s/{DIRBASE}/${dirbase_escaped}/g" \
        | sed "s/{NPROC}/${nproc}/g" \
        | sed "s/{COMP_ENV}/${comp_env}/g" \
-       | sed "s/{EXECUTABLE}/${exec_and_ramsin}/g" > ${xsub_sfc_name}
+       | sed "s/{EXECUTABLE}/${exec_and_ramsin_1proc}/g" > ${xsub_sfc_name}
   chmod +x ${xsub_sfc_name}
 
 
@@ -284,7 +285,7 @@ if [ ${_fase} == "PREPARAR_AMBIENTE" ]; then
   wall="00:10:00"
   tstart=${hoje}
   curr_hour=0
-  while [ $curr_hour -lt $timmax_vfl ]; do
+  while [ $curr_hour -le $timmax_vfl ]; do
     x_ano=${tstart:0:4}
     x_mes=${tstart:4:2}
     x_dia=${tstart:6:2}
@@ -292,6 +293,7 @@ if [ ${_fase} == "PREPARAR_AMBIENTE" ]; then
 
     jobname="BRV_${tstart}"
     ramsin="RAMSIN_BASIC_MAKEVFILE_${tstart}"
+    exec_and_ramsin_1proc="${executable_escaped_1proc} -f ${ramsin}"
     xsub_vfl_name="xsub_vfl_${tstart}.sh"
     cat < ./templates_meteo/SLURM_EGEON_TEMPLATE \
        | sed "s/{QUEUE}/${queue}/g" \
@@ -303,7 +305,7 @@ if [ ${_fase} == "PREPARAR_AMBIENTE" ]; then
        | sed "s/{DIRBASE}/${dirbase_escaped}/g" \
        | sed "s/{NPROC}/${nproc}/g" \
        | sed "s/{COMP_ENV}/${comp_env}/g" \
-       | sed "s/{EXECUTABLE}/${exec_and_ramsin}/g" > ${xsub_vfl_name}
+       | sed "s/{EXECUTABLE}/${exec_and_ramsin_1proc}/g" > ${xsub_vfl_name}
     chmod +x ${xsub_vfl_name}
 
     curr_hour=$(($curr_hour+$inc_hour))
@@ -320,11 +322,11 @@ if [ ${_fase} == "PREPARAR_AMBIENTE" ]; then
   echo "Criando Submit para o INITIAL - ${xsub_ini_iau0_name} ..."
   select=8
   ncpus=128
-  mpiprocs=128
-  nproc=1040
-  wall="04:00:00"
+  mpiprocs=1024
+  wall="02:00:00"
   jobname="BRI0_${hoje}"
-  ramsin="RAMSIN_INITIAL_${hoje}"
+  ramsin="RAMSIN_BASIC_INITIAL_${hoje}"
+  exec_and_ramsin="${executable_escaped} -f ${ramsin}"
   cat < ./templates_meteo/SLURM_EGEON_TEMPLATE \
        | sed "s/{QUEUE}/${queue}/g" \
        | sed "s/{SELECT}/${select}/g" \
@@ -333,18 +335,15 @@ if [ ${_fase} == "PREPARAR_AMBIENTE" ]; then
        | sed "s/{WALL}/${wall}/g" \
        | sed "s/{JOBNAME}/${jobname}/g" \
        | sed "s/{DIRBASE}/${dirbase_escaped}/g" \
-       | sed "s/{NPROC}/${nproc}/g" \
        | sed "s/{COMP_ENV}/${comp_env}/g" \
        | sed "s/{EXECUTABLE}/${exec_and_ramsin}/g" > ${xsub_ini_iau0_name}
-  chmod +x ${xsub_ini_iau0_name}
-
-
-
-  # ~~~~~~~~~~~~~~~ Criação de namelists para o Prep ~~~~~~~~~~~~~~~
+    chmod +x ${xsub_ini_iau0_name}
 
   echo "Criando namelist para o Prep à partir das 00h do dia atual - pre_${hoje}.nml até ${yyyymmdd2_pre}"
 
   pre_step="3"  # fix = vfl
+  hoje_yyyymmdd=${hoje:0:8}
+  echo $hoje_yyyymmdd
 
   cat < ./templates_meteo/PRE_TEMPLATE \
        | sed "s/{TIME_FILE_GFS}/00/g" \
@@ -358,8 +357,8 @@ if [ ${_fase} == "PREPARAR_AMBIENTE" ]; then
        | sed "s/{IDATE2}/${idate2_pre}/g" \
        | sed "s/{IYEAR2}/${iyear2_pre}/g" \
        | sed "s/{ITIME2}/${itime2_pre}/g" \
-       | sed "s/{DATE}/${hoje}/g" \
-       | sed "s/{PREP_OUT_DIR}/${prep_out_dir}/g" \
+       | sed "s/{DATE}/${hoje_yyyymmdd}/g" \
+       | sed "s/{PREP_OUT_DIR}/${icdir}/g" \
        | sed "s/{CAMS}/${cams}/g" \
        | sed "s/{DIRBASE}/${dirbase_escaped}/g" \
        > pre_${hoje}.nml
@@ -386,7 +385,7 @@ if [ ${_fase} == "PREPARAR_AMBIENTE" ]; then
   echo "Gerando os dados de SST ..."
   ./geraSST2RAMS.bash "${hoje}" ${external_dir}
 
-fi  # fim fase PREPARAR_AMBIENTE
+  fi  # fim fase PREPARAR_AMBIENTE
 
 
 
@@ -400,18 +399,17 @@ fi
 
 
 if [ ${_fase} == "MAKEVFL" ]; then
-  rm -f *.ctl *.inv *.blow *.gra  # caso parar o PRE no meio do processo
+  rm -f *.ctl *.inv *.blow *.gra DumpMemory* ts*.out  # caso parar o PRE no meio do processo
 
-
-  xsub_prep_name = './xsub_prep.sh'
+  xsub_prep_name='./xsub_prep.sh'
   echo "Criando Submit para o Pre - ${xsub_prep_name} ..."
   select=1
-  ncpus=128
+  ncpus=1
   mpiprocs=1
   nproc=1
   wall="00:30:00"
   jobname="BR_PRE_${hoje}"
-  pre_exec_escaped='\.\/EXEC\/pre'
+  pre_exec_escaped='\.\/EXEC\/pre_exec'
   cat < ./templates_meteo/SLURM_EGEON_TEMPLATE \
        | sed "s/{QUEUE}/${queue}/g" \
        | sed "s/{SELECT}/${select}/g" \
@@ -428,15 +426,14 @@ if [ ${_fase} == "MAKEVFL" ]; then
   echo
   echo "Executando prep na data = ${hoje}"
   ln -sf pre_${hoje}.nml pre.nml
-  sleep 10 && tail -f ${JOBNAME}.out &
+  sleep 2 && tail -f ${jobname}.out &
   sbatch -W ${xsub_prep_name}
-
-
+  
   echo
   echo "Iniiciando submissão dos jobs makevfile ..."
   tstart=${hoje}
   curr_hour=0
-  while [ $curr_hour -lt $timmax_vfl ]; do
+  while [ $curr_hour -le $timmax_vfl ]; do
     x_ano=${tstart:0:4}
     x_mes=${tstart:4:2}
     x_dia=${tstart:6:2}

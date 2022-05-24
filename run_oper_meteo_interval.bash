@@ -22,7 +22,7 @@
 # $ ./run_brams_interval 2021 03 01 10
 # Essa chamada invocará o script run.brams 10 vezes, iniciando pelo dia 01/mar , avançando um dia até o décimo dia.
 
-
+set -x
 
 function exec_fase() {
   fase="$4"
@@ -39,7 +39,12 @@ function exec_fase() {
     return
   fi
 
-  ./run_oper_meteo.bash "$1" "$2" "$3" ${fase}/mnt/beegfs/denis.eiras/ioper_brams6.0/my_external/2021010400/dataout/umid_solo/GFS.SOIL
+  ./run_oper_meteo.bash "$1" "$2" "$3" ${fase}
+  while [ ! -f ${arquivo_teste} ]; do
+    echo "Executando fase ${fase} há ${tempo} segundos. Aguardando arquivo ${arquivo_teste} por até ${tempo_max} segundos"
+    sleep ${tempo_inc}
+    tempo=$((${tempo}+${tempo_inc}))
+    if [ ${tempo} -gt ${tempo_max} ]; then
       echo
       echo "***************************************************"
       echo "Tempo de execução excedido para a fase ${fase} !!! Parando execução"
@@ -52,6 +57,7 @@ function exec_fase() {
   echo
 
 }
+
 
 _ano=$1
 _mes=$2
@@ -80,12 +86,6 @@ while [ ${contador_rodada} -lt ${_num_rodadas} ]; do
   x_mes=${yyyymmdd_atual:4:2}
   x_dia=${yyyymmdd_atual:6:2}
 
-  ontem=`date +%Y%m%d --date="$x_ano-$x_mes-$x_dia $_HORA $_NOVA_DATA day ago"`
-  dia_ontem=`date +%d --date="${ontem}"`
-  mes_ontem=`date +%m --date="${ontem}"`
-  ano_ontem=`date +%Y --date="${ontem}"`
-  ontem21h=${ontem}"21"
-
   yyyymmdd_previsao_final=`date +%Y%m%d%H --date="$x_ano-$x_mes-$x_dia 00 ${dias_de_previsao} day"`
   x_ano_fim=${yyyymmdd_previsao_final:0:4}
   x_mes_fim=${yyyymmdd_previsao_final:4:2}
@@ -100,16 +100,16 @@ while [ ${contador_rodada} -lt ${_num_rodadas} ]; do
   # somando um dia antes do final do loop, devido ao teste _is_ate_vfl
   yyyymmdd_atual=`date +%Y%m%d%H --date="$x_ano-$x_mes-$x_dia 00 ${incr_dias} day"`
   contador_rodada=$((${contador_rodada}+${incr_dias}))
-  dir_dataout_base="/lustre_xc50/denis_eiras/ioper_brams5.6/${ontem21h}/dataout"
+  dir_dataout_base="$(pwd)/${x_ano}${x_mes}${x_dia}00/dataout"
 
   fase="PREPARAR_AMBIENTE"
   ./run_oper_meteo.bash  ${x_ano} ${x_mes} ${x_dia} ${fase}
 
-  fase="SFC"
+  fase="MAKESFC"
   test_ok_file_name="${dir_dataout_base}/SFC/ndv_OQ3g-N-0000-12-16-120000-g1.vfm"
   exec_fase ${x_ano} ${x_mes} ${x_dia} ${fase} ${test_ok_file_name} 10800
 
-  fase="VFL"
+  fase="MAKEVFL"
   test_ok_file_name="${dir_dataout_base}/IVAR/OPQUE-V-${x_ano_fim}-${x_mes_fim}-${x_dia_fim}-000000-g1.vfm"
   exec_fase ${x_ano} ${x_mes} ${x_dia} ${fase} ${test_ok_file_name} 10800
 
@@ -117,7 +117,7 @@ while [ ${contador_rodada} -lt ${_num_rodadas} ]; do
     continue
   fi
 
-  fase="INITIAL_IAU0"
+  fase="INITIAL"
   test_ok_file_name="${dir_dataout_base}/POST/meteo-A-${x_ano_fim}-${x_mes_fim}-${x_dia_fim}-000000-g1.gra"
   exec_fase ${x_ano} ${x_mes} ${x_dia} ${fase} ${test_ok_file_name} 14400
 

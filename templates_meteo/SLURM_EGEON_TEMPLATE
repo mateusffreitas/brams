@@ -12,7 +12,7 @@
 cd $SLURM_SUBMIT_DIR
 echo $SLURM_SUBMIT_DIR
 
-source ./env_{comp_env}.sh
+source ./env_{COMP_ENV}.sh
 
 echo "============================="
 
