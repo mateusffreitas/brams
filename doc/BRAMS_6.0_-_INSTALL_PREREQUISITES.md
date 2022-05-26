@@ -1,10 +1,36 @@
 # BRAMS 6.0 - INSTALL PREREQUISITES
 
+
+
+
+
+## Read before you begin
+
+
+
+This prerequisite installation manual is to informing you about installing packages required to build the BRAMS model. Many systems have the pre-requirements installed and You must point to the correct directories or use the references provided in their user manuals. The BRAMS template uses configure to mount makefiles. Thus, if your system has the libraries installed, just configure it properly according to the user's manuals. This manual guides you through the installation of the following libraries: 
+
+* **MPICH** 
+
+* **HDF5** (Required by NetCDF) 
+
+* **NetCDF** (C and Fortran) 
+
+* **GRIB2** 
+
+These libraries have some requirements such as zlib, szip, and curl. Most Linux and Unix systems have these libraries installed and you will not need to proceed with the installation defined in this manual. But it is necessary to adapt them according to the address of each. 
+
+> BRAMS can work without the GRIB2 (Wgrib2) library, however some template startup features may be unavailable. For initial tests with pre-generated data this library is not required. 
+
+The installation below addresses the pre requirements with the GCC/GFortran (GNU) compiler, but you can use other compilers such as INTEL, NVDIA, or any other. Just make sure that your libraries are built with the same compilers to avoid build problems or when you run the template.
+
+In general, the machine's native build systems are more computationally efficient by running faster and allowing substantial gains. There is the possibility of stressing the compilation options by improving vectorization, unroling, use of mathematical or memory resources. All this may be able to give an extra gain in  speed. But always keep in mind that the greater the depth of the options, You can obtained unespected results.
+
 Before You install the prerequisites You must have at least one version of gfortran and gcc compiler. The instalation depends of the version of Linux and Kernel You have.
 
-> We recomend to install the **gfortran revision 8.4.0**  and **gcc revision 8.4.0**. You can install or use newest version of compilers but is by your own risk. You may try to use INTEL, NVIDIA or other compiler too. The strucuture of setup is almost the same.
+> We recomend to install the **gfortran revision 8.4.0** and **gcc revision 8.4.0**. You can install or use newest version of compilers but is by your own risk. You may try to use INTEL, NVIDIA or other compiler too. The strucuture of setup is almost the same.
 
-> In body of text bellow we will use  **<Your_C_compiler>** for your C compiler choice and <Your_Fortran_compiler> for Your Fortran compiler choice.
+> In body of text bellow we will use for your C compiler choice and for Your Fortran compiler choice.
 
 In most system there are a lot of libraries pre-installed. Yes, if possible use them. But, unfortunatelly, some times a library require other dependencies and the configure may be broken. The instructions bellow in this documents will guide You to install in a particular way. If You got others problems please, contact your system manager.
 
