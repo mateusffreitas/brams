@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Pre-requisites BRAMS</title>
+  <title>BRAMS - Install Pre Requisites</title>
   <style>
   @font-face {
   font-family: octicons-link;
@@ -1249,12 +1249,30 @@ pre[class*="language-"] {
 </head>
 <body>
   <article class="markdown-body"><h1 class="atx" id="brams-60---install-prerequisites">BRAMS 6.0 - INSTALL PREREQUISITES</h1>
+<h2 class="atx" id="read-before-you-begin">Read before you begin</h2>
+<p>This prerequisite installation manual is to informing you about installing packages required to build the BRAMS model. Many systems have the pre-requirements installed and You must point to the correct directories or use the references provided in their user manuals. The BRAMS template uses configure to mount makefiles. Thus, if your system has the libraries installed, just configure it properly according to the user's manuals. This manual guides you through the installation of the following libraries: </p>
+<ul>
+<li><p><strong>MPICH</strong> </p>
+</li>
+<li><p><strong>HDF5</strong> (Required by NetCDF) </p>
+</li>
+<li><p><strong>NetCDF</strong> (C and Fortran) </p>
+</li>
+<li><p><strong>GRIB2</strong> </p>
+</li>
+</ul>
+<p>These libraries have some requirements such as zlib, szip, and curl. Most Linux and Unix systems have these libraries installed and you will not need to proceed with the installation defined in this manual. But it is necessary to adapt them according to the address of each. </p>
+<blockquote>
+<p>BRAMS can work without the GRIB2 (Wgrib2) library, however some template startup features may be unavailable. For initial tests with pre-generated data this library is not required. </p>
+</blockquote>
+<p>The installation below addresses the pre requirements with the GCC/GFortran (GNU) compiler, but you can use other compilers such as INTEL, NVDIA, or any other. Just make sure that your libraries are built with the same compilers to avoid build problems or when you run the template.</p>
+<p>In general, the machine's native build systems are more computationally efficient by running faster and allowing substantial gains. There is the possibility of stressing the compilation options by improving vectorization, unroling, use of mathematical or memory resources. All this may be able to give an extra gain in  speed. But always keep in mind that the greater the depth of the options, You can obtained unespected results.</p>
 <p>Before You install the prerequisites You must have at least one version of gfortran and gcc compiler. The instalation depends of the version of Linux and Kernel You have.</p>
 <blockquote>
-<p>We recomend to install the <strong>gfortran revision 8.4.0</strong>  and <strong>gcc revision 8.4.0</strong>. You can install or use newest version of compilers but is by your own risk. You may try to use INTEL, NVIDIA or other compiler too. The strucuture of setup is almost the same.</p>
+<p>We recomend to install the <strong>gfortran revision 8.4.0</strong> and <strong>gcc revision 8.4.0</strong>. You can install or use newest version of compilers but is by your own risk. You may try to use INTEL, NVIDIA or other compiler too. The strucuture of setup is almost the same.</p>
 </blockquote>
 <blockquote>
-<p>In body of text bellow we will use  <strong></strong> for your C compiler choice and  for Your Fortran compiler choice.</p>
+<p>In body of text bellow we will use for your C compiler choice and for Your Fortran compiler choice.</p>
 </blockquote>
 <p>In most system there are a lot of libraries pre-installed. Yes, if possible use them. But, unfortunatelly, some times a library require other dependencies and the configure may be broken. The instructions bellow in this documents will guide You to install in a particular way. If You got others problems please, contact your system manager.</p>
 <p>If You wanto more information abaout gfortran, please, see the manual <a href="https://gcc.gnu.org/onlinedocs/gcc-8.4.0/gfortran.pdf">https://gcc.gnu.org/onlinedocs/gcc-8.4.0/gfortran.pdf</a></p>
