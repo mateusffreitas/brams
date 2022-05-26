@@ -134,7 +134,7 @@ subroutine sfcopqr(no, mof, np, niq, njq, n2, n3, xt, yt, platn, plonn, &
   character(len=f_name_length) :: title3
   character(len=003) :: title1
   character(len=004) :: title2
-  logical            :: l1,l2
+  logical            :: l1 
   integer, parameter :: maxmiss=1000
   character(len=256) :: fnmiss(maxmiss)
   real, allocatable  :: sdq(:,:), shaq(:,:), sdr(:,:), datre(:,:)
@@ -243,7 +243,7 @@ subroutine sfcopqr(no, mof, np, niq, njq, n2, n3, xt, yt, platn, plonn, &
 !!$                 print *, "DEBUG-ALF:LB,trim(OFN)=",LB,trim(OFN) 
                  LB     = len_trim(TITLE3)
 !!$                 print *, "DEBUG-ALF:LB,trim(TITLE3)=",LB,trim(TITLE3) 
-                 inquire(FILE=TITLE3(1:LB), EXIST=L1, OPENED=L2)
+                 inquire(FILE=TITLE3(1:LB), EXIST=L1)
 !!$                 print *, "DEBUG-ALF:EXIST?=", L1, " OPENED?=", L2
                  if (.not.L1) then
                     do nn=1,nmiss
@@ -928,7 +928,7 @@ subroutine sfcopqr_var(no, mof, np, niq, njq, n2, n3, xt, yt, platn, plonn, &
   character(len=f_name_length) :: title3
   character(len=003) :: title1
   character(len=004) :: title2
-  logical            :: l1, l2
+  logical            :: l1
   integer, parameter :: maxmiss=1000
   character(len=256) :: fnmiss(maxmiss)
   real, allocatable  :: sdq(:,:), shaq(:,:), sdr(:,:), datre(:,:)
@@ -1037,7 +1037,7 @@ subroutine sfcopqr_var(no, mof, np, niq, njq, n2, n3, xt, yt, platn, plonn, &
                  LB     = len_trim(OFN)
                  TITLE3 = OFN(1:LB)//TITLE1//TITLE2
                  LB     = len_trim(TITLE3)
-                 INQUIRE(FILE=TITLE3(1:LB), EXIST=L1, OPENED=L2)
+                 INQUIRE(FILE=TITLE3(1:LB), EXIST=L1)
 
                  IF (.NOT.L1) THEN
                     do nn=1,nmiss
