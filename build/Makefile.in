@@ -269,6 +269,7 @@ $(EXE): libjules $(LIBUTILS) $(LIBIFS) $(LIBMODEL) $(MAINOBJ) $(WGRIBDIR) $(NETC
 	@echo ""
 
 $(MAINOBJ):  $(MAIN)
+	./getGitInfo.sh
 	@cp -f $< $(<F:.f90=.f90)
 	$(F_COMMAND) $(<F:.f90=.f90) $(EXTRAFLAGSF)
 	@rm -f $(<F:.f90=.f90)
