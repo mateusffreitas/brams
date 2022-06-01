@@ -254,10 +254,9 @@ F_COMMAND_MACRO = $(F_COMMAND) -D$(AER) -D$(MATRIXLEV) -D$(COLOR)
 F_COMMAND_LIGHT = $(FPCOMP) -O0 -c
 
 # Define objects.
-include objects_model.mk
+include objects_model.mk 
 
 # Define targets.
-
 all: $(EXE)
 
 $(EXE): libjules $(LIBUTILS) $(LIBIFS) $(LIBMODEL) $(MAINOBJ) $(WGRIBDIR) $(NETCDFFDIR)
@@ -269,6 +268,7 @@ $(EXE): libjules $(LIBUTILS) $(LIBIFS) $(LIBMODEL) $(MAINOBJ) $(WGRIBDIR) $(NETC
 	@echo ""
 
 $(MAINOBJ):  $(MAIN)
+	./getGitInfo.sh
 	@cp -f $< $(<F:.f90=.f90)
 	$(F_COMMAND) $(<F:.f90=.f90) $(EXTRAFLAGSF)
 	@rm -f $(<F:.f90=.f90)
