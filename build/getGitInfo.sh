@@ -1,5 +1,5 @@
 #!/bin/bash
-_git log -1 > saida.git
+git log -1 > saida.git
 if (( $? != 0 ))
 then
     echo 'Comando Git nao encontrado'
