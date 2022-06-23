@@ -16,7 +16,7 @@ Copy of comments in script:
  Script para executar todas as fasees do BRAMS meteorológico pré-operacional.
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
- O script executa as fases PREPARAR_AMBIENTE, MAKESFC, PRE do BRAMS, MAKEVFILE, INITIAL com IUA=1 e INITIAL com IAU=2, em um parametrizado
+ O script executa as fases PREPARAR_AMBIENTE, MAKESFC, PRE do BRAMS, MAKEVFILE, INITIAL com IUA=0, em um parametrizado
  intevalo de datas. Utiliza o script run_oper_meteo.bash como auxiliar.
 
  $ ./run_brams_interval yyyy mm dd dias_de_rodada is_ate_vfl
