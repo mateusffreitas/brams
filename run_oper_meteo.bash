@@ -18,7 +18,7 @@
 # - INITIAL: Executa a fase INITIAL com IAU=0, por 171 horas, utilizando os demais arquivos gerados pela fase MAKEVFL.
 #
 
-set -x
+# set -x
 # ~~~~~~~~~~~~~~~ Início do script ~~~~~~~~~~~~~~~
 
 export comp_env="intel"
@@ -109,7 +109,7 @@ umid_solo_dir="${my_external_dir}/${hoje}/dataout/umid_solo"
 
 
 # outros params
-queue="batch"
+queue="PESQ2"
 xsub_ini_iau0_name="xsub_ini_iau0_${hoje}.sh"
 
 
@@ -241,6 +241,11 @@ if [ ${_fase} == "PREPARAR_AMBIENTE" ]; then
 
   rm RAMSIN_TEMPLATE_BASIC_TMP RAMSIN_TEMPLATE_ADVANCED_TMP
 
+  # template do grads
+  cat < "./templates_meteo/template_post.ctl" \
+    | sed "s/{IYEAR1}/${iyear1}/g"   \
+    | sed "s/{month_str}/jan/g"     \
+    | sed "s/{IDATE1}/${idate1}/g" > "./${hoje}/dataout/POST/template.ctl"
 
 
   # ~~~~~~~~~~~~~~~ Criação de Jobs de Submissão ~~~~~~~~~~~~~~~
@@ -452,6 +457,8 @@ if [ ${_fase} == "MAKEVFL" ]; then
     fi
 
   done
+
+  rm -f *.ctl *.inv *.blow *.gra DumpMemory* ts*.out *.done
 fi
 
 
