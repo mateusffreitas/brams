@@ -97,7 +97,7 @@ $MODEL_FILE_INFO
    INITIAL  = 2,             ! Initial fields - 1=horiz.homogeneous,
 
    VARFPFX  = './{DATE}/dataout/IVAR/OPQUE',      ! Varfile initialization file prefix
-   TNUDCENT = 0.,   ! Nudging time scale(s) in center of domain
+   TNUDCENT = 10800.0,   ! Nudging time scale(s) in center of domain
                     ! in the center. Typical values are 1-2 hours to reduce the shock
    NUDLAT   = 40,            ! Number of points in lateral bnd region
    TNUDLAT  = 3600.,         ! Nudging time scale(s) at lateral boundary
@@ -140,7 +140,7 @@ $MODEL_FILE_INFO
 
 ! Cumulus parameterization parameters
  
-   NNQPARM  = 6,! Convective param. flag 
+   NNQPARM  = 8,! Convective param. flag 
                 ! 0- off,
                 ! 1- Tremback formulation
                 ! 2- Grell-Deveny scheme
@@ -157,8 +157,8 @@ $MODEL_FILE_INFO
                         ! AS: Arakawa-Schubert
 
    NNSHCU   = 3,   ! Shallow Cumulus Param. (0-off, 1-Souza scheme, 2-Grell-Deveny scheme)
-   CONFRQ   = 1200.,      ! Frequency of conv param. updates (s)
-   SHCUFRQ  = 1200.,      ! Frequency of Shallow param. updates (s)
+   CONFRQ   = 600.,      ! Frequency of conv param. updates (s)
+   SHCUFRQ  = 600.,      ! Frequency of Shallow param. updates (s)
 
    ISFCL    = 5,             ! Surface layer/soil/veg model
                              !  0-specified surface layer gradients
@@ -168,7 +168,7 @@ $MODEL_FILE_INFO
                              !  4-Reserved
                              !  5-JULES
 
-   ISFCL_OCEAN = 0,
+   ISFCL_OCEAN = 1,
 
    SOIL_MOIST_FAIL = 'l', ! In case of Heterogenous Soil Moist.
                           ! file was not found, what to do?
@@ -284,10 +284,10 @@ $END
 
     PROJ='YES',
     MEAN_TYPE ='BAV',
-    LATI = -90.,-90.,    -90., -90.,
-    LATF = +90.,+90.,    +90., +90.,
-    LONI = -180.,-180., -180.,-180.,
-    LONF =  180.,180.,   180., 180.,
+    LATI = -50.,-90.,    -90., -90.,
+    LATF = +15.,+90.,    +90., +90.,
+    LONI = -90.,-180., -180.,-180.,
+    LONF =  -20.,180.,   180., 180.,
 
 
     ZLEVMAX = 32,32,32,32,

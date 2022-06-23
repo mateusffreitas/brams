@@ -92,7 +92,7 @@ $CCATT_INFO2
 
    !--- Nudging end-time and ramping
 
-   RAMP     = 0.,       ! Time interval(s) for the linear decay to zero of
+   RAMP     = 3600.,       ! Time interval(s) for the linear decay to zero of
                              ! the nudging or IAU
 
                              ! Time window(s) for the nudging or IAU
@@ -107,9 +107,9 @@ $CCATT_INFO2
                              !   to determine full nudging weight. 
                              !   (Timescales)/(WT_NUDGE_*) 
                              !    must be larger than DTLONG
-   WT_NUDGE_UV = 1.,         ! Anal nudging weight for u and v
+   WT_NUDGE_UV = -1.,         ! Anal nudging weight for u and v
    WT_NUDGE_TH = 1.,         ! Anal nudging weight for theta
-   WT_NUDGE_PI = 4.,         ! Anal nudging weight for pi
+   WT_NUDGE_PI = -4.,         ! Anal nudging weight for pi
    WT_NUDGE_RT = 1.,         ! Anal nudging weight for r_tot
  
    ! - Incremental Analysis Update (IAU)
@@ -164,7 +164,7 @@ $CCATT_INFO2
 
 ! Topography scheme
 
-   ITOPSFLG = 1,0,0,1,       ! 0 = Average Orography
+   ITOPSFLG = 0,0,0,1,       ! 0 = Average Orography
                              ! 1 = Silhouette Orography
                              ! 2 = Envelope Orography
                              ! 3 = Reflected Envelope Orography
@@ -242,6 +242,7 @@ $MODEL_OPTIONS2
 
    LONRAD   = 1,	      ! Longitudinal variation of shortwave
                               !    (0-no, 1-yes)
+   RADTUN = 0.7, 
 
    G3D_SPREAD  = 0, ! Lateral spreading of enviromental subsidence (0=off, 1=on)
                      ! (only for NNQPARM  = 3 and grid spacing < 10km)
