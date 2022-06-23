@@ -1,6 +1,6 @@
 # Scripts for Running BRAMS
 
-1. Scripts to run brams 6 and scripts to generate output files for evaluation
+## Scripts to run brams 6 and scripts to generate output files for evaluation
 
 These scripts simulates the full process of running BRAMS operationally. 
 They follows the same processes used in BRAMS 5.6 evaluation in XC-50, but these are adapted for Egeon.
