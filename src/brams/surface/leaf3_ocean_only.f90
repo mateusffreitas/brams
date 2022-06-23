@@ -267,7 +267,7 @@ subroutine sub_leaf3_ocean_only(m1,m2,m3,mzg,mzs,np,ia,iz,ja,jz  &
         !--- downdraft mass flux for the gustiness parameterization
 	!--- based on Redelsperger et al (2000).
 	gust = g3d_g(ngrid)%xmb_deep_dd(i,j)
-        gust = min( 0.6, max(0.0, gust ) )
+        gust = min( 0.1, max(0.0, gust ) )
 	gust = log(1. + 600.4*gust -4375.*gust**2) 
 	
 	!--- add the gustiness to the grid scale wind

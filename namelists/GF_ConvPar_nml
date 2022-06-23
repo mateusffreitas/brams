@@ -7,9 +7,9 @@
   cum_entr_rate    = 7.e-4, 1.e-3, 1.e-3, != initial gross entrainment rate for 
                                           != deep, shallow, congestus
   
-  dicycle          = 2,            != 0/1/2:  diurnal cycle closure, default = 1
+  dicycle          = 1,            != 0/1/2:  diurnal cycle closure, default = 1
                                    != 2 adds Qadv closure (Becker et al 2021) 
-  cum_t_star       = 1.5, 1.5, 1.5, != scale temperature for 
+  cum_t_star       = 1.5, 1.5, 1.5 != scale temperature for 
                                    !diurnal cycle closure, 
   rh_dicycle       = 0,            != 0/1: controls of RH on the diurnal cycle (see Tian et al 2022 GRL) 
                                    ! default = 0

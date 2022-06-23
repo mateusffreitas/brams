@@ -43,11 +43,7 @@ module ModVarfFile
        tnudcent, &
        tnudtop, &
        nvarffl, &
-        varinit_g, &
-        wt_nudge_uv, &
-        wt_nudge_th, &
-        wt_nudge_pi, &
-        wt_nudge_rt
+       varinit_g
   use node_mod, only: &
        i0,            &
        j0,            &
@@ -182,7 +178,7 @@ contains
        if (mchnum==master_num) then
           print *, ' Will wait for varfiles if not present'
           print *, '  Check interval:', vwait1, ' Fail time:', vwaittot
-       endif
+       end if
        nwaits = int(vwaittot/vwait1) + 1
     endif
 
@@ -313,20 +309,19 @@ contains
        endif
 
        ! Compute weighting factors for grid 1
-!(LFR) Foi colocado o IF abaixo para solucionar o problema de queda quando a grade está aninhada            
-!(LFR) fazer as variáveis wt_nudge_uv,wt_nudge_th,wt_nudge_pi e wt_nudge_rt maior que zero para
-!(LFR) não passar pela VariableWeight
-            if(wt_nudge_uv<0 .or. wt_nudge_th<0 .or. wt_nudge_pi<0 .or. wt_nudge_rt<0) then
-               call VariableWeight(nnzp(1), nodemxp(mynum,1), nodemyp(mynum,1), nnxp(1),&
-                   nnyp(1), nodei0(mynum,1), nodej0(mynum,1),  &
-                  grid_g(1)%topt(1,1), grid_g(1)%rtgt(1,1), varinit_g(1)%varwts(1,1,1))
 
-               if(chem_assim == 1 .and. chemistry >= 0) &
-                  call VariableWeightChem(nnzp(1), nodemxp(mynum,1), nodemyp(mynum,1), nnxp(1),&
-                  nnyp(1), nodei0(mynum,1), nodej0(mynum,1),  &
-                  grid_g(1)%topt(1,1), grid_g(1)%rtgt(1,1), &
-                  varinit_g(1)%varwts_chem(1,1,1))
-            endif
+       call VariableWeight(nnzp(1), nodemxp(mynum,1), nodemyp(mynum,1), nnxp(1),&
+            nnyp(1), nodei0(mynum,1), nodej0(mynum,1),  &
+            grid_g(1)%topt(1,1), grid_g(1)%rtgt(1,1), varinit_g(1)%varwts(1,1,1),&
+!srf 
+            varwts_for_operations_only)
+
+       if(chem_assim == 1 .and. chemistry >= 0) &
+            call VariableWeightChem(nnzp(1), nodemxp(mynum,1), nodemyp(mynum,1), nnxp(1),&
+            nnyp(1), nodei0(mynum,1), nodej0(mynum,1),  &
+            grid_g(1)%topt(1,1), grid_g(1)%rtgt(1,1), &
+            varinit_g(1)%varwts_chem(1,1,1))
+
        ! Read files
 
        do ifm=1,ngrids
@@ -533,6 +528,8 @@ contains
           time_inc_sec = isan_inc/100 * 3600.
 
 !          call date_add_to(iyears, imonths, idates, localTime*100,  &
+          call date_add_to(iyears, imonths, idates, ihours,  &
+               time_inc_sec, 's', iyears, imonths, idates, ihours)
 
 !print*,"===|B" , nf,iyears, imonths, idates, ihours
 
@@ -541,13 +538,10 @@ contains
 
              call makefnam (sVarName, varpref, 0, iyears, imonths, idates, ihours, 'V', '$', 'tag')
             !print*,"2 sVarName",trim(sVarName), iyears, imonths, idates, ihours
-                    call date_add_to(iyears, imonths, idates, ihours,  &
-                        time_inc_sec, 's', iyears, imonths, idates, ihours)
           else if(flag .eq. 4)then
 
              call makefnam (sVarName, varpref, 0, iyears, imonths, idates, ihours, 'A', 'head', 'txt')
-                    call date_add_to(iyears, imonths, idates, ihours,  &
-                        time_inc_sec, 's', iyears, imonths, idates, ihours)
+
           end if
 
           !
@@ -750,8 +744,6 @@ contains
     real 				:: time1
     real			        :: ztop1
     character(len=2)			:: cmode
-        integer :: iTime1 
-        integer :: iZtop1 
 
 
     integer, allocatable, dimension(:)	:: nnxp1
@@ -771,10 +763,6 @@ contains
     real, allocatable, dimension(:,:)	:: ytn1
     real, allocatable, dimension(:,:)	:: zmn1
     real, allocatable, dimension(:,:)	:: ztn1
-        integer :: recordLen, irec
-        integer, external :: outRealSize
-        character(len=2) :: cmynum
-        character(len=6) :: ctime
     !--(DMK-CCATT-FIM)-----------------------------------------------------
 
     !      Check and see what we are doing. If it is initial time, read
@@ -1071,8 +1059,6 @@ contains
 
        end if
 
-            iTime1=int(time1)
-            iZtop1=int(ztop1)
        call Broadcast(ngrids1(1), master_num, 'ngrids1(1)')
        call Broadcast(nnxp1, master_num,   'nnxp1' )
        call Broadcast(nnyp1, master_num,   'nnyp1' )
@@ -1080,12 +1066,10 @@ contains
        call Broadcast(npatch1, master_num, 'npatch1')
        call Broadcast(nzg1, master_num,    'nzg1')
        call Broadcast(nzs1, master_num,    'nzs1')
+       call Broadcast(time1, master_num,   'time1' )
+       call Broadcast(ztop1, master_num,   'ztop1' )
        call Broadcast(platn1, master_num,  'platn1')
        call Broadcast(plonn1, master_num,  'plonn1')
-            call Broadcast(itime1     , master_num,   'time1' )
-            call Broadcast(iztop1     , master_num,   'ztop1' )
-            time1=real(iTime1)
-            ztop1=real(iztop1)
 
        maxarr  = 0
        maxarr2 = 0
@@ -1146,7 +1130,6 @@ contains
        call Broadcast(ytn1, master_num,  'ytn1')
        call Broadcast(zmn1,  master_num,  'zmn1')
        call Broadcast(ztn1,  master_num,  'ztn1')
-            call Broadcast(filename, master_num, 'filename')
 
        allocate(topt1(maxarr2,ngrids1(1)))
        allocate (scr(maxarr))
@@ -1180,24 +1163,24 @@ contains
 
        if(.not. sameGrid)then
 
-                !write(*,*) 'UP antes: ',mchnum,time,maxval(scr),minval(scr)
+          call hi_interpInitial4(nnzp1(ngrid1),nnxp1(ngrid1),nnyp1(ngrid1),scr,  &
+               xmn1,xtn1,ymn1,ytn1,zmn1,ztn1,platn1(ngrid1),plonn1(ngrid1),  &
+               topt1,ztop1,mzp,mxp,myp,  &
+               varinit_g(ngrid1)%varuf, ngrid1,ngrid1,'UP',3)
 
-                call hi_interpInitial4(nnzp1(ngrid1),nnxp1(ngrid1),nnyp1(ngrid1),scr,  &
-                    xmn1,xtn1,ymn1,ytn1,zmn1,ztn1,platn1(ngrid1),plonn1(ngrid1),  &
-                    topt1,ztop1,mzp,mxp,myp, &!mxp,myp,  &
-                    varinit_g(ngrid1)%varuf, ngrid1,ngrid1,'UP',3)
-! if(mchnum == 23) call writevar(varinit_g(ngrid1)%varuf,mxp,myp,mzp,'escr23-'//ctime) 
-!                write(*,*) 'varuf   :',mchnum,time,maxval(varinit_g(ngrid1)%varuf),minval(varinit_g(ngrid1)%varuf)
-            else
-                call unarrange(nnzp1(ngrid1), nnxp1(ngrid1), nnyp1(ngrid1), scr, scr3)
-                call storeOwnChunk_3D(ngrid1, scr3, varinit_g(ngrid1)%varuf, nnzp(1), nnxp(1), nnyp(1), 'UP')
-            endif
+
+       else
+        !!write(*,*) 'LFR - DEBUG: ','VarfUpdate - 1089'
+          call unarrange(nnzp1(ngrid1), nnxp1(ngrid1), nnyp1(ngrid1), scr, scr3)
+          call storeOwnChunk_3D(ngrid1, scr3, varinit_g(ngrid1)%varuf, nnzp(1), nnxp(1), nnyp(1), 'UP')
+       end if
+       ! ##### VP
 
        if (mchnum == master_num) then
 
           ie = RAMS_getvar('VP', 1, scr, scr2, trim(fileName(1:len_trim(fileName)-9)))
 
-       endif
+       end if
 
        call Broadcast(scr, master_num, 'scr')
 
@@ -1211,7 +1194,7 @@ contains
 
           call unarrange(nnzp1(ngrid1), nnxp1(ngrid1), nnyp1(ngrid1), scr, scr3)
           call storeOwnChunk_3D(ngrid1, scr3, varinit_g(ngrid1)%varvf, nnzp(1), nnxp(1), nnyp(1), 'VP')
-       endif
+       end if
 
        ! ##### THETA
 
