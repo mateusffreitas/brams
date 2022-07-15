@@ -327,15 +327,19 @@ contains
       
       rewind(87)
       varUnit='No defined'
+      print *,'=== variables to stations -  CSV File ==='
       do i=1, count_var
          read(87,fmt='(A)') estvar(i)
          varUnit(i)=getUnitInVarList(estvar(i))
+         print *,i,estvar(i),varUnit(i)
       enddo
+      print *,'========================================='
       close(unit=87)
 
       if(.not. fileExist("estacoes.csv")) iErrNumber = dumpMessage(c_tty,c_yes,'','',c_fatal &
       ,'Arquivo de estações, estacoes.csv, não encontrado, verifique!')
 
+      print *,'===============  Stations ==============='
        open(unit = 87, file = "estacoes.csv", status = 'old', action = 'read')
        !Pula a linha de cabeçalho
        read(87,*)
@@ -383,6 +387,8 @@ contains
           enddo
           if(sites(count)%ypos == 0) iErrNumber = dumpMessage(c_tty,c_yes,'','',c_fatal &
           ,'Latitude do ponto fora do domínio do Modelo!',sites(count)%lat,"F6.2")     
+
+          print *,count,trim(sites(count)%nome),sites(count)%lat,sites(count)%lon,sites(count)%xpos,sites(count)%ypos
        enddo
 50     nSites = count-1
 
@@ -612,8 +618,8 @@ end function writeVar2D
          seconds = 0
          open(unit = fileNumber, file = trim(sites(n)%nome)//'_'//trim(estvar(v))//'_'//cdate//'.csv',status = "replace", action = "write")
          
-         write(fileNumber,fmt='(A,A,A,F9.5,A,F9.5)') '# Local: ',trim(sites(n)%nome), &
-               ' , Lat=',sites(n)%lat,', Lon= ',sites(n)%lon
+         write(fileNumber,fmt='(A,A,A,F9.5,A,F9.5,A,A)') '# Local: ',trim(sites(n)%nome), &
+               ' , Lat=',sites(n)%lat,', Lon= ',sites(n)%lon,' ,Data Inicial: ',cdate
          write(fileNumber,fmt='(A,A,A,A)') '# Sinal: ',trim(estvar(v)),' ,Unidade: ',trim(varUnit(v))
          
          write(fileNumber,fmt=prefixFormat//clev//sufixFormat) '# Tempo' &
