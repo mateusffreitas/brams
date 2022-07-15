@@ -72,6 +72,7 @@ module modTimeLineFRN
    integer :: count_var
    !! Numero de variáveis por estação
    character(len=8), allocatable :: estvar(:)
+   character(len=16), allocatable :: varUnit(:)
 
 contains
 
@@ -322,11 +323,13 @@ contains
       enddo
 
 30    count_var = count_var-1
-      allocate(estvar(count_var))
+      allocate(estvar(count_var),varUnit(count_var))
       
       rewind(87)
+      varUnit='No defined'
       do i=1, count_var
          read(87,fmt='(A)') estvar(i)
+         varUnit(i)=getUnitInVarList(estvar(i))
       enddo
       close(unit=87)
 
@@ -430,8 +433,9 @@ contains
          endif
       enddo 
 
-      if(sites(n)%localXpos>0 .and. sites(n)%localypos>0) &
+      if(sites(n)%localXpos>0 .and. sites(n)%localypos>0) then
          allocate(sites(n)%varValues(count_var,int(timmax),oneNamelistFile%inplevs))
+      endif
 
     enddo
 
@@ -607,7 +611,12 @@ end function writeVar2D
       do v=1,count_var
          seconds = 0
          open(unit = fileNumber, file = trim(sites(n)%nome)//'_'//trim(estvar(v))//'_'//cdate//'.csv',status = "replace", action = "write")
-         write(fileNumber,fmt=prefixFormat//clev//sufixFormat) 'Tempo' &
+         
+         write(fileNumber,fmt='(A,A,A,F9.5,A,F9.5)') '# Local: ',trim(sites(n)%nome), &
+               ' , Lat=',sites(n)%lat,', Lon= ',sites(n)%lon
+         write(fileNumber,fmt='(A,A,A,A)') '# Sinal: ',trim(estvar(v)),' ,Unidade: ',trim(varUnit(v))
+         
+         write(fileNumber,fmt=prefixFormat//clev//sufixFormat) '# Tempo' &
                ,(zm(l)*grid_g(1)%rtgt(sites(n)%localxpos,sites(n)%localypos),l=1,oneNamelistFile%inplevs)
          do seconds = 1,int(timmax),int(frqanl)
             secc = seconds-int(frqanl)
@@ -844,6 +853,54 @@ function to_lower(strIn) result(strOut)
     end do
 
 end function to_lower
+
+function getUnitInVarList(varName) result(varU)
+   !! retorna a unidade da variável verificada no variables.csv
+   !!
+   !! @note
+   !!
+   !! **Project**: BRAMS-Furnras
+   !! **Author(s)**: Rodrigues, L.F. [LFR]
+   !! **e-mail**: <mailto:luiz.rodrigues@inpe.br>
+   !! **Date**:  15Julho2022 13:46
+   !!
+   !! **Full description**:
+   !! retorna a unidade da variável verificada no variables.csv
+   !!
+   !! @endnote
+   !!
+   !! @warning
+   !!
+   !!  [](https://www.gnu.org/graphics/gplv3-127x51.png'')
+   !!
+   !!     Under the terms of the GNU General Public version 3
+   !!
+   !! @endwarning
+   use ModPostTypes, only: &
+      all_post_variables
+
+   implicit none
+   !Parameters:
+   character(len=*), parameter :: procedureName = 'getUnitInVarList' ! Nome da função
+
+   !Variables (input):
+   character(len=*), intent(in) :: varName
+   character(len=16) :: varU
+
+   !Local variables:
+   integer :: sizmpv
+   integer :: i
+
+   !Code:
+   sizmpv = size(all_post_variables)
+   do i = 1, sizmpv
+      if(trim(to_lower(varName)) == trim(to_lower(all_post_variables(i)%fieldName))) then
+         varU = all_post_variables(i)%fieldUnits
+      endif
+   enddo
+
+
+end function getUnitInVarList
 
 
 end module modTimeLineFRN
