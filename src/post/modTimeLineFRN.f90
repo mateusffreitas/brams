@@ -47,7 +47,7 @@ module modTimeLineFRN
    integer, parameter :: maxVarIn = 256
 
    private
-   public :: writeTimeLineFRN, readSites, createSitesFile
+   public :: writeTimeLineFRN, readSites, createSitesFile, timeToOutput
 
    interface writeTimeLineFRN
     module procedure writeTimeLineFRN_2D
@@ -81,6 +81,7 @@ module modTimeLineFRN
    end type vvar
    type(vvar) :: varin(maxVarin)
    integer :: realVarIn
+   real :: timeToOutput 
 
 contains
 
@@ -337,12 +338,14 @@ contains
       rewind(87)
 
       print *,'=== variables to stations -  CSV File ==='
+      read(87,*) timeToOutput
+      print *,'Tempo entre saídas: ',timeToOutput
       do i=1, count_var
-         read(87,fmt='(A)') estvar(i)
+         read(87,fmt='(A)', END=35) estvar(i)
          print *,i,':',estvar(i)
       enddo
       print *,'========================================='
-      close(unit=87)
+35    close(unit=87)
 
       if(.not. fileExist("estacoes.csv")) iErrNumber = dumpMessage(c_tty,c_yes,'','',c_fatal &
       ,'Arquivo de estações, estacoes.csv, não encontrado, verifique!')
@@ -416,9 +419,6 @@ contains
           enddo
           if(sites(count)%ypos == 0) iErrNumber = dumpMessage(c_tty,c_yes,'','',c_fatal &
           ,'Latitude do ponto fora do domínio do Modelo!',sites(count)%lat,"F6.2")     
-          print *,'Localizacao    X:', sites(count)%xpos
-          print *,'Localizacao    Y:', sites(count)%ypos
-          print *,'---------------------------------------------------------------'
        enddo
 50     nSites = count-1
 
@@ -467,6 +467,9 @@ contains
                   !guardar no site
                   sites(n)%localXpos = i
                   sites(n)%localypos = j
+                  print *,'Localizacao    pos X:',n, sites(n)%xpos,'=',sites(n)%localxpos, ' no proc ',mynum
+                  print *,'Localizacao    pos Y:',n, sites(n)%ypos,'=',sites(n)%localypos, ' no proc ',mynum
+                  print *,'---------------------------------------------------------------'                  
                   !rsp = createSitesFile(n,oneNamelistFile%inplevs)
                endif
             enddo
@@ -617,6 +620,11 @@ end function writeVar2D
    use ModDateUtils, only: &
       date_add_to_dble
 
+   USE node_mod, only: &
+      ia, iz, ja, jz, &
+      nodei0, nodej0, &
+      mynum
+
     implicit none
     !Parameters:
     character(len=*), parameter :: procedureName = 'createSitesFile' ! Nome da função
@@ -673,13 +681,13 @@ end function writeVar2D
     write(cdate,fmt='(I4,I2.2,I2.2,I2.2)') iyear1,imonth1,idate1,itime1
 
     !do n=1,nsites
-    !  print *,n,sites(n)%nome
-    !  print *,sites(n)%lon,sites(n)%lat
-    !  print *,sites(n)%localXpos,sites(n)%localYpos
+    !  print *,mynum,n,sites(n)%nome
+    !  print *,mynum,sites(n)%lon,sites(n)%lat
+    !  print *,mynum,sites(n)%localXpos,sites(n)%localYpos
     !enddo
 
     do n=1,nsites
-      if(sites(n)%localXpos<=0 .or. sites(n)%localYpos<=0) return
+      if(sites(n)%localXpos<=0 .or. sites(n)%localYpos<=0) cycle
       print *,'*** Escrevendo para site ',n,trim(sites(n)%nome),sites(n)%lon,sites(n)%lat
       do v=1,count_var
          seconds = 0
