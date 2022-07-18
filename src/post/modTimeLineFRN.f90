@@ -44,6 +44,7 @@ module modTimeLineFRN
    integer, parameter :: maxSites = 16
    !! Número máximo de sites permitidos
    integer, parameter :: maxVars = 32
+   integer, parameter :: maxVarIn = 256
 
    private
    public :: writeTimeLineFRN, readSites, createSitesFile
@@ -71,8 +72,15 @@ module modTimeLineFRN
    !! Número total de sites (obtidos do arquivo de entrada)
    integer :: count_var
    !! Numero de variáveis por estação
-   character(len=8), allocatable :: estvar(:)
-   character(len=16), allocatable :: varUnit(:)
+   character(len=32), allocatable :: estvar(:)
+
+   type vvar
+      character(len=32)  :: varName
+      character(len=256) :: varDesc
+      character(len=16)  :: varUnit
+   end type vvar
+   type(vvar) :: varin(maxVarin)
+   integer :: realVarIn
 
 contains
 
@@ -294,12 +302,13 @@ contains
     !Local Variables
     integer :: fileNum
     character(len=256) :: linha
-    character(len=256) :: campos(3)
+    character(len=256) :: campos4(4)
+    character(len=256) :: campos3(3)
     integer :: count, rsp, i, j, n
     real :: val, dist, d1, d2
     character(len=32) :: nome
-    real :: lat 
-    real :: lon
+    real :: lat(1)
+    real :: lon(1)
     integer :: xpos
     integer :: ypos
     integer :: fileNumber
@@ -311,8 +320,8 @@ contains
 
     !Code area
     if(mchnum == master_num) then
-      
-       if(.not. fileExist("estvars.dat")) iErrNumber = dumpMessage(c_tty,c_yes,'','',c_fatal &
+
+      if(.not. fileExist("estvars.dat")) iErrNumber = dumpMessage(c_tty,c_yes,'','',c_fatal &
           ,'Arquivo de variáveis, estvars.dat, não encontrado, verifique!')
 
       open(unit = 87, file = "estvars.dat", status = 'old', action = 'read')
@@ -323,15 +332,14 @@ contains
       enddo
 
 30    count_var = count_var-1
-      allocate(estvar(count_var),varUnit(count_var))
+      allocate(estvar(count_var))
       
       rewind(87)
-      varUnit='No defined'
+
       print *,'=== variables to stations -  CSV File ==='
       do i=1, count_var
          read(87,fmt='(A)') estvar(i)
-         varUnit(i)=getUnitInVarList(estvar(i))
-         print *,i,estvar(i),varUnit(i)
+         print *,i,':',estvar(i)
       enddo
       print *,'========================================='
       close(unit=87)
@@ -344,17 +352,38 @@ contains
        !Pula a linha de cabeçalho
        read(87,*)
        count = 0
+       print *,'Limite Lon min,max :', oneGlobalGridData(1)%global_glon(1,1),',' &
+              ,oneGlobalGridData(1)%global_glon(nnxp(1),1)
+       print *,'Limite Lat min,max :', oneGlobalGridData(1)%global_glat(1,1),',' &
+               ,oneGlobalGridData(1)%global_glat(1,nnyp(1))
+
        do 
           count = count+1
           read(87,fmt='(A)',END=50) linha
           !Faz um parse separando os campos
-          campos = parseCsv(linha,3,';')
-          sites(count)%nome = trim(campos(1))
-          read(campos(2),*) sites(count)%lat
-          read(campos(3),*) sites(count)%lon
+          campos3 = parseCsv(linha,3,';')
+          sites(count)%nome = trim(campos3(1))
+          read(campos3(2),*) sites(count)%lat
+          read(campos3(3),*) sites(count)%lon
           !
           sites(count)%xpos = 0
           sites(count)%ypos = 0
+
+          !Checa se o site está dentro do domínio do modelo
+          print *,'Nome da estacao:',trim(sites(count)%nome)
+          print *,'Lon do site    :', sites(count)%lon
+          print *,'Lat do site    :', sites(count)%lat
+
+          if(sites(count)%lon<=oneGlobalGridData(1)%global_glon(1,1) &
+            .or. sites(count)%lon>=oneGlobalGridData(1)%global_glon(nnxp(1),1)) &
+            iErrNumber = dumpMessage(c_tty,c_yes,'','',c_fatal &
+          ,'Longitude do ponto fora do domínio do Modelo!',sites(count)%lon,"F6.2")
+
+          if(sites(count)%lat<=oneGlobalGridData(1)%global_glat(1,1) &
+          .or. sites(count)%lat>=oneGlobalGridData(1)%global_glat(1,nnyp(1))) &
+          iErrNumber = dumpMessage(c_tty,c_yes,'','',c_fatal &
+          ,'Latitude do ponto fora do domínio do Modelo!',sites(count)%lat,"F6.2")
+
           !Procura o ponto em longitude do modelo mais próximo a lon lida 
           !guarda esse ponto em xpos
           dist = 1000.0
@@ -387,8 +416,9 @@ contains
           enddo
           if(sites(count)%ypos == 0) iErrNumber = dumpMessage(c_tty,c_yes,'','',c_fatal &
           ,'Latitude do ponto fora do domínio do Modelo!',sites(count)%lat,"F6.2")     
-
-          print *,count,trim(sites(count)%nome),sites(count)%lat,sites(count)%lon,sites(count)%xpos,sites(count)%ypos
+          print *,'Localizacao    X:', sites(count)%xpos
+          print *,'Localizacao    Y:', sites(count)%ypos
+          print *,'---------------------------------------------------------------'
        enddo
 50     nSites = count-1
 
@@ -413,14 +443,18 @@ contains
       fileNumber =sites(n)%fileNumber
       CALL Broadcast(nome, master_num, "nome")
       CALL Broadcast(lat, master_num, "lat")
+      !print *,'%%%%:',mchnum,lat
       CALL Broadcast(lon, master_num, "lon")
       CALL Broadcast(xpos, master_num, "xpos")
       CALL Broadcast(ypos, master_num, "ypos")
       CALL Broadcast(fileNumber, master_num, "fileNumber")
       sites(n)%nome = nome
-      sites(n)%lat  = lat 
-      sites(n)%lon  = lon 
+      sites(n)%lat  = lat(1)
+      sites(n)%lon  = lon(1)
+      !print *,'Lat=',mchnum,lat,sites(n)%lat; call flush(6)
+      !print *,'Nom=',mchnum,sites(n)%nome; call flush(6)
       sites(n)%xpos = xpos
+      !print *,'Xpos=',mchnum,sites(n)%xpos; call flush(6)
       sites(n)%ypos = ypos
       sites(n)%fileNumber = fileNumber
 
@@ -440,7 +474,7 @@ contains
       enddo 
 
       if(sites(n)%localXpos>0 .and. sites(n)%localypos>0) then
-         allocate(sites(n)%varValues(count_var,int(timmax),oneNamelistFile%inplevs))
+         allocate(sites(n)%varValues(count_var,0:int(timmax),oneNamelistFile%inplevs))
       endif
 
     enddo
@@ -604,28 +638,69 @@ end function writeVar2D
     integer :: fn
     character(len=2) :: clev
     integer :: sout
-    integer :: l,n,v,seconds,totsec,secc
+    integer :: l,n,v,seconds,totsec,secc,i
     character(len=10) :: cdate !"YYYYMMDDHH" 
     integer :: iyy,imm,idd,ihh,hh,mm,ss
+    integer :: count
+    character(len=256) :: linha
+    character(len=256) :: campos4(4)
+    character(len=16) :: vardim
+    character(len=256) :: vardesc
 
     !Code:
+    if(.not. fileExist("variables.csv")) iErrNumber = dumpMessage(c_tty,c_yes,'','',c_fatal &
+    ,'Arquivo de variáveis, variables.csv, não encontrado, verifique!')      
+
+    !Lê as variaveis do arquivo CSV para obter unidade e descrição
+    open(unit = 87, file = "variables.csv", status = 'old', action = 'read')
+    count = 0
+    !print *,'=== Campos de variables.csv ==='      
+    do 
+       count = count+1
+       read(87,fmt='(A)',END=40) linha
+       !Faz um parse separando os campos
+       campos4 = parseCsv(linha,4,',')
+       varin(count)%varName = campos4(2)
+       varin(count)%varDesc = campos4(3)
+       varin(count)%varUnit = campos4(4)
+!       print *,count,':',varin(count)%varName,':',varin(count)%varUnit
+    enddo
+40    close(unit=87)
+    realVarIn = count-1
+
+
     write(clev,fmt="(I2.2)") oneNamelistFile%inplevs
     write(cdate,fmt='(I4,I2.2,I2.2,I2.2)') iyear1,imonth1,idate1,itime1
 
+    !do n=1,nsites
+    !  print *,n,sites(n)%nome
+    !  print *,sites(n)%lon,sites(n)%lat
+    !  print *,sites(n)%localXpos,sites(n)%localYpos
+    !enddo
+
     do n=1,nsites
       if(sites(n)%localXpos<=0 .or. sites(n)%localYpos<=0) return
+      print *,'*** Escrevendo para site ',n,trim(sites(n)%nome),sites(n)%lon,sites(n)%lat
       do v=1,count_var
          seconds = 0
-         open(unit = fileNumber, file = trim(sites(n)%nome)//'_'//trim(estvar(v))//'_'//cdate//'.csv',status = "replace", action = "write")
+         open(unit = fileNumber, file = trim(sites(n)%nome)//'_'//trim(estvar(v))//'_'//cdate//'.csv' &
+              ,status = "replace", action = "write")
+         !Obtém a unidade da variável a ser escrita
+         vardim = getUnitInVarList(estvar(v))
+         vardesc = getDescInVarList(estvar(v))
+
+         !Escreve um cabeçalho com informações no arquivo CSV
+         write(fileNumber,fmt='(A,A,A,F9.5,A,F9.5,A,A)') '# Local: ',trim(sites(n)%nome) &
+               ,', Lat=',sites(n)%lat,', Lon= ',sites(n)%lon
+         write(fileNumber,fmt='(A,A,A,A,A,A)') '# Sinal: ',trim(estvar(v)),' ,Unidade: ',trim(vardim) &
+            ,' ,Desc: ',trim(vardesc)
          
-         write(fileNumber,fmt='(A,A,A,F9.5,A,F9.5,A,A)') '# Local: ',trim(sites(n)%nome), &
-               ' , Lat=',sites(n)%lat,', Lon= ',sites(n)%lon,' ,Data Inicial: ',cdate
-         write(fileNumber,fmt='(A,A,A,A)') '# Sinal: ',trim(estvar(v)),' ,Unidade: ',trim(varUnit(v))
-         
-         write(fileNumber,fmt=prefixFormat//clev//sufixFormat) '# Tempo' &
+         write(fileNumber,fmt=prefixFormat//clev//sufixFormat) 'Tempo' &
                ,(zm(l)*grid_g(1)%rtgt(sites(n)%localxpos,sites(n)%localypos),l=1,oneNamelistFile%inplevs)
+         
+         !escreve os tempos e os valores da variável para cada nível
          do seconds = 1,int(timmax),int(frqanl)
-            secc = seconds-int(frqanl)
+            secc = seconds-int(frqanl)+1
 
             call date_add_to_dble(iyear1,imonth1,idate1,itime1,dble(secc),'s' &
             ,iyy,imm,idd,ihh)
@@ -640,9 +715,8 @@ end function writeVar2D
          close(unit = fileNumber)
       enddo
    enddo
-     isok = 0
+   isok = 0
 
- 
  end function createSitesFile
 
  function closeSitesFile() result(stt)
@@ -890,23 +964,77 @@ function getUnitInVarList(varName) result(varU)
    character(len=*), parameter :: procedureName = 'getUnitInVarList' ! Nome da função
 
    !Variables (input):
-   character(len=*), intent(in) :: varName
+   character(len=32), intent(in) :: varName
    character(len=16) :: varU
 
    !Local variables:
-   integer :: sizmpv
    integer :: i
+   character(len=32) :: vnam
 
    !Code:
-   sizmpv = size(all_post_variables)
-   do i = 1, sizmpv
-      if(trim(to_lower(varName)) == trim(to_lower(all_post_variables(i)%fieldName))) then
-         varU = all_post_variables(i)%fieldUnits
+   varU = ''
+   do i = 1, realVarIn
+      vnam = varin(i)%varName(3:len_trim(varin(i)%varName)-1)
+      !print *,'Checando: #',trim(varName),'#',trim(vnam),':',trim(varName) == trim(vnam)
+      if(trim(varName) == trim(vnam)) then
+         varU = varin(i)%varUnit
+         exit
       endif
    enddo
 
 
 end function getUnitInVarList
+
+function getDescInVarList(varName) result(varU)
+   !! retorna a descricao da variável verificada no variables.csv
+   !!
+   !! @note
+   !!
+   !! **Project**: BRAMS-Furnras
+   !! **Author(s)**: Rodrigues, L.F. [LFR]
+   !! **e-mail**: <mailto:luiz.rodrigues@inpe.br>
+   !! **Date**:  15Julho2022 13:46
+   !!
+   !! **Full description**:
+   !! retorna a descricao da variável verificada no variables.csv
+   !!
+   !! @endnote
+   !!
+   !! @warning
+   !!
+   !!  [](https://www.gnu.org/graphics/gplv3-127x51.png'')
+   !!
+   !!     Under the terms of the GNU General Public version 3
+   !!
+   !! @endwarning
+   use ModPostTypes, only: &
+      all_post_variables
+
+   implicit none
+   !Parameters:
+   character(len=*), parameter :: procedureName = 'getUnitInVarList' ! Nome da função
+
+   !Variables (input):
+   character(len=32), intent(in) :: varName
+   character(len=256) :: varU
+
+   !Local variables:
+   integer :: i
+   character(len=32) :: vnam
+
+   !Code:
+   varU = ''
+   do i = 1, realVarIn
+      vnam = varin(i)%varName(3:len_trim(varin(i)%varName)-1)
+      !print *,'Checando: #',trim(varName),'#',trim(vnam),':',trim(varName) == trim(vnam)
+      if(trim(varName) == trim(vnam)) then
+         varU = varin(i)%varDesc
+         exit
+      endif
+   enddo
+
+
+end function getDescInVarList
 
 
 end module modTimeLineFRN
