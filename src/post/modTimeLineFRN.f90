@@ -47,7 +47,7 @@ module modTimeLineFRN
    integer, parameter :: maxVarIn = 256
 
    private
-   public :: writeTimeLineFRN, readSites, createSitesFile, timeToOutput
+   public :: writeTimeLineFRN, readSites, createSitesFile, isTimeTograds
 
    interface writeTimeLineFRN
     module procedure writeTimeLineFRN_2D
@@ -338,14 +338,13 @@ contains
       rewind(87)
 
       print *,'=== variables to stations -  CSV File ==='
-      read(87,*) timeToOutput
-      print *,'Tempo entre saídas: ',timeToOutput
       do i=1, count_var
          read(87,fmt='(A)', END=35) estvar(i)
          print *,i,':',estvar(i)
       enddo
       print *,'========================================='
 35    close(unit=87)
+
 
       if(.not. fileExist("estacoes.csv")) iErrNumber = dumpMessage(c_tty,c_yes,'','',c_fatal &
       ,'Arquivo de estações, estacoes.csv, não encontrado, verifique!')
@@ -1044,5 +1043,57 @@ function getDescInVarList(varName) result(varU)
 
 end function getDescInVarList
 
+function isTimeTograds() result(istime)
+   !! Retorna se é tempo de escrever arquivo grads qdo IPOS=10
+   !!
+   !! @note
+   !!
+   !! **Project**: BRAMS-Furnas
+   !! **Author(s)**: Rodrigues, L.F. [LFR]
+   !! **e-mail**: <mailto:luiz.rodrigues@inpe.br>
+   !! **Date**:  19Julho2022 08:27
+   !!
+   !! **Full description**:
+   !! Retorna se é tempo de escrever arquivo grads qdo IPOS=10
+   !!
+   !! @endnote
+   !!
+   !! @warning
+   !!
+   !!  [](https://www.gnu.org/graphics/gplv3-127x51.png'')
+   !!
+   !!     Under the terms of the GNU General Public version 3
+   !!
+   !! @endwarning
+   use mem_grid, only: &
+      time, &
+      dtlongn, &
+      timmax
+
+   use meteogram, only: &
+      meteogramFreq
+
+   use io_params, only : & ! 
+      ipos
+
+   implicit none
+   !Parameters:
+   character(len=*), parameter :: procedureName = 'isTimeTograds' ! Nome da função
+
+   !Variables (input):
+   logical :: istime
+
+   !Local variables:
+
+   !Code:
+   istime = .false.
+   if (IPOS/=10) then 
+      return
+   elseif (IPOS==10 .and.  (mod(time,meteogramFreq)<dtlongn(1)    .or.  &
+      time>=timmax - 0.01*dtlongn(1))) then
+      istime = .true.
+   endif
+
+end function isTimeTograds
 
 end module modTimeLineFRN

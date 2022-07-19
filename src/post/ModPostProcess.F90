@@ -40,7 +40,17 @@ module ModPostProcess
          WaitRecvMsgs
 
      use io_params, only : & ! 
-       IPOS            
+       ipos
+       
+   use modTimeLineFRN, only: &
+      isTimeTograds
+
+   use mem_grid, only: &
+      timmax, &
+      dtlongn, &
+      time
+
+
 
    !use CUPARM_GRELL3, only: g3d_g
 
@@ -163,7 +173,7 @@ contains
          igrid = OneGrid%Id
 
          ! open grads files
-         if(IPOS==2 .or. IPOS==10) then
+         if(IPOS==2 .or. isTimeTograds()) then
             call OpenGradsBinaryFile(oneNamelistFile, &
                oneAllPostTypes%allGrids(igrid)%pg, &
                oneAllPostTypes%allGrids(igrid)%bg, igrid)
@@ -219,7 +229,7 @@ contains
          call finalize_post_variables()
          ! control file contents
 
-         if(IPOS==2 .or. IPOS==10) then
+         if(IPOS==2 .or. isTimeTograds()) then
             call FillGradsControlFile(&
                oneAllPostTypes%allGrids(igrid)%pg, &
                oneAllPostTypes%allGrids(igrid)%bg)

@@ -686,8 +686,9 @@ contains
       if(IPOS == 11 .or. IPOS == 10) call writeTimeLineFRN(one_post_variable%fieldName,OutputField,oneBramsGrid%mxp &
       , oneBramsGrid%myp, oneBramsGrid%mzp,time,oneNamelistFile)
 
+      if(IPOS == 11) return
       ! most of cases run this. Some just returns before
-      if(IPOS == 2 .or. IPOS == 10) call PrepareAndOutputGradsField(one_post_variable, oneBramsGrid, onePostGrid, OutputField)
+      call PrepareAndOutputGradsField(one_post_variable, oneBramsGrid, onePostGrid, OutputField)
 
    end subroutine Brams2Post_3d
 
