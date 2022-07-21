@@ -116,7 +116,7 @@ SUBROUTINE micro_thompson( )
             ,basic_g(ngrid) &
             ,grid_g (ngrid) &
             ,micro_g(ngrid) &
-	         ,ocean_fraction &
+	    ,ocean_fraction &
             )
        
        !if(mcphys_type == 3) then
@@ -312,8 +312,6 @@ END SUBROUTINE micro_thompson
      REAL :: dt                  ! model timestep (s)
      LOGICAL :: start_of_simulation =.true. 
      integer, save ::it=0
-     INTEGER  :: ke_diag              ! check this latter
-     LOGICAL  :: wetscav_on = .false. ! check this latter
 
      REAL,  DIMENSION(m1) :: &
       thp    &
@@ -390,7 +388,7 @@ END SUBROUTINE micro_thompson
 	          (1.-ocean_fraction)*nt_c_land
 
         !- column quantities
-	     thp  (1:m1)= basic%thp  (1:m1,i,j)
+	thp  (1:m1)= basic%thp  (1:m1,i,j)
         theta(1:m1)= basic%theta(1:m1,i,j)
         pp   (1:m1)= basic%pp   (1:m1,i,j)
         rtp  (1:m1)= basic%rtp  (1:m1,i,j)
@@ -416,8 +414,8 @@ END SUBROUTINE micro_thompson
         endif
         
 	!- surface quantities
-	     rtgt = grd%rtgt(i,j)
-	     accpr= mic%accpr(i,j)
+	rtgt = grd%rtgt(i,j)
+	accpr= mic%accpr(i,j)
         pcprr= mic%pcprr(i,j)
         accps= mic%accps(i,j)
         pcprs= mic%pcprs(i,j)
@@ -445,8 +443,6 @@ END SUBROUTINE micro_thompson
                         ! ( for land surface models)
         
         refl_10cm =0.0  ! 
-
-        ke_diag   = kte
         
         dx=10000. !- typical x- horizontal grid spacing (only for the local aerosol emission)
         dy=10000. !- typical y- horizontal grid spacing (only for the local aerosol emission)
@@ -527,7 +523,7 @@ END SUBROUTINE micro_thompson
                           IMS, IME, JMS, JME, KMS, KME,   &
                           ITS, ITE, JTS, JTE, KTS, KTE,   &
                           orho,             &
-			                 NWFA2D,           &
+			  NWFA2D,           &
                           NWFA,             &
                           NIFA)
 
@@ -580,16 +576,10 @@ END SUBROUTINE micro_thompson
                      GRAUPELNC,                 & 
                      GRAUPELNCV,                & 
                      SR,                        &
-
-                     wetscav_on,                &
-                     
                      rainprod,                  &
                      evapprod,                  &
                      refl_10cm,                 &
                      diagflag,                  &
-
-                     ke_diag,                   &
-
                      do_radar_ref,              &
                      re_cloud,                  & 
                      re_ice,                    &
@@ -599,9 +589,8 @@ END SUBROUTINE micro_thompson
                      has_reqs,                  & ! G. Thompson
                      IDS,IDE, JDS,JDE, KDS,KDE, &
                      IMS,IME, JMS,JME, KMS,KME, &
-                     ITS,ITE, JTS,JTE, KTS,KTE  &
-!		               nt_c_var&
-                     )
+                     ITS,ITE, JTS,JTE, KTS,KTE, &
+		     nt_c_var)
 
 
         !- this call cloud water 2-mom / aerosol aware scheme
@@ -636,16 +625,10 @@ END SUBROUTINE micro_thompson
                      GRAUPELNC,                 & 
                      GRAUPELNCV,                & 
                      SR,                        &
-
-                     wetscav_on,                &
-                     
                      rainprod,                  &
                      evapprod,                  &
                      refl_10cm,                 &
                      diagflag,                  &
-
-                     ke_diag,                   &
-
                      do_radar_ref,              &
                      re_cloud,                  & 
                      re_ice,                    &
@@ -656,7 +639,7 @@ END SUBROUTINE micro_thompson
                      IDS,IDE, JDS,JDE, KDS,KDE, &
                      IMS,IME, JMS,JME, KMS,KME, &
                      ITS,ITE, JTS,JTE, KTS,KTE, &
-!		               nt_c_var,                  &
+		     nt_c_var,                  &
 !- moving optional arrays to the end of the argument list
                      qnc_curr,                  &! NC=qnc_curr,     
                      qnwfa_curr,                &! NWFA=qnwfa_curr, 
@@ -672,7 +655,7 @@ END SUBROUTINE micro_thompson
                  qr_curr(1,k,1) + &    
                  qi_curr(1,k,1) + &    
                  qs_curr(1,k,1) + &    
-                 qg_curr(1,k,1)     
+                 qg_curr(1,k,1)    
          
          rcp(k)= qc_curr(1,k,1)
          rrp(k)= qr_curr(1,k,1)
@@ -738,7 +721,7 @@ END SUBROUTINE micro_thompson
         pcprg = GRAUPELNCV(1,1) 
 
         !- column quantities
-        basic%thp  (1:m1,i,j) =thp  (1:m1) 
+	basic%thp  (1:m1,i,j) =thp  (1:m1) 
         basic%theta(1:m1,i,j) =theta(1:m1)
         basic%rtp  (1:m1,i,j) =rtp  (1:m1)
         basic%rv   (1:m1,i,j) =rv   (1:m1)  
@@ -749,7 +732,7 @@ END SUBROUTINE micro_thompson
         mic%rsp    (1:m1,i,j) =rsp  (1:m1)   
         mic%rgp    (1:m1,i,j) =rgp  (1:m1)  
         
-        if( (ilwrtyp==6 .or. iswrtyp==6) .and. mcphys_type == 2 ) then  	 
+       if( (ilwrtyp==6 .or. iswrtyp==6) .and. mcphys_type == 2 ) then  	 
          mic%rei   (1:m1,i,j) =rei  (1:m1)
          mic%rel   (1:m1,i,j) =rel  (1:m1)
         endif 
@@ -757,7 +740,7 @@ END SUBROUTINE micro_thompson
         mic%crp    (1:m1,i,j) =crp  (1:m1)
         mic%cpp    (1:m1,i,j) =cpp  (1:m1)
         
-	     if(mcphys_type == 3) then
+	if(mcphys_type == 3) then
          mic%ccp  (1:m1,i,j) = ccp  (1:m1) 
          mic%cccnp(1:m1,i,j) = cccnp(1:m1) 
          mic%cifnp(1:m1,i,j) = cifnp(1:m1) 
@@ -800,5 +783,131 @@ END SUBROUTINE micro_thompson
 !if(i==iz .and. j==jz .and. it==2 ) stop 33
   RETURN
 !
+!-SRF - OUTPUT================================================================= 
+!  gate=0
+!  IF(gate==1) THEN
+!	  jl=1
+!	  do jk=1,kme
+!	    vargrads(jl,jk,1) = qv_curr   (1,jk,1)*1000.
+!	    vargrads(jl,jk,2) = qc_curr   (1,jk,1)*1000.
+!	    vargrads(jl,jk,3) = qr_curr   (1,jk,1)*1000.
+!	    vargrads(jl,jk,4) = qi_curr   (1,jk,1)*1000.
+!	    vargrads(jl,jk,5) = qs_curr   (1,jk,1)*1000.
+!	    vargrads(jl,jk,6) = qg_curr   (1,jk,1)*1000.
+!	    vargrads(jl,jk,7) = qni_curr  (1,jk,1)
+!	    vargrads(jl,jk,8) = qnr_curr  (1,jk,1)
+!	    vargrads(jl,jk,9) = qnc_curr  (1,jk,1)
+!	    vargrads(jl,jk,10)= qnwfa_curr(1,jk,1)
+!	    vargrads(jl,jk,11)= qnifa_curr(1,jk,1)
+!	    vargrads(jl,jk,12)= NWFA(1,jk,1)
+!	    vargrads(jl,jk,13)= NIFA(1,jk,1)
+!	    vargrads(jl,jk,14)= 0.0
+!	   enddo
+!	   nvar3d=14
+!	 !- surface quantities
+!	  vargrads(jl,1,21) = RAINNC(1,1)
+!	  vargrads(jl,1,22) = RAINNCV(1,1)*3600.
+!	  vargrads(jl,1,23) = -999.
+!	  vargrads(jl,1,24) = -999.
+!	  vargrads(jl,1,25) = -999.
+!	  vargrads(jl,1,26) = -999.
+!	  vargrads(jl,1,27) = -999.
+!	  nvar2d=7
+!	  !total number of variables out
+!	  nvar = nvar3d+nvar2d ; if(nvar>100) stop "increase nvar"
+!
+!      PRINT*,'Writing GrADS control file:'
+!      gradsname(1,1)  ='qv	'	  ;gradsname(1,2)  =  'qv	   '
+!      gradsname(2,1)  ='qc	'	  ;gradsname(2,2)  =  'qc	   '
+!      gradsname(3,1)  ='qr	'	  ;gradsname(3,2)  =  'qr	   '
+!      gradsname(4,1)  ='qi	'	  ;gradsname(4,2)  =  'qi	   '
+!      gradsname(5,1)  ='qs	'	  ;gradsname(5,2)  =  'qs	   '
+!      gradsname(6,1)  ='qg	'	  ;gradsname(6,2)  =  'qg	   '
+!      gradsname(7,1)  ='qni	'	  ;gradsname(7,2)  =  'qni    '
+!      gradsname(8,1)  ='qnr	'	  ;gradsname(8,2)  =  'qnr    '
+!      gradsname(9,1)  ='qnc	'	  ;gradsname(9,2)  =  'qnc    '
+!      gradsname(10,1) ='qnwfa  '	  ;gradsname(10,2) =  'qnwfa  '
+!      gradsname(11,1) ='qnifa  '	  ;gradsname(11,2) =  'qnifa  '
+!      gradsname(12,1) ='nwfa  '	 ;gradsname(12,2) =  'zero  '
+!      gradsname(13,1) ='nifa  '	 ;gradsname(13,2) =  'zero  '
+!      gradsname(14,1) ='zero  '	 ;gradsname(14,2) =  'zero  '
+!! 
+!      
+!      gradsname(21,1) ='rainnc'    ;gradsname(21,2) =  'total surf prec [mm]'
+!      gradsname(22,1) ='rainncv'   ;gradsname(22,2) =  'rate of surf prec [mm/h]'
+!      gradsname(23,1) ='ierr  '    ;gradsname(23,2) =  'IERR'
+!      gradsname(24,1) ='cltop '    ;gradsname(24,2) =  'cloud top index'
+!      gradsname(25,1) ='clbas '    ;gradsname(25,2) =  'cloud base indec'
+!      gradsname(26,1) ='dnmf  '    ;gradsname(26,2) =   'downdraft mass flux at initiation level'
+!!     gradsname(27,1) ='pcape  '   ;gradsname(27,2) =  'pcape'
+!      gradsname(27,1) ='pcin	'   ;gradsname(27,2) =  'not-working : pcin'
+!      
+!	
+!	OPEN(20,file='MPGT.ctl',status='unknown')
+!	write(20,2001) '^MPGT.gra'
+!	write(20,2002) 'undef -9.99e33'
+!	write(20,2002) 'options byteswapped' ! zrev'
+!	!write(20,2002) 'title '//"GF with GATE soundings"
+!	write(20,2002) 'title MPGT'
+!	write(20,2003) 1,0.,1. ! units m/km
+!	write(20,2004) 1,1.,1.
+!	write(20,2005) kme,(zt(jk),jk=1,kme)
+!	write(20,2006) 1,'00:00Z01JAN2000','1mn'
+!	write(20,2007) nvar3d+nvar2d
+!	do nvx=1,nvar3d 	
+!	  
+!	  write(20,2008) gradsname(nvx,1),kme,gradsname(nvx,2)
+!	enddo
+!	do nvx=21,20+nvar2d	    
+!	  
+!	  write(20,2008) gradsname(nvx,1),0,gradsname(nvx,2)
+!	enddo
+!	write(20,2002) 'endvars'
+!	
+!  2001 format('dset ',a)
+!  2002 format(a)
+!  2003 format('xdef ',i4,' linear ',2f15.3)
+!  2004 format('ydef ',i4,' linear ',2f15.3)
+!  2005 format('zdef ',i4,' levels ',60f6.0)
+!  2006 format('tdef ',i4,' linear ',2a15)
+!  2007 format('vars ',i4)
+!  2008 format(a10,i4,' 99 ',a40)!'[',a8,']')
+!! 2008 format(a10,i4,' 99' )
+!  2055 format(60f7.0)
+!   133 format (1x,F7.0)
+!   CLOSE(20)
+!  
+!   print*, 'opening GrADS file:',"MPGT.gra"
+!   OPEN(19,FILE= 'MPGT.gra',  &
+!   !FORM='unformatted',ACCESS='direct',STATUS='unknown', RECL=(1)) !INTEL
+!   FORM='unformatted',ACCESS='direct',STATUS='unknown', RECL=4*(1))!PGI
+!   NREC=0
+!   do nvx=1,nvar3d
+!      do jk=1,kme
+!	 nrec=nrec+1
+!	 WRITE(19,REC=nrec) real(vargrads(:,jk,nvx),4)
+!      enddo	
+!   enddo
+!   do nvx=21,20+nvar2d
+!      do jk=1,1
+!	 nrec=nrec+1
+!	 WRITE(19,REC=nrec) real(vargrads(:,jk,nvx),4)
+!      enddo	
+!   enddo
+!
+!
+!   close (19)
+!
+!!-- formats
+!167	 format(A12,1x,i2,1x,f7.0,2(1x,e13.4),2(1x,f6.1))
+!121	 format(i3,2x,f8.2,2x,f8.2,2x,e13.6,2x,f10.2,2x,f10.2)
+!122	 format(f5.1,2x,f8.2,2x,f6.2)
+!124	 format(f8.2,11(2x,e12.6))
+!123	 format(i3,2x,i3,2x,e13.6)
+!125	 format(i2,2x,f8.2,11(2x,e13.6))
+!132	 format(1x,i2,f8.0,1x,2(1x,f8.3),5(1x,e12.4))
+!
+! ENDIF !gate==1
+!!-SRF - OUTPUT================================================================= 
 !
 END  SUBROUTINE brams_to_mic_thompson

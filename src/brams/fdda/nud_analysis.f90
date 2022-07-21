@@ -331,18 +331,17 @@ subroutine VariableWeight(mzp, mxp, myp, nxp, nyp, i0, j0, &
      stop 'varwt-znud'
   endif
   
-  if(applyIAU > 0)  then 
-    if(time <= dtlt + timeWindowIAU .and. tnudcent > .01 .and. mchnum == master_num) then
+  if(time <= dtlt + timeWindowIAU .and. tnudcent > .01 .and. mchnum == master_num) then
       !print*,"=> doing nudging in center:",time,centFact,tnudcenti
        write(*,100) "===> doing nudging in center domain              :",time,centFact,tnudcenti
        call flush(6)
-    endif
-    if(time >  dtlt + timeWindowIAU .and. tnudcent > .01 .and. mchnum == master_num) then
+  endif
+  if(time >  dtlt + timeWindowIAU .and. tnudcent > .01 .and. mchnum == master_num) then
       !print*,"=> ramping the nudging in center to zero:",time,centFact,tnudcenti
        write(*,100) "===> ramping the nudging in center domain to zero:",time,centFact,tnudcenti
        call flush(6)
-    endif
   endif
+
   !-- turn off nudging from surface to znudbot
   delPBL= 0.
   if(znudbot>0.01) delPBL= 1./znudbot
@@ -384,7 +383,7 @@ subroutine VariableWeight(mzp, mxp, myp, nxp, nyp, i0, j0, &
 !-srf excluding nudging in the PBL (wtbot)
            varwts(k,i,j)=tnudcenti*wtbot + max(tnudlati*wtlat,tnudtopi*wttop)
 
-!-srf special weights for pressure/wind (pressure/wind will be nudged in the full domain)          
+!-srf special weights for pressure (pressure will be nudged in the full domain)          
            varwts_for_operations_only(k,i,j) = tnudlati_x*wtbot + max(tnudlati_x*wtlat,tnudtopi_x*wttop)          
        end do
      end do
