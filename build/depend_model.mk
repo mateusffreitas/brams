@@ -1745,7 +1745,7 @@ ModBramsGrid.o : $(POST_SRC)/ModBramsGrid.f90 ModNamelistFile.o \
 	$(F_COMMAND) $(<F:.f90=.f90) $(EXTRAFLAGSF)
 	@mv -f $(<F:.f90=.f90) ../doc/src
 
-ModPostGrid.o : $(POST_SRC)/ModPostGrid.F90 ModNamelistFile.o \
+ModPostGrid.o : $(POST_SRC)/ModPostGrid.F90 ModNamelistFile.o modTimeLineFRN.o\
 	ModBramsGrid.o ModPostUtils.o mem_grid.o parlibf.o ModPostTypes.o \
 	ModParallelEnvironment.o ModOutputUtils.o ModPostOneFieldNetCDF.o $(UTILS_INCS)/files.h
 	@cp -f $< $(<F:.f90=.f90)
@@ -1830,7 +1830,7 @@ ModPostUtils.o : $(POST_SRC)/ModPostUtils.f90 ModNamelistFile.o \
 	$(F_COMMAND) $(<F:.f90=.f90) $(EXTRAFLAGSF)
 	@mv -f $(<F:.f90=.f90) ../doc/src
 
-modTimeLineFRN.o : $(POST_SRC)/modTimeLineFRN.f90 
+modTimeLineFRN.o : $(POST_SRC)/modTimeLineFRN.f90 meteogram.o
 	@cp -f $< $(<F:.f90=.f90)
 	$(F_COMMAND) $(<F:.f90=.f90) $(EXTRAFLAGSF)
 	@mv -f $(<F:.f90=.f90) ../doc/src
