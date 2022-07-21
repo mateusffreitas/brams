@@ -183,7 +183,7 @@ $MODEL_FILE_INFO
 
  ! Microphysics
 
-   MCPHYS_TYPE = 2,          ! microphysics formulation
+   MCPHYS_TYPE = 4,          ! microphysics formulation
                              ! 0 = original brams
                              ! 1 = 2M rams6.0
    LEVEL   = 3,              ! Moisture complexity level
