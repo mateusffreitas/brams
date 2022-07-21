@@ -2084,7 +2084,7 @@ else
 
 endif
 
-if(mcphys_type == 2 .or. mcphys_type == 3 .or. mcphys_type == 4 .or. mcphys_type == 6 .or. mcphys_type == 7) then
+if(mcphys_type == 2 .or. mcphys_type == 3 .or. mcphys_type == 4) then
 
    pcpgl  = pcpgl  + dtll_factor * micro%pcpg(i,j)
    qpcpgl = qpcpgl + dtll_factor * micro%pcpg(i,j)*4186. * (ths * pis - 193.36)

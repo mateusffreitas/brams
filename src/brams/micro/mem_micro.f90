@@ -83,37 +83,30 @@ Contains
 
 ! Allocate arrays based on options (if necessary)
    
-   ! gthompson microphysics, GFDL and WSM
-   IF(mcphys_type == 2 .or. mcphys_type == 3 .or. mcphys_type == 4 .or. &
-      mcphys_type == 5 .or. mcphys_type == 6 .or. mcphys_type == 7) then 
-     
+   
+   IF(mcphys_type == 2 .or. mcphys_type == 3 .or. mcphys_type == 4) then ! gthompson microphysics
+      
           level = 3
           idriz = 0 ; icloud = 1
           irain = 1 ; ipris  = 1 
-          isnow = 1 ; iaggr  = 0
+          isnow = 1 ; igraup = 1
+          ihail = 0 ; iaggr  = 0
           jnmb(1) = 1 !cloud
           jnmb(2) = 1 !rain
           jnmb(3) = 1 !pristine
           jnmb(4) = 1 !snow
           jnmb(5) = 0 !agg
-
-          igraup = 1 !graupel
-          IF(mcphys_type == 5) igraup = 0 
-          jnmb(6) = igraup !graupel
-          
-          ihail = 0
-          IF(mcphys_type == 7) ihail = 1
-          jnmb(7) =  ihail
-          
+          jnmb(6) = 1 !graupel
+          jnmb(7) = 0 !ihail
           jnmb(8) = 0 !idriz
-
+		     
           !- cloud liq water
           allocate (micro%rcp(n1,n2,n3))   ;micro%rcp  =0.0
           
           !- rain
           allocate (micro%rrp  (n1,n2,n3)) ;micro%rrp  =0.0
           !- for this scheme, the rain rate below will
-	       !- account for rain+ice+snow+graupel
+	  !- account for rain+ice+snow+graupel
 	       allocate (micro%accpr(n2,n3)) ;   micro%accpr=0.0
           allocate (micro%pcprr(n2,n3)) ;   micro%pcprr=0.0
       
@@ -130,20 +123,10 @@ Contains
           allocate (micro%pcprs(n2,n3)) ;   micro%pcprs =0.0
       
           !- graupel
-          IF(mcphys_type /= 5)  then 
-            allocate (micro%rgp  (n1,n2,n3)) ;micro%rgp  =0.0
-            !- the rates bellow will account for only graupel
-	         allocate (micro%accpg(n2,n3)) ;   micro%accpg=0.0
-            allocate (micro%pcprg(n2,n3)) ;   micro%pcprg=0.0
-          ENDIF
-          !- hail
-          IF(mcphys_type == 7) then
-            allocate (micro%rhp  (n1,n2,n3)) ;micro%rhp  =0.0
-            allocate (micro%accph(n2,n3)) ;   micro%accph=0.0
-            allocate (micro%pcprh(n2,n3)) ;   micro%pcprh=0.0
-            !allocate (micro%pcpvh(n1,n2,n3)) ;micro%pcpvh=0.0
-            !allocate (micro%q7   (n1,n2,n3)) ;micro%q7   =0.0    
-          ENDIF
+          allocate (micro%rgp  (n1,n2,n3)) ;micro%rgp  =0.0
+          !- the rates bellow will account for only graupel
+	       allocate (micro%accpg(n2,n3)) ;   micro%accpg=0.0
+          allocate (micro%pcprg(n2,n3)) ;   micro%pcprg=0.0
       
 	       IF(mcphys_type  == 2 .or. mcphys_type  == 3) then ! only for double-moment and 
             !- number concentration for cloud/rain/ice

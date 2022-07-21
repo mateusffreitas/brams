@@ -554,8 +554,8 @@ subroutine effective_radius(n1,n2,n3,rei,rel)
   do j = 1,n3
      do i = 1,n2
         do k = 1,n1
-         rei(k,i,j)=5.0!micrometers for RRTM
-	      rel(k,i,j)=2.5!micrometers for RRTM
+             rei(k,i,j)=5.0!micrometers for RRTM
+	     rel(k,i,j)=2.5!micrometers for RRTM
         enddo
      enddo
   enddo

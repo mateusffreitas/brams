@@ -1876,8 +1876,7 @@ subroutine cloud_prop_rrtm(m1,m2,m3,ia, iz, ja, jz &
                 enddo
               enddo
             enddo
-          elseif(mcphys_type == 2 .or. mcphys_type == 3 .or. mcphys_type == 4 .or. &
-                 mcphys_type == 5 .or. mcphys_type == 6 .or. mcphys_type == 7) then  !srf -gthompson/gfdl microphysics - graupel only in ice phase
+          elseif(mcphys_type == 2 .or. mcphys_type ==3 .or. mcphys_type == 4) then  !srf -gthompson/gfdl microphysics - graupel only in ice phase
             dummy_vec=0.0
           endif
           lwl(1:m1,ia:iz,ja:jz) = dummy_vec(1:m1,ia:iz,ja:jz)*micro_g(ngrid)%rgp(1:m1,ia:iz,ja:jz) &
@@ -1888,16 +1887,15 @@ subroutine cloud_prop_rrtm(m1,m2,m3,ia, iz, ja, jz &
         endif
         if (ihail>0) then
           dummy_vec = 0.
-          if(mcphys_type <= 1) then
-           do k=1,m1
+          do k=1,m1
              do i=ia,iz
                 do j=ja,jz
                    call qtc(micro_g(ngrid)%q7(k,i,j), dummy, dummy_vec(k,i,j))
                 enddo
              enddo
-           enddo
-          endif
-          lwl(1: m1,ia:iz,ja:jz) = dummy_vec(1:m1,ia:iz,ja:jz)*micro_g(ngrid)%rhp(1:m1,ia:iz,ja:jz)&
+          enddo
+
+          lwl(1:m1,ia:iz,ja:jz) = dummy_vec(1:m1,ia:iz,ja:jz)*micro_g(ngrid)%rhp(1:m1,ia:iz,ja:jz)&
                                 + lwl(1:m1,ia:iz,ja:jz)
 
           dummy_vec(:,:,:) = 1.0 - dummy_vec(:,:,:)
@@ -1949,8 +1947,7 @@ subroutine cloud_prop_rrtm(m1,m2,m3,ia, iz, ja, jz &
 
        if (ilwrtyp==6 .or. iswrtyp==6) then
 
-          if(mcphys_type == 2 .or. mcphys_type == 4 .or.  mcphys_type == 5 .or. & 
-             mcphys_type == 6 .or. mcphys_type == 7 ) then
+          if(mcphys_type == 2 .or. mcphys_type == 4 ) then
           !- rei and rel are calculated by gt microphysics (no-aer option)
 
            do j=ja,jz
@@ -1965,7 +1962,7 @@ subroutine cloud_prop_rrtm(m1,m2,m3,ia, iz, ja, jz &
                 iwl(k,i,j) = basic_g(ngrid)%dn0(k,i,j)*iwl(k,i,j)* 1.e+3  !g/m3
                 dztri= grid_g(ngrid)%rtgt(i,j)/dzt(k)
 
-		          if(iwl(k,i,j)<1.0e-6 .or. temp>273.0) iwl(k,i,j)=0.0
+		if(iwl(k,i,j)<1.0e-6 .or. temp>273.0) iwl(k,i,j)=0.0
                 lwl(k,i,j) = lwl(k,i,j)* dztri  !g/m2
                 iwl(k,i,j) = iwl(k,i,j)* dztri  !g/m2
              enddo
