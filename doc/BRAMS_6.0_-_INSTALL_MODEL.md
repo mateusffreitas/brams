@@ -60,6 +60,8 @@ Bellow an example of use using Gnu, where {YOUR_BIN_AREA} is /home/oscar.
 ./configure --program-prefix=BRAMS_6.0 --prefix=/home/oscar --enable-jules    --with-chem=RELACS_TUV --with-aer=SIMPLE --with-fpcomp=/opt/gnu8/bin/mpif90    --with-cpcomp=/opt/gnu8/bin/mpicc --with-fcomp=gfortran --with-ccomp=gcc --with-netcdff=/opt/gnu8 --with-netcdfc=/opt/gnu8 --with-wgrib2=/opt/gnu8
 ```
 
+You can configure the model without GRIB2 library, in this case don't use the `--with-wgrib2` directive. Remember that without this option You can not read grib2 files, but You can use for test purposes.
+
 3. ## Make and Make install
    
    The make command will create the brams-6.0 executable. After creation it is necessary to run the make install command so that the basic files for the run are copied to the area set in {YOUR_BIN_AREA}
@@ -83,7 +85,7 @@ Bellow an example of use using Gnu, where {YOUR_BIN_AREA} is /home/oscar.
    make install-pre-brams
    ```
 
-4. ## Download tables, fixed files an a test case
+4. ## Download tables, fixed files an a small test case
    
    A series of fixed files and tables are required to run the model. You can get them by downloading the compressed file available in the ftp area. This file has 16GB and may take a while to download. It depends on your network speed. We advise you to check the checksum of the file to make sure that the download has not broken it.
    
@@ -97,7 +99,20 @@ Bellow an example of use using Gnu, where {YOUR_BIN_AREA} is /home/oscar.
    tar -xvf brams6.0_test_bin.tar.xz
    ```
 
-5. The output of model as You read above is in GRADS file. May be used another formats but we will show how in expert users guide. If You are using Ubuntu Linux or some Debia derivated Linux You can install grads in a simple way, using apt-get command
+5. ## Download tables, fixed files an a Big test case
+   
+   The big test case is complete. It run about all South America  with 8km of resolution, 1017x993 points, 45 levels, and simulate by 216 hours. This case do not run in small machines and need systems with big numbers of processors/cores.
+   
+   ```bash
+   cd {your bin area}
+   wget http://ftp.cptec.inpe.br/pesquisa/bramsrd/toEgeon/bm/bm.tar.bz2
+   bunzip2 bm.tar.bz2
+   tar -xvf bm.tar
+   ```
+
+6. ## Intall GRADS file
+   
+   The output of model as You read above is in GRADS file. May be used another formats but we will show how in expert users guide. If You are using Ubuntu Linux or some Debia derivated Linux You can install grads in a simple way, using apt-get command
    
    ```bash
    sudo apt-get install grads
@@ -106,5 +121,5 @@ Bellow an example of use using Gnu, where {YOUR_BIN_AREA} is /home/oscar.
    To install grads right from source, please, see the information on site [GrADS Downloads](http://cola.gmu.edu/grads/downloads.php). Pay attention on the necessary libraries explained on [GrADS Supplibs](http://cola.gmu.edu/grads/gadoc/supplibs2.html)
    
    To learn about grads we recommend to read the document [Grads Manual from NCEP](https://www.cpc.ncep.noaa.gov/products/international/grads/Advanced_GrADS_Manual.pdf).
-
-6. # 
+   
+    

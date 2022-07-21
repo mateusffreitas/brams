@@ -50,9 +50,9 @@ graph TD;
     BRAMS-- dataout/ANL -->ANA[(analisys)]
 ```
 
-> WARNING: The first two phases (i and ii) should only be rotated with 1 processor!
+> WARNING: The first two phases (i and ii) should only be rotated with **1 (only one)** processor!
 
-The test case is small enough to run on a laptop or desktop with 3 processors and with 8GB memory. It covers an area as shown in the figure below.
+The small test case is small enough to run on a laptop or desktop with 3 processors and with 8GB memory. It covers an area as shown in the figure below.
 
 ![](http://ftp.cptec.inpe.br/pesquisa/bramsrd/BRAMS-6.0/docs/fig1.png)
 
@@ -70,6 +70,22 @@ mpirun -np 3 brams-6.0 -f RAMSIN_INI_MID
 A series of logs will be shown on the screen in each of the 3 phases. Be aware of errors reported in these logs. Often there are non-existent files that have not been properly downloaded in the download or the system has some limitation. In the INITIAL phase you can follow the integrations by looking at the screen. It shows each timestep performed and other important information. See for example the figure below that shows part of these messages.
 
 ![](http://ftp.cptec.inpe.br/pesquisa/bramsrd/BRAMS-6.0/docs/fig2.png)
+
+The big test case simulate the forecast for all South America area. The resolution is 8km and required a lot of resources for run.  It covers an area as shown in the figure below.
+
+![](https://i.ibb.co/BPwC5Nh/sa.png)
+
+When You download the big case You receipt some namelist files, RAMSINs. To run the case You must do
+
+```bash
+mpirun -np 1 brams-6.0 -f RAMSIN_BASIC_SFC_2022051500
+mpirun -np 1 brams-6.0 -f RAMSIN_BASIC_VFL_2022051500
+mpirun -np 1024 brams-6.0 -f RAMSIN_BASIC_INI_2022051500
+```
+
+Notice: As You see in this case the sumulation of INITIAL phase is made by 1024 processor/cores. You can try another number of cores but there are some limits.
+
+There is a file for  submission in a slurm (https://slurm.schedmd.com/) job control system.You can use any kind of job control workload manager (PBS, etc). In cluster computer system is common the use of job control system instead a manual interactive submission.  The example **BRAMS.INI.2022051500.sbatch** was created for a cluster with AMD processor, with NUMA network and the model was compiled by a INTEL compiler and IMPI (INtel One MPI system). It can use as reference and adapted to Your system.
 
 2. ### How to generate Initial and Boundary conditions (IC) from global data
 

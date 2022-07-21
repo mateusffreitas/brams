@@ -819,7 +819,8 @@ OBJ_MOD = \
    water_resources_drive.o \
    woodprod.o \
    yomhook.o \
-   zenith_mod.o 
+   zenith_mod.o \
+   modTimeLineFRN.o
 
 
 	JULES_OBJ_SFCLYR = sfclyr_jules.o
@@ -1179,7 +1180,8 @@ MOD_MOD = \
 	init_out_map_mod.mod \
 	gfdl_cloud_microphys_mod.mod \
 	modIau.mod \
-	leaf3_ocean_only.mod 
+	leaf3_ocean_only.mod \
+	modTimeLineFRN.mod
 
 ifeq ($(NETCDFFDIR),)
 	MOD_MODEL =  netcdf.mod $(MOD_MOD) 

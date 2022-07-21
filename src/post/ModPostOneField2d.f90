@@ -51,6 +51,12 @@ module ModPostOneField2d
    use ModPostUtils, only : copy_x_to_y
    use ModPostUtils, only : checkUsingJules
 
+   !LFR
+   use modTimeLineFRN, only: writeTimeLineFRN
+
+   use io_params, only : & ! 
+      IPOS
+
    implicit none
    real, allocatable, dimension(:,:) :: convprec,totprec
    logical :: alloc2d = .true. 
@@ -846,6 +852,11 @@ contains
          stop
       end select
 
+
+      if(IPOS == 11 .or. IPOS == 10) call writeTimeLineFRN(one_post_variable%fieldName,OutputField,oneBramsGrid%mxp &
+         , oneBramsGrid%myp,time)
+
+      if(IPOS==11) return
       ! most of cases run this. Some just returns before
       call PrepareAndOutputGradsField(one_post_variable, oneBramsGrid, onePostGrid, OutPutField)
 
