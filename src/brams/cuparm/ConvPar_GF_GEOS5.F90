@@ -45,8 +45,7 @@ module ConvPar_GF_GEOS5
       ,use_smooth_prof, evap_fix,output_sound,use_cloud_dissipation      &
       ,use_smooth_tend,GF_convpar_init,beta_sh,c0_shal                   &
       ,use_linear_subcl_mf,cap_maxs,liq_ice_number_conc,alpha_adv_tuning &
-      ,sig_factor
-
+      ,sig_factor,lcl_trigger, rh_dicycle
    public GF_GEOS5_DRV,make_DropletNumber ,make_IceNumber,fract_liq_f &
       ,use_gustiness, use_random_num, dcape_threshold
    !
@@ -55,14 +54,15 @@ module ConvPar_GF_GEOS5
    real    :: int_time = 0.
    !-
    !- plume spectral size
-   integer ,parameter  :: maxiens = 3, deep=1 ,shal=2 , mid = 3
+   integer, parameter  :: maxiens = 3, deep=1 ,shal=2 , mid = 3
    character(len=10),parameter,dimension(maxiens)  :: cumulus_type = (/ &
        'deep      ' &
       ,'shallow   ' &
       ,'mid       ' &
       /)
    !- number of microphysics schemes in the host model
-   integer ,parameter  :: nmp = 2, lsmp = 1, cnmp = 2
+   !integer, parameter  :: nmp = 2, lsmp = 1, cnmp = 2 ! --- for GEOS-5
+    integer, parameter  :: nmp = 2, lsmp = 1, cnmp = 2 ! --- for BRAMS
 
    !------------------- namelist variables
    !-- plume to be activated (1 true, 0 false): deep, shallow, congestus
@@ -70,9 +70,10 @@ module ConvPar_GF_GEOS5
 
    !-- choice for the closures:
    !--  deep   : 0 ensemble (all)          , 1 GR, 4 ll omega, 7 moist conv, 10 PB
-   !--  shallow: 0 ensemble (Wstar/BLQE)   , 1 Wstar, 4 heat-engine or 7 BLQE
+   !--  shallow: 0 ensemble (all)          , 1 Wstar, 4 heat-engine, 7 BLQE, 10 TKE-based
    !--  mid    : 0 ensemble (Wstar/BLQE/PB), 1 Wstar, 2 BLQE, 3 PB, 4 PB_BL
    integer, dimension(maxiens) :: closure_choice = (/0,  7,  3/) ! deep, shallow, congestus
+   integer, parameter :: shall_closures = 12 
 
    !-- gross entraiment rate: deep, shallow, congestus
    real,    dimension(maxiens) :: cum_entr_rate = (/&
@@ -100,6 +101,8 @@ module ConvPar_GF_GEOS5
    integer :: DICYCLE           = 1 != 0/1/2:  diurnal cycle closure, default = 1
                                     != 2 uses Qadv closure (Becker et al 2021)
 
+   integer :: RH_DICYCLE        = 0 ! controls of RH on the diurnal cycle (see Tian et al 2022 GRL)
+
    integer :: CLEV_GRID         = 1 != 0/1/2: interpolation method to define environ state at the
                                     != cloud levels (at face layer), default = 0
                                     != clev_grid = 0 default method
@@ -124,11 +127,11 @@ module ConvPar_GF_GEOS5
 
    integer :: USE_WETBULB       = 0 != 0/1
 
-                                      != boundary condition determination for the plumes
-   integer :: BC_METH          = 1 != 0: simple arithmetic mean around the source level
-                                       != 1: mass weighted mean around the source level
+                                    != boundary condition determination for the plumes
+   integer :: BC_METH           = 1 != 0: simple arithmetic mean around the source level
+                                    != 1: mass weighted mean around the source level
 
-   real    :: OVERSHOOT         = 0.    != 0, 1
+   real    :: OVERSHOOT         = 0.!= 0, 1
 
    integer :: AUTOCONV          = 1     != 1, 3 or 4 autoconversion formulation: (1) Kessler,
                                         !  (3) Kessler with temp dependence, (4) Sundvisqt
@@ -167,19 +170,21 @@ module ConvPar_GF_GEOS5
                                                                           != default = 1.0
    real,   dimension(maxiens) :: CUM_AVE_LAYER     =(/50.,   30.,   50. /)!= layer depth for average the properties
                                                                           != of source air parcels (mbar)
+   real,   dimension(maxiens) :: CUM_T_STAR        =(/1.,    10.,   10. /) != scale temperature for the diurnal cycle closure
 
    integer,dimension(maxiens) :: CUM_USE_EXCESS    =(/1,     1,     1   /)!= use T,Q excess sub-grid scale variability
 
-   integer :: MOIST_TRIGGER  = 0 != relative humidity effects on the cap_max trigger function
-   integer :: FRAC_MODIS     = 0 != use fraction liq/ice content derived from MODIS/CALIPO sensors
-   integer :: ADV_TRIGGER    = 0 != 1 => Kain (2004),  2 => moisture adv trigger (Ma & Tan, 2009, Atmos Res), 3 => dcape trigger
+   integer :: MOIST_TRIGGER  = 0   != relative humidity effects on the cap_max trigger function
+   integer :: FRAC_MODIS     = 1   != use fraction liq/ice content derived from MODIS/CALIPO sensors
+   integer :: ADV_TRIGGER    = 3   != 1 => Kain (2004),  2 => moisture adv trigger (Ma & Tan, 2009, Atmos Res), 3 => dcape trigger
    real    :: dcape_threshold= 70. != CAPE time rate threshold for ADV_TRIGGER = 3 (J kg^-1 hr^-1)
                                    != typical range is [-200,200] J/kg/hr, Wu et all (2007) recomends ~ 70 J/kg/hr
                                    != 55 J/kg/hr is indicated for the Amazon basin (Song&Zhang 2017)
-
-   integer :: EVAP_FIX       = 1 != fix total evap > column rainfall
-
-   integer :: OUTPUT_SOUND   = 0 != outputs a "GEOS" vertical profile for the GF stand alone model
+   integer :: LCL_TRIGGER    = 1   != greater than zero, activates the LCL trigger which requires the lcl height
+                                   != be lower than the pbl height, only for shallow convection
+   
+   integer :: EVAP_FIX       = 1   != fix total evap > column rainfall
+   integer :: OUTPUT_SOUND   = 0   != outputs a "GEOS" vertical profile for the GF stand alone model
 
    real    :: tau_ocea_cp    = 6.*3600. != not in use
    real    :: tau_land_cp    = 6.*3600. != not in use
@@ -205,6 +210,7 @@ module ConvPar_GF_GEOS5
    real    ::  MAX_EDT_LAND      != default= 0.9 - maximum evap fraction allowed over the land
    real    ::  MAX_EDT_OCEAN     != default= 0.9 - maximum evap fraction allowed over the ocean
    real    ::  FADJ_MASSFLX      != default= 1.0 - multiplicative factor for the mass flux at cloud base
+   real    ::  T_star            != Scale Temperature for the DC closure
    real    ::  AVE_LAYER         != layer depth for average the properties of source air parcels (mbar)
    real    ::  c0                != autoconversion constant
    integer ::  USE_EXCESS        != default= 1   - use T,Q excess sub-grid scale variability
@@ -271,7 +277,8 @@ module ConvPar_GF_GEOS5
    end type Hcts_vars
    type (Hcts_vars), allocatable :: Hcts(:)
 
-   integer :: whoami_all, JCOL
+   integer :: whoami_all, JCOL,itime1_in
+   real    :: time_in
 
 contains
 
@@ -406,14 +413,14 @@ contains
       character(len=100)          :: AER_CHEM_MECH
 
       real,    dimension(mxp,myp) :: CONPRR
-
+      real                        :: time=0.
       real,    dimension(mxp,myp) ::  aot500  ,temp2m  ,sfc_press &
          ,sflux_r ,sflux_t ,topt      &
          ,xland   ,dx2d    ,water_bud &
-         ,col_sat
+         ,col_sat, tke_pbl,rh_dicy_fct
       integer, dimension(mxp,myp) :: kpbl,do_this_column
       integer, dimension(mzp)     :: flip
-      integer :: k,i,j,iens,ispc
+      integer :: k,i,j,iens,ispc, itime1=0
       !- for convective transport
       integer, dimension(mxp,myp,maxiens) ::  &
           ierr4d                       &
@@ -502,6 +509,7 @@ contains
       SUB_MPQL       =0.
       SUB_MPCF       =0.
       LIGHTN_DENS    =0.
+      rh_dicy_fct    =0.
       SRC_BUOY       =0.
       REVSU_GF       =0.
       PRFIL_GF       =0.
@@ -576,6 +584,7 @@ contains
             else
                kpbl(i,j) = 1
             endif
+            tke_pbl(i,j) = tkmin ! dummy 
          enddo
       enddo
       !
@@ -721,7 +730,7 @@ contains
       endif
 
       !- call the driver routine to apply the parameterization
-      call GF_GEOS5_DRV(mxp,myp,mzp,mtp,nmp         &
+      call GF_GEOS5_DRV(mxp,myp,mzp,mtp,nmp, time, itime1   &
          ,ims,ime, jms,jme, kms,kme   &
          ,its,ite, jts,jte, kts,kte   &
          ,flip        &
@@ -744,6 +753,7 @@ contains
          ,xland       &
          ,sfc_press   &
          ,kpbl        &
+         ,tke_pbl     &
          !--- atmos state
          ,col_sat     &
          ,up          &
@@ -766,22 +776,23 @@ contains
          ,sgsf_t      &
          ,sgsf_q      &
          !---- output ----
-         ,CONPRR      &
-         ,LIGHTN_DENS &
-         ,SRC_T       &
-         ,SRC_Q       &
-         ,SRC_CI      &
-         ,SRC_NL      &
-         ,SRC_NI      &
-         ,SRC_U       &
-         ,SRC_V       &
-         ,SUB_MPQI    &
-         ,SUB_MPQL    &
-         ,SUB_MPCF    &
-         ,SRC_BUOY    &
-         ,SRC_CHEM    &
-         ,REVSU_GF    &
-         ,PRFIL_GF    &
+         ,conprr      &
+         ,lightn_dens &
+         ,rh_dicy_fct &
+         ,src_t       &
+         ,src_q       &
+         ,src_ci      &
+         ,src_nl      &
+         ,src_ni      &
+         ,src_u       &
+         ,src_v       &
+         ,sub_mpqi    &
+         ,sub_mpql    &
+         ,sub_mpcf    &
+         ,src_buoy    &
+         ,src_chem    &
+         ,revsu_gf    &
+         ,prfil_gf    &
          !
          !
          ,do_this_column&
@@ -1199,7 +1210,7 @@ contains
    end subroutine GF_GEOS5_INTERFACE
    !---------------------------------------------------------------------------------------------------
 
-   subroutine GF_GEOS5_DRV(mxp,myp,mzp,mtp,nmp &
+   subroutine GF_GEOS5_DRV(mxp,myp,mzp,mtp,nmp, time, itime1 &
       ,ims,ime, jms,jme, kms,kme               &
       ,its,ite, jts,jte, kts,kte               &
       ,flip                                    &
@@ -1222,6 +1233,7 @@ contains
       ,xland                 &
       ,sfc_press             &
       ,kpbl                  &
+      ,tke_pbl               &
 
       ,col_sat               &
       ,u                     &
@@ -1246,6 +1258,7 @@ contains
       !---- output ----
       ,conprr                &
       ,lightn_dens           &
+      ,rh_dicycle_fct        &
       ,rthcuten              &
       ,rqvcuten              &
       ,rqccuten              &
@@ -1296,9 +1309,9 @@ contains
       !------------------------------------------------------------------------
       integer, intent(in) :: ims,ime, jms,jme, kms,kme,    &
          its,ite, jts,jte, kts,kte,    &
-         mynum,mzp,mxp,myp,mtp,nmp
+         mynum,mzp,mxp,myp,mtp,nmp, itime1
 
-      real,    intent(in) :: DT
+      real,    intent(in) :: DT, time
 
       integer, intent(in), dimension(mzp) :: flip
 
@@ -1320,10 +1333,8 @@ contains
       integer, dimension(its:ite,jts:jte), intent(in) :: kpbl
 
       !-- intent (in)
-      real,    dimension(its:ite,jts:jte) ::             topt ,aot500 ,temp2m ,sfc_press &
-         ,sflux_r ,sflux_t                &
-         ,xland,lons,lats,dx2d,col_sat    &
-         ,stochastic_sig
+      real,    dimension(its:ite,jts:jte) :: topt ,aot500 ,temp2m ,sfc_press &
+         ,sflux_r ,sflux_t,xland,lons,lats,dx2d,col_sat,stochastic_sig,tke_pbl
 
       real,    dimension(kts:kte,its:ite,jts:jte), intent(in) :: rthften    &
          ,rqvften    &
@@ -1331,7 +1342,8 @@ contains
          ,rthblten   &
          ,rqvblten
 
-      real,    dimension(its:ite,jts:jte),         intent(out) ::   CONPRR,LIGHTN_DENS
+      real,    dimension(its:ite,jts:jte),         intent(out  ) ::   CONPRR,LIGHTN_DENS
+      real,    dimension(its:ite,jts:jte),         intent(inout) ::   rh_dicycle_fct
 
       real,    dimension(kts:kte,its:ite,jts:jte), intent(out) :: &
           rthcuten   &
@@ -1460,6 +1472,8 @@ contains
       jtf=jte
       int_time = int_time + dt
       WHOAMI_ALL=mynum
+      time_in   = time
+      itime1_in = itime1
       !----------------------------------------------------------------------
       if(abs(C1) > 0.) USE_C1D = .true.
 
@@ -1780,6 +1794,7 @@ contains
             fadj_massflx   =  cum_fadj_massflx   (plume)
             use_excess     =  cum_use_excess     (plume)
             ave_layer      =  cum_ave_layer      (plume)
+            T_star         =  cum_t_star         (plume)
             !print*,"plume=",plume,shal,mid,deep
 
             if(icumulus_gf(plume) /= ON ) cycle
@@ -1807,17 +1822,17 @@ contains
                   endif
                enddo
             endif
-            if( plume == shal) then
-               do i=its,itf
-                  if(xlandi(i) > 0.98) then ! ocean
-                     cum_zqexec(i)=min(5.e-4, max(1.e-4,zqexec(i)))! kg kg^-1
-                     cum_ztexec(i)=min(0.5,   max(0.2  ,ztexec(i)))! Kelvin
-                  else                      ! land
-                     cum_ztexec(:)= ztexec(:)
-                     cum_zqexec(:)= zqexec(:)
-                  endif
-               enddo
-            endif
+            !if( plume == shal) then
+               !do i=its,itf
+               !   if(xlandi(i) > 0.98) then ! ocean
+               !      cum_zqexec(i)=min(5.e-4, max(1.e-4,zqexec(i)))! kg kg^-1
+               !      cum_ztexec(i)=min(0.5,   max(0.2  ,ztexec(i)))! Kelvin
+               !   else                      ! land
+               !      cum_ztexec(:)= ztexec(:)
+               !      cum_zqexec(:)= zqexec(:)
+               !   endif
+               !enddo
+            !endif
 
             !-- shallow convection
             if(plume == shal) then
@@ -1924,6 +1939,8 @@ contains
                ,dx2d          (:,j)              &
                ,stochastic_sig(:,j)              &
                ,col_sat       (:,j)              &
+               ,tke_pbl       (:,j)              &
+               ,rh_dicycle_fct(:,j)              &
                ,dt                               &
                ,kpbli                            &
                ,cum_ztexec                       &
@@ -2204,6 +2221,8 @@ contains
       ,dx                &
       ,stochastic_sig    &
       ,col_sat           &
+      ,tke_pbl           &
+      ,rh_dicycle_fct    &
       ,dtime             &
       ,kpbl              &
       ,ztexec            &
@@ -2282,7 +2301,7 @@ contains
       !- for convective transport-end
       !- for debug/diag
       ,AA0_,AA1_,AA2_,AA3_,AA1_BL_,AA1_CIN_,TAU_BL_,TAU_EC_   &
-      ,lightn_dens   &
+      ,lightn_dens       &
       ,var2d             &
       ,revsu_gf          &
       ,prfil_gf          &
@@ -2293,7 +2312,6 @@ contains
       implicit none
 
       !-local settings
-      logical, parameter:: USE_LCL       =.false.
       logical, parameter:: USE_INV_LAYERS=.true.
 
       character*(*),intent(in) :: cumulus
@@ -2305,7 +2323,7 @@ contains
       ! outqc  = output qc tendency (per s)
       ! pre    = output precip
       real,    dimension (its:ite,kts:kte) ,intent (inout)   ::       &
-         outu,outv,outt,outq,outqc,outbuoy,revsu_gf,prfil_gf,var3d_agf ,var3d_bgf &
+          outu,outv,outt,outq,outqc,outbuoy,revsu_gf,prfil_gf,var3d_agf ,var3d_bgf &
          ,outnliq ,outnice
 
       real,    dimension (its:ite)         ,intent (out  )   ::       &
@@ -2326,10 +2344,9 @@ contains
          ccn,Z1,PSUR,xland,xlons,xlats, h_sfc_flux,le_sfc_flux,tsur,dx
 
       real,    dimension (its:ite)               ,intent (in   )    ::   &
-         col_sat,&
-         stochastic_sig
+         col_sat,stochastic_sig,tke_pbl
       real,    dimension (its:ite)               ,intent (inout)    ::   &
-         zws,ztexec,zqexec
+         zws,ztexec,zqexec, rh_dicycle_fct
       real                                       ,intent (in   )    ::   &
          dtime,entr_rate_input
       real,    dimension (nmp,its:ite,kts:kte)   ,intent (inout)   ::   &
@@ -2462,7 +2479,7 @@ contains
       real,    dimension (its:ite,1:maxens3) ::  xff_mid
       real,    dimension (kts:kte)   :: dummy1,dummy2
       integer :: iversion,bl=1,fa=2,step
-      real :: umean,T_star
+      real :: umean
 
       real, dimension (its:ite)         :: aa0_bl,aa1_bl,tau_bl,tau_ecmwf,wmean,aa1_fa,aa1_tmp,hkbo_x &
          ,aa2,aa3,cin0,cin1,edtmax,edtmin,aa1_lift,aa_tmp,aa_ini,aa_adv&
@@ -2501,11 +2518,11 @@ contains
       real,    dimension (its:ite) :: col_sat_adv,Q_adv,alpha_adv,aa1_radpbl
 
       real,    dimension (its:ite) :: p_cwv_ave,cape, depth_neg_buoy,frh_bcon &
-         ,check_sig,random
+         ,check_sig,random,rh_entr_factor
 
       real,    dimension (its:ite,kts:kte) :: prec_flx,evap_flx,qrr
 
-      real,    dimension (its:ite,9) :: xff_shal
+      real,    dimension (its:ite,shall_closures) :: xff_shal
 
       !- atmos composition arrays
       real, dimension (mtp ),               intent (in)    ::   fscav
@@ -2562,7 +2579,7 @@ contains
       real :: s1,s2,q1,q2,rzenv,factor,CWV,entr_threshold,resten_H,resten_Q,resten_T
       integer :: status
       real :: alp0,beta1,beta2,dp_p,dp_m,delt1,delt2,delt_Tvv,wkf,ckf,wkflcl(its:ite),rcount
-      real :: min_deep_top
+      real :: min_deep_top,min_shall_top
       character(200) :: lixo
       integer :: X_kte,X_k,X_i,X_jcol
       real,    dimension (its:ite)           :: X_dx,X_stochastic_sig
@@ -2684,13 +2701,6 @@ contains
          random = 0.0
       endif
       !
-      !--- define entrainment/detrainment profiles for updrafts
-      !
-      !- initial entrainment/detrainment
-      entr_rate   (:  ) = entr_rate_input
-      entr_rate_2d(:,:) = entr_rate_input
-      cd          (:,:) = entr_rate_input
-      min_entr_rate     = entr_rate_input*0.1
       !
       !--- max/min allowed value for epsilon (ratio downdraft base mass flux/updraft
       !    base mass flux
@@ -2955,18 +2965,19 @@ contains
          !write(12,111)'MDlcl',tlcl,plcl,dzlcl,klcl(i),ierr(i)
          !111      format(1x,A5,3F10.2,2i4)
       enddo
-      !-- check if LCL is below PBL height for convection
-      if(USE_LCL .and. cumulus == 'mid')then
+      !
+      !-- check if LCL height is below PBL height to allow shallow convection
+      !
+      if(lcl_trigger > 0 .and. cumulus == 'shallow')then
          do i=its,itf
-            if(ierr(i).eq.0)then
-               if(klcl(i) > max(1,kpbl(i)+1)) then
+            if(ierr(i) /= 0) cycle
+            if(klcl(i) > max(1,kpbl(i)-lcl_trigger)) then
                   ierr(i)=21
-                  ierrc(i)='for mid convection:  LCL height > PBL height'
-               endif
+                  ierrc(i)='for shallow convection:  LCL height < PBL height'
             endif
          enddo
+         !print*,"LCL",maxval(klcl),minval(klcl),maxval(kpbl),minval(kpbl)
       endif
-      !
       !
       !------- trigger function based on Kain (JAS 2004) 
       !
@@ -3020,6 +3031,21 @@ contains
          call get_cloud_bc(cumulus,kts,kte,ktf,xland(i),po(i,kts:kte),heo_cup(i,kts:kte),hkbo(i),k22(i),x_add,Tpert(i,kts:kte))
       enddo
       !
+      !
+      !--- define entrainment/detrainment profiles for updrafts
+      !
+      !- initial entrainment/detrainment
+      entr_rate   (:  ) = entr_rate_input
+      min_entr_rate     = entr_rate_input*0.1
+      entr_rate_2d(:,:) = entr_rate_input !-- here is just array initialization to zero
+      cd          (:,:) = entr_rate_input !-- here is just array initialization to zero
+      !
+      !--- determine the entrainment dependent on environmental moist (here relative humidity)
+      !--- also the controls of RH on the diurnal cycle (see Tian et al 2022 GRL)
+      if(cumulus == 'deep') &
+          call rh_controls(itf,ktf,its,ite,kts,kte,ierr,tn,po,qo,qeso,po_cup,cumulus,rh_entr_factor, &
+                           rh_dicycle_fct,entr_rate_input, entr_rate ,xlons,dtime)         
+      !
       !--- determine the vertical entrainment/detrainment rates, the level of convective cloud base -kbcon-
       !--- and the scale dependence factor (sig).
       !
@@ -3035,7 +3061,7 @@ contains
                if(ENTRNEW) then
                   !- v 2
                   if(k >= klcl(i)) then
-                     !entr_rate_2d(i,k)=entr_rate(i)*(1.3-frh)*(qeso_cup(i,k)/qeso_cup(i,klcl(i)))**3
+                    !entr_rate_2d(i,k)=entr_rate(i)*(1.3-frh)*(qeso_cup(i,k)/qeso_cup(i,klcl(i)))**3
                      entr_rate_2d(i,k)=entr_rate(i)*(1.3-frh)*(qeso_cup(i,k)/qeso_cup(i,klcl(i)))**1.25
                   else
                      entr_rate_2d(i,k)=entr_rate(i)*(1.3-frh)
@@ -3045,7 +3071,7 @@ contains
                else
                   !- v 1
                   entr_rate_2d(i,k)=max(entr_rate(i)*(1.3-frh)*max(min(1.,(qeso_cup(i,k)&
-                     /qeso_cup(i,klcl(i)))**1.25),0.1),1.e-5)
+                                   /qeso_cup(i,klcl(i)))**1.25),0.1),1.e-5)
                   if(cumulus == 'deep') cd(i,k)=1.e-2*entr_rate(i)
                   if(cumulus == 'mid' ) cd(i,k)=0.75*entr_rate_2d(i,k)
                endif
@@ -3072,7 +3098,7 @@ contains
       !--- start_level
       !
       start_level(:)=  KLCL(:)
-      !     start_level(:)=  KTS
+      !start_level(:)=  KTS
       !
       !
       !--- DETERMINE THE LEVEL OF CONVECTIVE CLOUD BASE  - KBCON
@@ -3144,9 +3170,8 @@ contains
             do i=its,itf
                if(ierr(i) /= 0)cycle
                ktop(i) = min(ktop(i),k_inv_layers(i,mid))
-             !print*,"ktop=",ktop(i),k_inv_layers(i,mid)
-             !call flush(6)
-            enddo
+              !print*,"ktop=",ktop(i),k_inv_layers(i,mid)
+             enddo
          endif
          !
          !-- check if ktop is above 450hPa layer for mid convection
@@ -3156,7 +3181,7 @@ contains
             !print*,"sta=",Kbcon(i),kstabm(i),kstabi(i),p_cup(i,ktop(i)),z_cup(i,kstabi(i))
             if(po_cup(i,ktop(i)) < 450.) then
                ierr(i)=25
-               ierrc(i)='mid convection with cloud top above 450 hPa'
+               ierrc(i)='mid convection with cloud top above 450 hPa (~ 7km asl)'
             endif
          enddo
          !-- check if ktop is below 750hPa layer for mid convection
@@ -3184,9 +3209,11 @@ contains
          !--- Check if ktop is above 700hPa layer for shallow convection
          do i=its,itf
             if(ierr(i) /= 0)cycle
-            if(po_cup(i,ktop(i)) < 700.) then
+            min_shall_top=700.
+            !if(icumulus_gf(mid) == 0) min_shall_top=500.
+            if(po_cup(i,ktop(i)) < min_shall_top) then
                ierr(i)=26
-               ierrc(i)='shallow convection wit h cloud top above 700 hPa'
+               ierrc(i)='shallow convection wit h cloud top above min_shall_top hPa' 
             endif
          enddo
       endif
@@ -3696,11 +3723,11 @@ contains
       !
       if(cumulus=='deep') then
          wmeanx=3.   ! m/s ! in the future change for Wmean == integral( W dz) / cloud_depth
-         T_star=2.   ! T_star = temp scale in original paper = 1 K
+         !T_star=1.   ! T_star = temp scale in original paper = 1 K
       endif
       if(cumulus=='mid' .or. cumulus=='shallow') then
          wmeanx=3
-         T_star=10.
+         !T_star=10.
       endif
 
       !
@@ -3775,8 +3802,8 @@ contains
 
          do i=its,itf
             if(ierr(i) /= 0) cycle
-            aa1_bl(i) = (aa1_bl(i)/T_star) * tau_bl(i)
-            !aa1_bl(i) = (aa1_bl(i)/T_star) * tau_bl(i) - cin1(i)
+            aa1_bl(i) = (aa1_bl(i)/T_star) * tau_bl(i) ! units J/kg
+           !aa1_bl(i) = (aa1_bl(i)/T_star) * tau_bl(i) - cin1(i)
          enddo
          !
          !--- Adds Becker et al (2021) closure, part 2
@@ -3865,7 +3892,8 @@ contains
       !
       !--- Trigger function based on Xie et al (2019)
       !
-      if(ADV_TRIGGER == 3 .and. cumulus == 'deep') then
+       if(ADV_TRIGGER == 3 .and. cumulus == 'deep') then
+     ! if(ADV_TRIGGER == 3) then
          daa_adv_dt=0.
          do step=1,2
             !--- calculate moist static energy, heights, qes, ... only by ADV tendencies
@@ -4716,7 +4744,7 @@ contains
                ,ierrc,ierr,klcl,kpbl,kbcon,k22,ktop      &
                ,xmb,tsur,cape,h_sfc_flux,le_sfc_flux,zws &
                ,po, hco, heo_cup,po_cup,t_cup,dhdt,rho   &
-               ,xff_shal,xf_dicycle)
+               ,xff_shal,xf_dicycle,tke_pbl)
          endif
 
 
@@ -4753,7 +4781,8 @@ contains
          ichoice,ipr,jpr,itf,ktf,its,ite, kts,kte,                    &
          xf_dicycle,outu,outv,dellu,dellv,dtime,po_cup,kbcon,         &
          dellabuoy,outbuoy,                                           &
-         dellampqi,outmpqi,dellampql,outmpql,dellampcf,outmpcf,nmp    )
+         dellampqi,outmpqi,dellampql,outmpql,dellampcf,outmpcf,nmp,   &
+         rh_dicycle_fct)
 
       !
       !
@@ -5193,22 +5222,17 @@ contains
 
 
       !- for debug/diag
-      !    if(cumulus == 'deep') then
-      !      do i=its,itf
-      !         !if(ierr(i) /= 0) cycle
-      !         aa0_    (i)  = aa0(i)
-      !         aa1_    (i)  = aa1(i)
-      !         aa1_bl_ (i)  = aa1_bl(i)
-      !         if(use_memory == 0) tau_ec_ (i)  = x_add_buoy(i) !pre(i) !mem3pr
-      !
-      !         if(use_memory == 3)  aa3_    (i)  = pre(i)
-      !         if(use_memory == 2)  aa2_    (i)  = pre(i)
-      !         if(use_memory == 0)  aa0_    (i)  = pre(i)
-      !         if(use_memory == 1)  aa1_cin_(i)  = pre(i)
-      !         tau_bl_ (i)  = tau_bl   (i)
-      !         tau_ec_ (i)  = tau_ecmwf(i)
-      !      ENDDO
-      !    endif
+          if(cumulus == 'deep') then
+            do i=its,itf
+               !if(ierr(i) /= 0) cycle
+               aa0_    (i)  = aa0      (i)
+               aa1_    (i)  = aa1      (i)
+               aa1_bl_ (i)  = aa1_bl   (i)
+               tau_bl_ (i)  = tau_bl   (i)
+               tau_ec_ (i)  = tau_ecmwf(i)
+            !  if(use_memory == 0) tau_ec_ (i)  = x_add_buoy(i)
+            enddo
+          endif
 
       !
       !- begin: for GATE soundings-------------------------------------------
@@ -6116,7 +6140,7 @@ contains
 
          !- diurnal cycle mass flux
          if(DICYCLE <= 2 ) then
-            !----  Betchold et al (2014)
+            !----  Bechtold et al (2014)
             xff_dicycle = AA1_BL(i)/tau_ecmwf(i)
             xf_dicycle(i) = max(0.,-xff_dicycle /xk(1))
          endif
@@ -6133,8 +6157,8 @@ contains
             xff_mid(i,3)=max(0., -(AA1(i)/tau_ecmwf(i))/xk(1))
             xff_mid(i,4)=xf_dicycle(i)
          endif
-
-         !IF( ichoice == 3) xf_dicycle(i) =0. ! No dicycle for congestus
+        !-set xf_dicycle(i)=0 in case the closure is 4 and then DICYCLE closure will be applied
+        if(DICYCLE <= 2  .and. ichoice == 4) xf_dicycle(:) = 0.       
       enddo
 
       do i=its,itf
@@ -6154,10 +6178,7 @@ contains
          !- W* closure (Grant,2001)
          xff_mid(i,1)=0.03*zws(i)
       enddo
-
-      !-set xf_dicycle(i)=0 in case the closure is 4 and DICYCLE closure will be applied
-      if((DICYCLE>0) .and. ichoice == 4) xf_dicycle(:)=0.
-
+      
       if( ichoice == 5) then
          if(DICYCLE>0) then
             do i=its,itf
@@ -6833,52 +6854,37 @@ contains
       integer                              ::    i,k,iprloc
       real                                 ::    dz,da,aa_1,aa_2,tcup,da_bl,a1_bl
 
-      !==================
+      !
+      !
       aa1_bl (:)=0.
-      aa1_fa (:)=0.
       if(version == 0 ) then
          do i=its,itf
-
             if(ierr(i) /= 0 ) cycle
             !***       do k=kts,kbcon(i)
             do k=kts,kpbl(i)
-               dz = (z_cup (i,k+1)-z_cup (i,k))*g
+               dz = g * (z_cup (i,k+1)-z_cup (i,k))
                da = dz*(tn(i,k)*(1.+0.608*qo(i,k))-t(i,k)*(1.+0.608*q(i,k)))/dtime
-
-               !--
-               !             tcup=0.5*(t_cup(i,k+1)+t_cup(i,k))
-               !             da=(da/tcup)*dtime !UNIT J/kg
-               !--
                aa1_bl(i)=aa1_bl(i)+da ! Units : J K / (kg seg)
             enddo
          enddo
       elseif(version==1) then
          do i=its,itf
             if(ierr(i) /= 0 ) cycle
-            do k=kts,klcl(i)
+            do k=kts,kpbl(i)
                dz = (z_cup (i,k+1)-z_cup (i,k))
                aa_1=(g/(cp*t_cup(i,k  )))*dby(i,k  )*zu(i,k  )
                aa_2=(g/(cp*t_cup(i,k+1)))*dby(i,k+1)*zu(i,k+1)
                da=0.5*(aa_1+aa_2)*dz! Units : J / kg
                aa1_bl(i)=aa1_bl(i)+da
-               write(10,*) k,dby(i,k  ),da,aa1_bl(i),zu(i,k)
             enddo
-            do k=klcl(i)+1,kbcon(i)-1
-               dz = (z_cup (i,k+1)-z_cup (i,k))
-               aa_1=(g/(cp*t_cup(i,k  )))*dby(i,k  )/(1.+gamma_cup(i,k  ))*zu(i,k  )!
-               aa_2=(g/(cp*t_cup(i,k+1)))*dby(i,k+1)/(1.+gamma_cup(i,k+1))*zu(i,k+1)!
-               da=0.5*(aa_1+aa_2)*dz! Units : J / kg
-               aa1_bl(i)=aa1_bl(i)+da
-               write(10,*)k,dby(i,k  ),da,aa1_bl(i),zu(i,k)
-            enddo
-
          enddo
       else
          stop "unknown version option in routine: cup_up_aa1bl"
       endif
 
       return
-
+      
+      aa1_fa (:)=0.
       do i=its,itf
          if(ierr(i) /= 0)cycle
          do k= kbcon(i),ktop(i)
@@ -9331,13 +9337,13 @@ contains
    end subroutine cup_up_vvel
 
    !------------------------------------------------------------------------------------
-   subroutine cup_output_ens_3d(name,xff_shal,xff_mid,xf_ens,ierr,dellat,dellaq,dellaqc,  &
+   subroutine cup_output_ens_3d(cumulus,xff_shal,xff_mid,xf_ens,ierr,dellat,dellaq,dellaqc,  &
       outtem,outq,outqc,zu,pre,pw,xmb,ktop,                     &
       nx,nx2,ierr2,ierr3,pr_ens, maxens3,ensdim,sig,xland1,     &
       ichoice,ipr,jpr,itf,ktf,its,ite, kts,kte,                 &
       xf_dicycle,outu,outv,dellu,dellv,dtime,po_cup,kbcon,      &
       dellabuoy,outbuoy, dellampqi,outmpqi,dellampql,outmpql,   &
-      dellampcf,outmpcf ,nmp)
+      dellampcf,outmpcf ,nmp, rh_dicycle_fct)
       implicit none
       !
       !  on input
@@ -9364,7 +9370,7 @@ contains
       ! pw = pw -epsilon*pd (ensemble dependent)
       ! ierr error value, maybe modified in this routine
       !
-      character *(*), intent (in)          ::    name
+      character *(*), intent (in)          ::    cumulus
       real,    dimension (its:ite,1:ensdim)                             &
          ,intent (inout)                   ::                           &
          xf_ens,pr_ens
@@ -9379,10 +9385,10 @@ contains
          ,intent (in  )                   ::                            &
          zu,po_cup
       real,   dimension (its:ite)                                       &
-         ,intent (in  )                   ::                           &
-         sig
+         ,intent (in  )                   ::                            &
+         sig, rh_dicycle_fct
       real,   dimension (its:ite,maxens3)                               &
-         ,intent (in  )                   ::                           &
+         ,intent (in  )                   ::                            &
          xff_mid
       real,    dimension (its:ite)                                      &
          ,intent (out  )                   ::                           &
@@ -9403,9 +9409,9 @@ contains
       integer, dimension (its:ite)                                      &
          ,intent (inout)                   ::                           &
          ierr,ierr2,ierr3
-      real,    intent(in), dimension (its:ite) :: xf_dicycle
+      real,    intent(inout), dimension (its:ite) :: xf_dicycle
       real,    intent(in) :: dtime
-      real,   dimension (its:ite,9)                                     &
+      real,   dimension (its:ite,shall_closures)                       &
          ,intent (in  )                   ::                           &
          xff_shal
       !
@@ -9448,7 +9454,7 @@ contains
       !
       !--- calculate ensemble average mass fluxes
       !
-      if(NAME == 'deep') then
+      if(cumulus == 'deep') then
          do i=its,itf
             if(ierr(i).eq.0)then
                k=0
@@ -9463,7 +9469,7 @@ contains
          enddo
 
       !- mid (congestus type) convection
-      elseif(NAME=='mid') then
+      elseif(cumulus=='mid') then
          if(ichoice .le. 5) then
             do i=its,itf
                if(ierr(i) /= 0) cycle
@@ -9478,7 +9484,7 @@ contains
          endif
 
       !- shallow  convection
-      elseif(NAME=='shallow') then
+      elseif(cumulus=='shallow') then
          do i=its,itf
             if(ierr(i) /= 0) cycle
 
@@ -9487,11 +9493,10 @@ contains
             else
                fsum=0.
                xmb_ave(i)=0.
-               do k=1,9
-                  !- heat engine closure is providing too low values for mass fluxes.
-                  !- until this is checked, the ensemble closure will be calculatd
-                  !- only using the closures BLQE and Wstar
-                  !if(k.ge.4 .and. k.le.6) cycle
+               do k=1,shall_closures
+                  !- heat engine closure is not working properly
+                  !- turning it off for now.
+                  if(k.ge.4 .and. k.le.6) cycle                  
                   xmb_ave(i)=xmb_ave(i)+xff_shal(i,k)
                   fsum=fsum+1.
                enddo
@@ -9500,15 +9505,22 @@ contains
             endif
          enddo
       endif
+      !- apply the mean tropospheric RH control on diurnal cycle (Tian GRL 2022)
+       if(cumulus == 'deep' .and. rh_dicycle == 1) then
+         do i=its,itf
+           if(ierr(i) /= 0) cycle
+           xf_dicycle(i) =  xf_dicycle(i) * rh_dicycle_fct(i)
+         enddo
+      endif
 
-      !- set the updradt mass flux and do not allow negative values and apply the diurnal cycle closure
+      !- set the updraft mass flux, do not allow negative values and apply the diurnal cycle closure
       do i=its,itf
          if(ierr(i) /= 0) cycle
          !- mass flux of updradt at cloud base
          xmb(i) = xmb_ave(i)
 
-          !- add uplift by cold pools
-         !if(name == 'deep')  xmb(i) = xmb(i) + xmbdn(i)
+         !- add uplift by cold pools
+         !if(cumulus == 'deep')  xmb(i) = xmb(i) + xmbdn(i)
 
          !- diurnal cycle closure
          xmb(i) = xmb(i) - xf_dicycle(i)
@@ -9544,7 +9556,7 @@ contains
          do i=its,itf
             if(ierr(i) /= 0) cycle
             fixouts=xmb(i) *86400.*max(maxval(abs(dellat(i,kts:ktop(i)))),&
-               (xlv/cp)*maxval(abs(dellaq(i,kts:ktop(i)))) )
+                              (xlv/cp)*maxval(abs(dellaq(i,kts:ktop(i)))) )
 
             if(fixouts > MAX_TQ_TEND) then ! K/day
                fixouts=MAX_TQ_TEND/(fixouts)
@@ -9911,22 +9923,21 @@ contains
          !  xf_ens(i,1:16) =0.5*(xf_ens(i,10)+xf_ens(i,1))
          !endif
 
-         !---over the land, only applies closure 10.
-         if(zero_diff == 0 .and. ichoice == 0) then
-            xf_ens(i,1:16)=(1.-xland(i))*xf_ens(i,10)+xland(i)*xf_ens(i,1:16)
-         endif
+         !---over the land, only applies closure 10. (only for GEOS-5)
+         !if(zero_diff == 0 .and. ichoice == 0) then
+         !   xf_ens(i,1:16)=(1.-xland(i))*xf_ens(i,10)+xland(i)*xf_ens(i,1:16)
+         !endif
 
       !------------------------------------
-
-
       enddo
       !-
-      !- diurnal cycle mass flux
+      !- diurnal cycle mass flux closure
       !-
       if(DICYCLE==1 .or. DICYCLE==2 )then
 
          do i=its,itf
             xf_dicycle(i) = 0.
+!            if(ierr(i) /=  0 .or. p_cup(i,kbcon(i))< 950. )cycle
             if(ierr(i) /=  0)cycle
 
             !--- Bechtold et al (2014)
@@ -9934,13 +9945,25 @@ contains
 
             !--- Bechtold et al (2014) + Becker et al (2021)
             xff_dicycle  = (1.- alpha_adv(i))* AA1(i) +  alpha_adv(i)*aa1_radpbl(i) &
-               + alpha_adv(i)*Q_adv(i) - AA1_BL(i)
+                              + alpha_adv(i)*Q_adv(i) - AA1_BL(i)
 
             xff_dicycle  = xff_dicycle /tau_ecmwf(i)
 
             if(xk(i).lt.0) xf_dicycle(i)= max(0.,-xff_dicycle/xk(i))
             xf_dicycle(i)= xf_ens(i,10)-xf_dicycle(i)
+!----------
+!            if(xk(i).lt.0) then 
+!                xf_dicycle(i)= max(0.,-xff_dicycle/xk(i))
+!                xf_dicycle(i)= xf_ens(i,10)-xf_dicycle(i)
+!            !else
+!            !    xf_dicycle(i)= 0.
+!            endif
 
+           ! xf_dicycle(i)= xf_ens(i,10)-xf_dicycle(i)
+
+!print*,"x=",xf_ens(i,10),xf_dicycle(i),max(0.,AA1_BL(i)/xk(i)/tau_ecmwf(i));call flush(6)
+
+!----------
          enddo
       elseif( DICYCLE==4) then
 
@@ -9958,9 +9981,7 @@ contains
          xf_dicycle(:)=0.0
 
       endif
-   !--
-
-
+   !------------------------------------
    end subroutine cup_forcing_ens_3d
 
    !------------------------------------------------------------------------------------
@@ -11333,24 +11354,27 @@ contains
       ,ierrc,ierr,klcl,kpbl,kbcon,k22,ktop       &
       ,xmb,tsur,cape,h_sfc_flux,le_sfc_flux,zws  &
       ,po, hco, heo_cup,po_cup,t_cup,dhdt,rho    &
-      ,xff_shal2d,xf_dicycle)
+      ,xff_shal2d,xf_dicycle,tke_pbl)
 
       implicit none
       integer                               ,intent (in) :: itf,ktf,its,ite, kts,kte,ichoice
       integer ,dimension (its:ite)          ,intent (in) :: klcl,kpbl,kbcon,k22,ktop
       real                                  ,intent (in) :: dtime
-      real    ,dimension (its:ite)          ,intent (in) :: tsur,cape,h_sfc_flux,le_sfc_flux,zws
+      real    ,dimension (its:ite)          ,intent (in) :: tsur,cape,h_sfc_flux,le_sfc_flux &
+                                                           ,zws,tke_pbl
       real    ,dimension (its:ite,kts:kte)  ,intent (in) :: po,hco,heo_cup,po_cup,t_cup,dhdt,rho
       integer ,dimension (its:ite)          ,intent (inout):: ierr
       character*128,dimension (its:ite)     ,intent (inout):: ierrc
-      real    ,dimension (its:ite)          ,intent (out)  :: xmb,xf_dicycle
-      real    ,dimension (its:ite,9)        ,intent (out)  :: xff_shal2d
+      real    ,dimension (its:ite)               ,intent (out)  :: xmb,xf_dicycle
+      real    ,dimension (its:ite,shall_closures),intent (out)  :: xff_shal2d
 
       !---local vars
       real   ,dimension (its:ite)    :: xmbmax
       integer :: i,k,kbase
       real    :: blqe,trash,tcold,fin,fsum,efic,thot,dp
-      real    ,dimension (9)        :: xff_shal
+      real    ,dimension (shall_closures)  :: xff_shal
+      !-- tuning numbers for the TKE-based closure for shallow convection   
+      real,parameter :: k1 = 1.2, cloud_area = 0.15
 
       do i=its,itf
          xmb       (i)     = 0.
@@ -11361,35 +11385,17 @@ contains
 
          !- limiting the mass flux at cloud base
          xmbmax(i)=min(xmbmaxshal,xmbmax(i))
-
-         !- closure from Grant (2001)
-         !- increased by ~125%
-         !xff_shal(1)=.030*zws(i)*rho(i,kpbl(i))
-         xff_shal(1)=.0675*zws(i)*rho(i,kpbl(i))
-         xff_shal(2)=xff_shal(1)
-         xff_shal(3)=xff_shal(1)
+         
          !- cloud base
          kbase=kbcon(i)
          !kbase=klcl(i)
 
-         !- closure from boundary layer QE (Raymond 1995)
-         blqe=0.
-         trash=0.
-         if(k22(i).lt.kpbl(i)+1)then
-            do k=kts,kbase
-               blqe=blqe+100.*dhdt(i,k)*(po_cup(i,k)-po_cup(i,k+1))/g
-            enddo
-            trash = max((hco(i,kbase)-heo_cup(i,kbase)),1.e1)
-            xff_shal(7)=max(0.,blqe/trash)
-              !print*,"blqe=", xff_shal(7),blqe,trash
-         else
-            xff_shal(7)=0.0
-         endif
-         !print*,"blqe=", xff_shal(7),blqe,hco(i,kbcon(i))
-         xff_shal(8)= xff_shal(7)
-         xff_shal(9)= xff_shal(7)
-
-         !- closure from the heat-engine principle
+         !--- closure from Grant (2001): ichoice = 1
+         xff_shal(1)=.030*zws(i)*rho(i,kpbl(i))        
+         xff_shal(2)=xff_shal(1)
+         xff_shal(3)=xff_shal(1)
+         
+         !--- closure from the heat-engine principle : ichoice = 4
          !- Renno and Ingersoll(1996), Souza et al (1999)
          !- get the averaged environment temperature between cloud base
          !- and cloud top
@@ -11409,7 +11415,7 @@ contains
          !- total heat flux from surface
          fin = max(0.0, h_sfc_flux(i)+le_sfc_flux(i))
 
-         !- mass flux at cloud base
+         !--- mass flux at cloud base
          !if(cape(i) > 0.0 .and. h_sfc_flux(i) >0.0 ) then
          if(cape(i) > 0.0  ) then
             xff_shal(4) = efic * fin / cape(i)
@@ -11419,7 +11425,30 @@ contains
          xff_shal(5)=xff_shal(4)
          xff_shal(6)=xff_shal(4)
 
+         !--- closure from boundary layer QE (Raymond 1995): ichoice = 7
+         blqe=0.
+         trash=0.
+         if(k22(i).lt.kpbl(i)+1)then
+            do k=kts,kbase
+               blqe=blqe+100.*dhdt(i,k)*(po_cup(i,k)-po_cup(i,k+1))/g
+            enddo
+            trash = max((hco(i,kbase)-heo_cup(i,kbase)),1.e1)
+            xff_shal(7)=max(0.,blqe/trash)
+         else
+            xff_shal(7)=0.0
+         endif
+         xff_shal(8)= xff_shal(7)
+         xff_shal(9)= xff_shal(7)
 
+         !--- new closure based on the PBL TKE mean (Zheng et al, 2020 GRL): ichoice = 10
+         !-- shallow cumulus active area is for now keept by 0.15 (Zheng 2021 p. commun.)
+         !-- k1 is 'slope' of the curve between Wb x (TKE_PBL)**0.5
+         !--        and varies between 1.2 (from lidar) to 1.6 (from WRF and SAM models)
+         xff_shal(10) = cloud_area * rho(i,kbase) * k1 * sqrt(tke_pbl(i))
+         xff_shal(11) = xff_shal(10)
+         xff_shal(12) = xff_shal(10)
+
+         !--- store all closures for later.
          xff_shal2d(i,:) = xff_shal(:)
 
       enddo
@@ -12318,7 +12347,8 @@ contains
          ,cum_use_excess,cum_ave_layer,adv_trigger,use_smooth_prof, evap_fix      &
          ,use_cloud_dissipation,use_smooth_tend,use_gustiness, use_random_num     &
          ,dcape_threshold,beta_sh,c0_shal,use_linear_subcl_mf,liq_ice_number_conc &
-         ,alpha_adv_tuning,cap_maxs,sig_factor,cum_fadj_massflx
+         ,alpha_adv_tuning,cap_maxs,sig_factor,cum_fadj_massflx,lcl_trigger       &
+         ,rh_dicycle,cum_t_star 
 
       inquire (file = trim (fn_nml), exist = exists)
       if (.not. exists) then
@@ -12340,10 +12370,13 @@ contains
          print*, 'use_scale_dep      ' , use_scale_dep
          print*, 'sig_factor         ' , real(sig_factor         ,4)
          print*, 'dicycle            ' , dicycle
+         print*, 't_star             ' , real(cum_t_star         ,4)
+         print*, 'rh_dicycle         ' , rh_dicycle
          print*, 'alpha_adv_tuning   ' , real(alpha_adv_tuning   ,4)
          print*, 'cap_maxs           ' , real(cap_maxs           ,4)
          print*, 'moist_trigger      ' , moist_trigger
          print*, 'adv_trigger        ' , adv_trigger
+         print*, 'lcl_trigger        ' , lcl_trigger
          print*, 'dcape_threshold    ' , real(dcape_threshold    ,4)
          print*, 'tau_deep,tau_mid   ' , real(tau_deep,4),real(tau_mid,4)
          print*, 'sgs_w_timescale    ' , sgs_w_timescale
@@ -12853,11 +12886,98 @@ contains
          !-- convert Q_adv to units as in cloud work function => J kg-1
          Q_adv(i) =  Q_adv(i) * tau_bl(i) * xlv / (H_cloud)
 
-
           !if(abs(q_adv(i))>1.) print*,"Qadv=",i,q_adv(i),Q_adv_dz(i)call flush(6)
       enddo
 
    end subroutine get_Qadv
 !----------------------------------------------------------------------
+ subroutine rh_controls(itf,ktf,its,ite,kts,kte,ierr,t,po,qo,qeso,po_cup &
+                       ,cumulus,rh_entr_factor, rh_dicycle_fct           &
+                       ,entr_rate_input, entr_rate,xlons,dt)
+           
+      implicit none
+      character *(*), intent (in)                         :: cumulus
+      integer  ,intent (in )                              :: itf,ktf, its,ite, kts,kte
+      integer  ,intent (in )  ,dimension(its:ite)         :: ierr
+      real     ,intent (in )                              :: entr_rate_input,dt
+      real     ,intent (in )  ,dimension(its:ite)         :: xlons
+      real     ,intent (in )  ,dimension(its:ite,kts:kte) :: t,po,qo,po_cup,qeso
+      real     ,intent (inout),dimension(its:ite)         :: entr_rate 
+      real     ,intent (inout),dimension(its:ite)         :: rh_entr_factor,rh_dicycle_fct
+
+      !--locals
+      integer :: i,k  
+      real*8  :: y,x
+      real    :: dpg, trash, dayhr, p_start = 1000.
+      real    ,dimension(its:ite) :: frh,dayhrr
+      real    ,parameter :: ref_local_time = 8., ftun3=0.25
+      logical ,parameter :: free_troposphere = .true. 
+      
+      if(moist_trigger /= 2 .and. rh_dicycle == 0)return  
+      !
+      !
+      !-- ave rh from 1000 -> 450 hPa, following Tian et al 2022 GRL.
+      ! OR
+      !-- ave rh from 800 -> 450 hPa accounts only for the ´free troposphere'
+      if(free_troposphere) p_start = 800. 
+
+      do i=its,itf        
+         frh(i) = 0.
+         trash  = 0.
+  
+         loopN:    do k=kts,ktf
+            if( po(i,k) .gt. p_start .and. po(i,k) .lt. 450.) cycle loopN
+            dpg=100.*(po_cup(i,k)-po_cup(i,k+1))/g
+            trash=trash+dpg
+            frh(i)= frh(i) + (qo(i,k)/qeso(i,k))*dpg 
+         enddo loopN
+         
+         !--average relative humidity
+         frh(i) =   100.*frh(i)/(1.e-8+trash) ! no unit
+         frh(i) = max(1., min(100., frh(i)))
+         !
+         !--- this is for the moist_trigger = 2
+          x = dble(frh(i))          
+          y = 9.192833D0 - 0.2529055D0*x + 0.002344832d0*x**2 &
+            - 0.000007230408D0*x**3
+          rh_entr_factor(i) = real(y,4)
+      
+          
+          !--- local time
+          dayhr  = (time_in / 3600. + float(itime1_in/100) &
+                 + float(mod(itime1_in,100)) / 60.) 
+          dayhrr(i) = mod(dayhr+xlons(i)/15.+24., 24.)
+          
+           !print*,"FRH=",i,frh(i),rh_dicycle_fct(i),dayhrr,time_in/3600.,xlons(i)
+           !print*,"LONS=",i,dayhrr,time_in/3600.,xlons(i)
+           !print*,"=================================================="
+      enddo
+      if(moist_trigger == 2) then 
+            entr_rate(:) = entr_rate_input *rh_entr_factor(:)
+      endif
+
+      if(rh_dicycle == 1) then 
+       do i=its,itf
+         if(abs ( dayhrr(i) - ref_local_time) < 1. .or. time_in < dt+1. ) &  
+           !--- ftun3 controls the domain of the dicycle closure 
+           !    ftun3 => 1 the closure is insensitive to the mean tropospheric RH
+           !    ftun3 => 0 it depends on the RH, with mininum = ftun3
+           !rh_dicycle_fct(i) = ftun3 +(1. - ftun3)*&
+           !                 (1.-(atan((frh(i)-60.)/10.)+atan(50.))/3.1016)/0.9523154
+           rh_dicycle_fct(i) = ftun3 +(1. - ftun3)*&
+                            (1.-(atan((frh(i)-55.)/10.)+atan(55.))/3.1016)
+           !print*,"fac=",xlons(i),frh(i), rh_dicycle_fct(i);call flush(6)
+       enddo
+      endif
+      !-- code to test the atan function
+      !  do i = 1 ,100 !relative humidity
+      !      y = 0.25 +0.75*(1.-(atan((float(i)-60.)/10.)+atan(50.))/3.1016)/0.9523154
+      !      print*,i,y
+      !  enddo
+      
+      !print*,"FRH",maxval(frh),minval(frh),maxval(rh_dicycle_fct),minval(rh_dicycle_fct)
+      !call flush(6)
+   end subroutine rh_controls
+   !------------------------------------------------------------------------------------
 end  module ConvPar_GF_GEOS5
 

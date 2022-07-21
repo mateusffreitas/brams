@@ -94,17 +94,20 @@ subroutine thermo(mzp,mxp,myp,ia,iz,ja,jz,micflg)
 	  ,micro_g(ngrid)%q7 &
 	  ,vctr1,vctr2,vctr3,vctr4,vctr5,vctr6,ngrid,mcphys_type)
 	  
-    elseif(mcphys_type >= 2 .or. mcphys_type == 3 .or. mcphys_type == 4) then
+    elseif(mcphys_type == 2 .or. mcphys_type == 3 .or. mcphys_type == 4 .or. &
+           mcphys_type == 5 .or. mcphys_type == 6 .or. mcphys_type == 7) then
     
-     !-srf for GThompson/GFDL uphysics
-     call wetthrm3_GT(mzp,mxp,myp,ia,iz,ja,jz,jnmb  &
+     !-srf for GThompson/GFDL/WSM uphysics
+     call wetthrm3_generic(mzp,mxp,myp,ia,iz,ja,jz,jnmb  &
 	  ,basic_g(ngrid)%pi0 ,basic_g(ngrid)%pp     &
 	  ,basic_g(ngrid)%thp ,basic_g(ngrid)%theta  &
 	  ,basic_g(ngrid)%rtp ,basic_g(ngrid)%rv     &
-	  ,micro_g(ngrid)%rcp ,micro_g(ngrid)%rrp    &
-	  ,micro_g(ngrid)%rpp ,micro_g(ngrid)%rsp    &
-	  ,micro_g(ngrid)%rgp    &
+	  ,micro_g(ngrid) &
+     !,micro_g(ngrid)%rcp ,micro_g(ngrid)%rrp    &
+	  !,micro_g(ngrid)%rpp ,micro_g(ngrid)%rsp    &
+	  !,micro_g(ngrid)%rgp ,micro_g(ngrid)%rhp    &
 	  ,ngrid,mcphys_type)
+    
     endif
     
 
@@ -280,17 +283,19 @@ subroutine wetthrm3(m1,m2,m3,ia,iz,ja,jz,jnmb  &
 
         if (jnmb(6) .ge. 1) then
            if(mcphys_type .le. 1) then 
-	     do k = 1,m1
+	          do k = 1,m1
               call qtc(q6(k,i,j),tcoal,fracliq)
-	      rliq(k) = rliq(k) + rgp(k,i,j) * fracliq
+	           rliq(k) = rliq(k) + rgp(k,i,j) * fracliq
               rice(k) = rice(k) + rgp(k,i,j) * (1. - fracliq)
              enddo
-	    elseif(mcphys_type ==2 .or. mcphys_type ==3.or. mcphys_type ==4) then 
-	     !-for GThompson uphysics
-	     do k = 1,m1
+	        elseif(mcphys_type ==2 .or. mcphys_type ==3.or. mcphys_type ==4 .or. mcphys_type ==6) then 
+	        !-for GThompson uphysics
+	         do k = 1,m1
               rice(k) = rice(k) + rgp(k,i,j) 
-             enddo
-	    endif
+            enddo
+	        else
+             stop "stop at wetthrm3 "
+           endif
         endif
 
         if (jnmb(7) .ge. 1) then
@@ -323,8 +328,10 @@ end subroutine wetthrm3
 !
 !     ***************************************************************
 !
-subroutine wetthrm3_GT(m1,m2,m3,ia,iz,ja,jz,jnmb  &
-   ,pi0,pp,thp,theta,rtp,rv,rcp,rrp,rpp,rsp,rgp,ngrid,mcphys_type)
+subroutine wetthrm3_generic(m1,m2,m3,ia,iz,ja,jz,jnmb  &
+   ,pi0,pp,thp,theta,rtp,rv,mic &
+  !,rcp,rrp,rpp,rsp,rgp,rhp
+   ,ngrid,mcphys_type)
 
   ! This routine calculates theta and rv for "level 3 microphysics"
   ! given prognosed theta_il, cloud, rain, pristine ice, snow, graupel
@@ -335,20 +342,30 @@ subroutine wetthrm3_GT(m1,m2,m3,ia,iz,ja,jz,jnmb  &
        alvi, & ! INTENT(IN)
        cpi4, & ! INTENT(IN)
        cp253i  ! INTENT(IN)
+  use mem_micro, only:  &
+       micro_vars            ! INTENT(INOUT)
 
   implicit none
 
   ! Arguments:
   integer, intent(in)  :: m1, m2, m3, ia, iz, ja, jz, jnmb(*), ngrid,mcphys_type
   real , intent(in)    :: pi0(m1,m2,m3), pp(m1,m2,m3), thp(m1,m2,m3)  &
-       ,rtp(m1,m2,m3), rcp(m1,m2,m3), rrp(m1,m2,m3), rpp(m1,m2,m3),   &
-       rsp(m1,m2,m3),  rgp(m1,m2,m3)
+                         ,rtp(m1,m2,m3)
+                        !,rcp(m1,m2,m3), rrp(m1,m2,m3), rpp(m1,m2,m3) &
+                        !,rsp(m1,m2,m3), rgp(m1,m2,m3), rhp(m1,m2,m3)
   real , intent(inout) ::  rv(m1,m2,m3), theta(m1,m2,m3)
+  type(micro_vars) ::mic
 
   ! Local Variables:
   integer :: i, j, k
   real    :: tcoal, fracliq, tairstr
   real ,dimension(m1) :: picpi, tair, til, rliq, rice,  qhydm
+
+!,mic%rcp ,micro_g(ngrid)%rrp    &
+!     ,micro_g(ngrid)%rpp ,micro_g(ngrid)%rsp    &
+!     ,micro_g(ngrid)%rgp ,micro_g(ngrid)%rhp    &
+     
+
 
   do j = ja,jz
      do i = ia,iz
@@ -362,33 +379,38 @@ subroutine wetthrm3_GT(m1,m2,m3,ia,iz,ja,jz,jnmb  &
         enddo
         if (jnmb(1) .ge. 1) then
            do k = 1,m1
-              rliq(k) = rliq(k) + rcp(k,i,j)
+              rliq(k) = rliq(k) + mic%rcp(k,i,j)
            enddo
         endif
 
         if (jnmb(2) .ge. 1) then
            do k = 1,m1
-              rliq(k) = rliq(k) + rrp(k,i,j)
+              rliq(k) = rliq(k) + mic%rrp(k,i,j)
            enddo
         endif
 
         if (jnmb(3) .ge. 1) then
            do k = 1,m1
-              rice(k) = rice(k) + rpp(k,i,j)
+              rice(k) = rice(k) + mic%rpp(k,i,j)
            enddo
         endif
 
         if (jnmb(4) .ge. 1) then
            do k = 1,m1
-              rice(k) = rice(k) + rsp(k,i,j)
+              rice(k) = rice(k) + mic%rsp(k,i,j)
            enddo
         endif
 
-
         if (jnmb(6) .ge. 1) then
 	     do k = 1,m1
-              rice(k) = rice(k) + rgp(k,i,j) 
+              rice(k) = rice(k) + mic%rgp(k,i,j) 
              enddo
+        endif
+
+        if (jnmb(7) .ge. 1) then
+           do k = 1,m1
+              rice(k) = rice(k) + mic%rhp(k,i,j)
+           enddo
         endif
 
         do k = 1,m1
@@ -409,7 +431,10 @@ subroutine wetthrm3_GT(m1,m2,m3,ia,iz,ja,jz,jnmb  &
      enddo
   enddo
   return
-end subroutine wetthrm3_GT
+end subroutine wetthrm3_generic
+!     ***************************************************************
+!
+
 
 
 subroutine theta_thp_rk(mzp,mxp,myp,ia,iz,ja,jz,action)
@@ -480,18 +505,20 @@ subroutine theta_thp_rk(mzp,mxp,myp,ia,iz,ja,jz,action)
 	  ,micro_g(ngrid)%q7 &
 	  ,vctr1,vctr2,vctr3,vctr4,vctr5,vctr6,ngrid,mcphys_type)
 	  
-    elseif(mcphys_type == 2 .or. mcphys_type == 3.or. mcphys_type == 4) then
+    elseif(mcphys_type == 2 .or. mcphys_type == 3.or. mcphys_type == 4 .or. &
+           mcphys_type == 5 .or.mcphys_type == 6 .or. mcphys_type == 7) then
     
-     !-srf for GThompson uphysics
+     !-srf for GThompson uphysics/GFDL/WSM6
      call theta_thp_GT(mzp,mxp,myp,ia,iz,ja,jz,jnmb  &
 	  ,basic_g(ngrid)%pi0 ,basic_g(ngrid)%pc     &
 	  ,basic_g(ngrid)%thc ,basic_g(ngrid)%theta  &
 	  ,basic_g(ngrid)%rtp ,basic_g(ngrid)%rv     &
 	  ,micro_g(ngrid)%rcp ,micro_g(ngrid)%rrp    &
-	  ,micro_g(ngrid)%rpp ,micro_g(ngrid)%rsp    &
-	  ,micro_g(ngrid)%rgp    &
+	  !,micro_g(ngrid)%rpp ,micro_g(ngrid)%rsp    &
+	  !,micro_g(ngrid)%rgp ,micro_g(ngrid)%rhp    &
 	  ,ngrid,mcphys_type,action)
-    endif
+   
+     endif
     
 
   else
@@ -502,10 +529,11 @@ subroutine theta_thp_rk(mzp,mxp,myp,ia,iz,ja,jz,action)
 
   return
 end subroutine theta_thp_rk
-
+!----------------------------------------------------------------------------
 subroutine theta_thp_GT(m1,m2,m3,ia,iz,ja,jz,jnmb  &
-   ,pi0,pp,thp,theta,rtp,rv,rcp,rrp,rpp,rsp,rgp,ngrid,mcphys_type &
-   ,action)
+   ,pi0,pp,thp,theta,rtp,rv,rcp,rrp &
+   !,rpp,rsp,rgp,rhp
+   ,ngrid,mcphys_type,action)
 
   ! This routine calculates theta for "level 3 microphysics"
   ! given prognosed theta_il, cloud, rain, pristine ice, snow, graupel
@@ -523,8 +551,8 @@ subroutine theta_thp_GT(m1,m2,m3,ia,iz,ja,jz,jnmb  &
   ! Arguments:
   integer, intent(in)  :: m1, m2, m3, ia, iz, ja, jz, jnmb(*), ngrid,mcphys_type
   real , intent(in)    :: pi0(m1,m2,m3), pp(m1,m2,m3)  &
-       ,rtp(m1,m2,m3), rcp(m1,m2,m3), rrp(m1,m2,m3), rpp(m1,m2,m3),   &
-       rsp(m1,m2,m3),  rgp(m1,m2,m3)
+       ,rtp(m1,m2,m3), rcp(m1,m2,m3), rrp(m1,m2,m3)!, rpp(m1,m2,m3),   &
+       !rsp(m1,m2,m3),  rgp(m1,m2,m3), rhp(m1,m2,m3)
   real , intent(inout) ::  rv(m1,m2,m3), theta(m1,m2,m3),thp(m1,m2,m3)
   character*(*) :: action
 
@@ -543,7 +571,7 @@ subroutine theta_thp_GT(m1,m2,m3,ia,iz,ja,jz,jnmb  &
            tair(k)  = theta(k,i,j) * picpi(k)
            til(k)   = thp(k,i,j) * picpi(k)
              
-	   rliq(k) = rcp(k,i,j) + rrp(k,i,j)
+	        rliq(k) = rcp(k,i,j) + rrp(k,i,j)
            rice(k) = rtp(k,i,j) - rv(k,i,j) - rliq(k)
 	
            qhydm(k) = alvl * rliq(k) + alvi * rice(k)
@@ -570,7 +598,7 @@ subroutine theta_thp_GT(m1,m2,m3,ia,iz,ja,jz,jnmb  &
 
          picpi(k) = (pi0(k,i,j) + pp(k,i,j)) * cpi
          tair (k) = theta(k,i,j)*picpi(k)
-	 rliq (k) = rcp(k,i,j) + rrp(k,i,j)
+	      rliq (k) = rcp(k,i,j) + rrp(k,i,j)
          rice (k) = rtp(k,i,j) - rv(k,i,j) - rliq(k)
          
          

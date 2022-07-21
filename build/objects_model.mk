@@ -410,6 +410,10 @@ OBJ_MOD = \
 	optical.o        \
 	mic_gfdl_driver.o \
 	gfdl_cloud_microphys.o \
+	module_mp_wsm5.o \
+	module_mp_wsm6.o \
+	module_mp_wsm7.o \
+	mic_wsm_driver.o \
 	dam.o \
 	mod_aer.o \
 	initMicThompson.o \

@@ -1,0 +1,11 @@
+
+   MCPHYS_TYPE = X,          ! microphysics formulation
+
+
+X = 2 GT 
+X = 4 GFDL  (use this gfdl_cloud_microphysics_nml)
+X = 5 WSM5
+X = 6 WSM6
+X = 7 WSM7
+
+For GF ConvPar use this GF_ConvPar_nml

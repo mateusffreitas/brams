@@ -263,6 +263,7 @@ mem_jules.o : $(SURFACE)/mem_jules.f90 grid_dims.o \
 	@mv -f $(<F:.f90=.f90) ../doc/src
 
 mem_micro.o : $(MICRO)/mem_micro.f90 micphys.o var_tables.o mem_radiate.o \
+	mem_cuparm.o \
 	$(UTILS_INCS)/i8.h
 	@cp -f $< $(<F:.f90=.f90)
 	$(F_COMMAND) $(<F:.f90=.f90) $(EXTRAFLAGSF)
@@ -565,7 +566,8 @@ rtimh.o : $(MODEL)/rtimh.F90 mem_basic.o mem_cuparm.o optical.o \
 	mod_advect_kit.o machine_arq.o rad_driv.o cup_grell3.o digitalFilter.o\
 	ChemSourcesDriver.o ChemDryDepDriver.o chemistry.o ModTimeStamp.o ModGrid.o \
 	raco.o module_rams_microphysics_2M.o mic_thompson_driver.o module_wind_farm.o \
-        seasalt.o MatrixDriver.o rtm_driver.o radvc_rk.o $(JULES_OBJ_SFCLYR) \
+   seasalt.o MatrixDriver.o rtm_driver.o radvc_rk.o mic_wsm_driver.o \
+   $(JULES_OBJ_SFCLYR) \
 	ModMessageSet.o modIau.o  $(UTILS_INCS)/i8.h $(UTILS_INCS)/tsNames.h
 	@cp -f $< $(<F:.f90=.f90)
 	$(F_COMMAND) $(<F:.f90=.f90) $(EXTRAFLAGSF)
@@ -577,8 +579,8 @@ rtimh_rk.o : $(MODEL)/rtimh_rk.F90 rtimh.o mem_basic.o mem_cuparm.o \
 	mod_advect_kit.o machine_arq.o rad_driv.o cup_grell3.o digitalFilter.o\
 	ChemSourcesDriver.o ChemDryDepDriver.o chemistry.o ModTimeStamp.o ModGrid.o \
 	raco.o rthrm.o module_rams_microphysics_2M.o mic_thompson_driver.o\
-        seasalt.o MatrixDriver.o rtm_driver.o radvc_rk.o modIau.o leaf3_ocean_only.o \
-	$(JULES_OBJ_SFCLYR) \
+   seasalt.o MatrixDriver.o rtm_driver.o radvc_rk.o modIau.o leaf3_ocean_only.o \
+	mic_wsm_driver.o $(JULES_OBJ_SFCLYR) \
 	ModMessageSet.o $(UTILS_INCS)/i8.h $(UTILS_INCS)/tsNames.h
 	@cp -f $< $(<F:.f90=.f90)
 	$(F_COMMAND) $(<F:.f90=.f90) $(EXTRAFLAGSF)
@@ -731,7 +733,7 @@ cond_update.o : $(FDDA)/cond_update.f90  an_header.o grid_struct.o \
 
 nud_analysis.o : $(FDDA)/nud_analysis.f90  mem_basic.o mem_grid.o \
 	mem_scratch.o mem_tend.o mem_varinit.o node_mod.o \
-	chem1_list.o mem_chem1.o ModEvaluation.o modIau.o 
+	chem1_list.o mem_chem1.o ModEvaluation.o modIau.o
 	@cp -f $< $(<F:.f90=.f90)
 	$(F_COMMAND) $(<F:.f90=.f90) $(EXTRAFLAGSF)
 	@mv -f $(<F:.f90=.f90) ../doc/src
@@ -1284,6 +1286,7 @@ Henrys_Law_cts.o : $(CUPARM)/Henrys_Law_cts.F90
 
 ConvPar_GF_GEOS5.o : $(CUPARM)/ConvPar_GF_GEOS5.F90 module_gate.o  MAPL_Constants.o Henrys_Law_cts.o
 	@cp -f $< $(<F:.f90=.f90)
+#	$(F_COMMAND_LIGHT) $(<F:.f90=.f90) $(EXTRAFLAGSF)
 	$(F_COMMAND) $(<F:.f90=.f90) $(EXTRAFLAGSF)
 	@mv -f $(<F:.f90=.f90) ../doc/src
 
@@ -2476,6 +2479,28 @@ mic_thompson_driver.o : $(MICRO)/mic_thompson_driver.f90  mem_basic.o mem_grid.o
 	$(F_COMMAND) $(<F:.f90=.f90) $(EXTRAFLAGSF)
 	@mv -f $(<F:.f90=.f90) ../doc/src
 
+mic_wsm_driver.o : $(MICRO)/mic_wsm_driver.f90  mem_basic.o mem_grid.o mem_micro.o \
+	mem_radiate.o micphys.o node_mod.o rconstants.o  io_params.o mem_radiate.o\
+	mem_chemic.o mem_chem1aq.o module_mp_wsm5.o module_mp_wsm6.o module_mp_wsm7.o module_mp_radar.o
+	@cp -f $< $(<F:.f90=.f90)
+	$(F_COMMAND) $(<F:.f90=.f90) $(EXTRAFLAGSF)
+	@mv -f $(<F:.f90=.f90) ../doc/src
+
+module_mp_wsm5.o : $(MICRO)/module_mp_wsm5.f90  module_mp_radar.o
+	@cp -f $< $(<F:.f90=.f90)
+	$(F_COMMAND) $(<F:.f90=.f90) $(EXTRAFLAGSF)
+	@mv -f $(<F:.f90=.f90) ../doc/src
+
+module_mp_wsm6.o : $(MICRO)/module_mp_wsm6.f90  module_mp_radar.o
+	@cp -f $< $(<F:.f90=.f90)
+	$(F_COMMAND) $(<F:.f90=.f90) $(EXTRAFLAGSF)
+	@mv -f $(<F:.f90=.f90) ../doc/src
+
+module_mp_wsm7.o : $(MICRO)/module_mp_wsm7.f90  module_mp_radar.o
+	@cp -f $< $(<F:.f90=.f90)
+	$(F_COMMAND) $(<F:.f90=.f90) $(EXTRAFLAGSF)
+	@mv -f $(<F:.f90=.f90) ../doc/src
+
 module_mp_thompson.o : $(MICRO)/module_mp_thompson.f90  module_mp_radar.o
 	@cp -f $< $(<F:.f90=.f90)
 	$(F_COMMAND) $(<F:.f90=.f90) $(EXTRAFLAGSF)
@@ -2488,7 +2513,7 @@ mic_gfdl_driver.o : $(MICRO)/mic_gfdl_driver.f90  mem_basic.o mem_grid.o mem_mic
 	$(F_COMMAND) $(<F:.f90=.f90) $(EXTRAFLAGSF)
 	@mv -f $(<F:.f90=.f90) ../doc/src
 
-gfdl_cloud_microphys.o : $(MICRO)/gfdl_cloud_microphys.F90
+gfdl_cloud_microphys.o : $(MICRO)/gfdl_cloud_microphys.F90 module_mp_radar.o
 	@cp -f $< $(<F:.f90=.f90)
 	$(F_COMMAND) $(<F:.f90=.f90) $(EXTRAFLAGSF)
 	@mv -f $(<F:.f90=.f90) ../doc/src
@@ -2553,7 +2578,7 @@ modIau.o : $(MODEL)/modIau.f90 dump.o
 
 modPrintInitial.o : $(INIT)/modPrintInitial.F90 dump.o
 	@cp -f $< $(<F:.F90=.F90)
-	$(F_COMMAND) $(<F:.F90=.F90) $(EXTRAFLAGSF)
+	$(F_COMMAND) -ffree-form -ffree-line-length-none $(<F:.F90=.F90) $(EXTRAFLAGSF)
 	@mv -f $(<F:.f90=.f90) ../doc/src
 
 include jules_depend_model.mk

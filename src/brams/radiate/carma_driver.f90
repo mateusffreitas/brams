@@ -814,7 +814,7 @@ subroutine cloud_prop_carma(m1,m2,m3,ia, iz, ja, jz &
                 enddo
               enddo
             enddo
-          elseif(mcphys_type == 2 .or. mcphys_type ==3.or. mcphys_type ==4) then  !srf -gthompson microphysics/gfdl - graupel only in ice phase
+          elseif(mcphys_type == 2 .or. mcphys_type ==3 .or. mcphys_type ==4 .or. mcphys_type ==6 .or. mcphys_type ==7) then  !srf -gthompson microphysics/gfdl - graupel only in ice phase
             dummy_vec=0.0
           endif
           lwl(1:m1,ia:iz,ja:jz) = dummy_vec(1:m1,ia:iz,ja:jz)*micro_g(ngrid)%rgp(1:m1,ia:iz,ja:jz) &
@@ -825,14 +825,15 @@ subroutine cloud_prop_carma(m1,m2,m3,ia, iz, ja, jz &
         endif
         if (ihail>0) then
           dummy_vec = 0.
-          do k=1,m1
+          if(mcphys_type <= 1) then
+            do k=1,m1
              do i=ia,iz
                 do j=ja,jz
                    call qtc(micro_g(ngrid)%q7(k,i,j), dummy, dummy_vec(k,i,j))
                 enddo
              enddo
-          enddo
-
+           enddo
+          endif
             lwl(1:m1,ia:iz,ja:jz) = dummy_vec(1:m1,ia:iz,ja:jz)*micro_g(ngrid)%rhp(1:m1,ia:iz,ja:jz)&
                                 + lwl(1:m1,ia:iz,ja:jz)
 
