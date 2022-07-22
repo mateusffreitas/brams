@@ -1830,7 +1830,7 @@ ModPostUtils.o : $(POST_SRC)/ModPostUtils.f90 ModNamelistFile.o \
 	$(F_COMMAND) $(<F:.f90=.f90) $(EXTRAFLAGSF)
 	@mv -f $(<F:.f90=.f90) ../doc/src
 
-modTimeLineFRN.o : $(POST_SRC)/modTimeLineFRN.f90 meteogram.o
+modTimeLineFRN.o : $(POST_SRC)/modTimeLineFRN.f90 meteogram.o ModPostTypes.o
 	@cp -f $< $(<F:.f90=.f90)
 	$(F_COMMAND) $(<F:.f90=.f90) $(EXTRAFLAGSF)
 	@mv -f $(<F:.f90=.f90) ../doc/src
