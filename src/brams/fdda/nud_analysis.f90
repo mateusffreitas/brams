@@ -331,15 +331,17 @@ subroutine VariableWeight(mzp, mxp, myp, nxp, nyp, i0, j0, &
      stop 'varwt-znud'
   endif
   
-  if(time <= dtlt + timeWindowIAU .and. tnudcent > .01 .and. mchnum == master_num) then
+  if(applyIAU > 0)  then 
+    if(time <= dtlt + timeWindowIAU .and. tnudcent > .01 .and. mchnum == master_num) then
       !print*,"=> doing nudging in center:",time,centFact,tnudcenti
        write(*,100) "===> doing nudging in center domain              :",time,centFact,tnudcenti
        call flush(6)
-  endif
-  if(time >  dtlt + timeWindowIAU .and. tnudcent > .01 .and. mchnum == master_num) then
+    endif
+    if(time >  dtlt + timeWindowIAU .and. tnudcent > .01 .and. mchnum == master_num) then
       !print*,"=> ramping the nudging in center to zero:",time,centFact,tnudcenti
        write(*,100) "===> ramping the nudging in center domain to zero:",time,centFact,tnudcenti
        call flush(6)
+    endif
   endif
 
   !-- turn off nudging from surface to znudbot

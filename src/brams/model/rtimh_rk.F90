@@ -176,8 +176,8 @@ subroutine timestep_rk(OneGrid,oneNamelistFile)
 
   use ModTimeStamp, only: SynchronizedTimeStamp, TimeStamp
 
-  use cuparm_grell3, only: cuparm_grell3_catt &  ! subroutine
-                          ,g3d_g
+  use cuparm_grell3, only: cuparm_grell3_catt !&  ! subroutine
+                          !,g3d_g
 
   use digitalfilter, only: 	        &
                     applyDigitalFilter, & ! subroutine
@@ -198,8 +198,6 @@ subroutine timestep_rk(OneGrid,oneNamelistFile)
 
   USE mem_radiate, ONLY: &
          ilwrtyp, iswrtyp
-
-  use CUPARM_GRELL3, only: g3d_g
 
   use mem_turb, only:    &
        turb_g
@@ -752,6 +750,9 @@ subroutine timestep_rk(OneGrid,oneNamelistFile)
 
   elseif(mcphys_type == 4 ) then
         call micro_gfdl()
+  
+  elseif(mcphys_type >= 5 ) then
+        call micro_wsm()
   endif
   !----------------------------------------
 

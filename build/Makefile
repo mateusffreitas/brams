@@ -167,7 +167,7 @@ endif
 ifeq ($(notdir $(FCOMP)),gfortran)
 JULES_DEFS = $(JULES_DEFS0) GNU_FORTRAN
 #FC_FLAGS=-O3 -ffree-form -ffree-line-length-none -fbacktrace -g -fcheck=bounds -fcheck=all -finit-real=nan # -Wall -ffpe-trap=invalid,zero
-FC_FLAGS=-ffree-form -ffree-line-length-none -fbacktrace -g -fno-range-check
+FC_FLAGS=-ffree-form -ffree-line-length-none -fbacktrace -g -fno-range-check -fcheck=bounds
 
 ifeq ($(GCC_VER_GTE10),)
      FC_FLAGS +=-fallow-argument-mismatch
@@ -254,9 +254,10 @@ F_COMMAND_MACRO = $(F_COMMAND) -D$(AER) -D$(MATRIXLEV) -D$(COLOR)
 F_COMMAND_LIGHT = $(FPCOMP) -O0 -c
 
 # Define objects.
-include objects_model.mk 
+include objects_model.mk
 
 # Define targets.
+
 all: $(EXE)
 
 $(EXE): libjules $(LIBUTILS) $(LIBIFS) $(LIBMODEL) $(MAINOBJ) $(WGRIBDIR) $(NETCDFFDIR)
