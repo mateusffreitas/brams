@@ -706,8 +706,8 @@ end function writeVar2D
                ,(zm(l)*grid_g(1)%rtgt(sites(n)%localxpos,sites(n)%localypos),l=1,oneNamelistFile%inplevs)
          
          !escreve os tempos e os valores da variável para cada nível
-         do seconds = 1,int(timmax),int(frqanl)
-            secc = seconds-int(frqanl)+1
+         do seconds = 0,int(timmax),int(frqanl)
+            secc = seconds !-int(frqanl)+1
 
             call date_add_to_dble(iyear1,imonth1,idate1,itime1,dble(secc),'s' &
             ,iyy,imm,idd,ihh)
@@ -716,7 +716,7 @@ end function writeVar2D
             ss=int(ihh-hh*10000-mm*100)            
 
             write(fileNumber,fmt=prefixFormat2//clev//sufixFormat2) iyy,imm,idd,hh,mm,ss &
-                  ,sites(n)%varValues(v,secc,1:oneNamelistFile%inplevs)
+                  ,sites(n)%varValues(v,int(secc),1:oneNamelistFile%inplevs)
          enddo
 
          close(unit = fileNumber)
