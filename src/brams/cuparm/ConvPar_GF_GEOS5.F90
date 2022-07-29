@@ -45,7 +45,7 @@ module ConvPar_GF_GEOS5
       ,use_smooth_prof, evap_fix,output_sound,use_cloud_dissipation      &
       ,use_smooth_tend,GF_convpar_init,beta_sh,c0_shal                   &
       ,use_linear_subcl_mf,cap_maxs,liq_ice_number_conc,alpha_adv_tuning &
-      ,sig_factor,lcl_trigger, rh_dicycle
+      ,sig_factor,lcl_trigger, rh_dicycle, add_coldpool_prop
    public GF_GEOS5_DRV,make_DropletNumber ,make_IceNumber,fract_liq_f &
       ,use_gustiness, use_random_num, dcape_threshold
    !
@@ -92,9 +92,11 @@ module ConvPar_GF_GEOS5
 
    integer :: USE_TRACER_EVAP   = 1 != 0/1     - default 1 (only for USE_TRACER_SCAVEN > 0)
 
-   integer :: USE_MEMORY        =-1 != -1/0/1/2 .../10    !-
+   integer :: USE_MEMORY        = -1 != -1/0/1/2 .../10    !-
 
    integer :: CONVECTION_TRACER = 0 != 0/1:  turn ON/OFF the "convection" tracer
+
+   integer :: ADD_COLDPOOL_PROP = -1 != -1,0,1,2 add coldpool propagation
 
    integer :: USE_SCALE_DEP     = 1 != 0/1:  scale dependence flag, default = 1
 
@@ -186,8 +188,8 @@ module ConvPar_GF_GEOS5
    integer :: EVAP_FIX       = 1   != fix total evap > column rainfall
    integer :: OUTPUT_SOUND   = 0   != outputs a "GEOS" vertical profile for the GF stand alone model
 
-   real    :: tau_ocea_cp    = 6.*3600. != not in use
-   real    :: tau_land_cp    = 6.*3600. != not in use
+   real    :: tau_ocea_cp    = 2.*3600. != not in use
+   real    :: tau_land_cp    = 2.*3600. != not in use
 
    real    :: use_cloud_dissipation = 0.   != to acccount for the cloud dissipation at the decayment phase
    real    :: use_gustiness         = 0.   != not in use
@@ -353,7 +355,7 @@ contains
       real   ,dimension(itrcr)             ,intent(in   )   :: FSCAV
       character(len=*)  ,dimension(mtp)    ,intent(in   )   :: CNAMES,QNAMES
 
-      real   ,dimension(mxp,myp,mzp)                        :: frct_liq
+      real   ,dimension(mxp,myp,mzp)                        :: frct_liq,AA1_ADV,AA1_RADPBL
 
       integer      :: ims,ime, jms,jme, kms,kme,    &
          its,ite, jts,jte, kts,kte,    &
@@ -822,7 +824,7 @@ contains
          ,tup5d        &
          ,conv_cld_fr5d&
          !-- for debug/diagnostic
-         ,AA0,AA1,AA2,AA3,AA1_BL,AA1_CIN,TAU_BL,TAU_EC &
+         ,AA0,AA1,AA1_ADV,AA1_RADPBL,AA1_BL,AA2,AA3,AA1_CIN,TAU_BL,TAU_EC &
          ,VAR2d,VAR3d_aGF,VAR3d_bGF,VAR3d_cGF,VAR3d_dGF)
 
 
@@ -1301,7 +1303,7 @@ contains
       ,tup5d                 &
       ,conv_cld_fr5d         &
       !-- for debug/diagnostic
-      ,AA0,AA1,AA2,AA3,AA1_BL,AA1_CIN,TAU_BL,TAU_EC &
+      ,AA0,AA1,AA1_ADV,AA1_RADPBL,AA1_BL,AA2,AA3,AA1_CIN,TAU_BL,TAU_EC &
       ,VAR2d,VAR3d_aGF,VAR3d_bGF,VAR3d_cGF,VAR3d_dGF)
 
       implicit none
@@ -1413,7 +1415,8 @@ contains
          ,tup5d                     &
          ,conv_cld_fr5d
       !--for debug
-      real   ,dimension(mxp,myp)  ,intent(inout)  :: AA0,AA1,AA2,AA3,AA1_BL,AA1_CIN,TAU_BL,TAU_EC,var2d
+      real   ,dimension(mxp,myp)  ,intent(inout)  :: AA0,AA1,AA1_ADV,AA1_RADPBL &
+                                                    ,AA2,AA3,AA1_BL,AA1_CIN,TAU_BL,TAU_EC,var2d
 
       !----------------------------------------------------------------------
       ! LOCAL VARS
@@ -1427,7 +1430,7 @@ contains
 
       real,   dimension (its:ite,jts:jte) ::  rtgt
 
-      real,   dimension (its:ite,kts:kte) ::                                      &
+      real,   dimension (its:ite,kts:kte) ::               &
           zo,temp_old,qv_old,PO,US,VS,rhoi,phil            &
          ,temp_new_dp,qv_new_dp,temp_new_sh,qv_new_sh,z2d  &
          ,tkeg,rcpg,dhdt,temp_new_md,qv_new_md             &
@@ -1437,7 +1440,7 @@ contains
          ,temp_new_adv,qv_new_adv
 
 
-      real,   dimension (its:ite,kts:kte,maxiens) ::                              &
+      real,   dimension (its:ite,kts:kte,maxiens) ::       &
          outt,outq,outqc,outu,outv,outbuoy,outnliq,outnice
 
       real,   dimension (mtp,its:ite,kts:kte)         :: se_chem
@@ -2017,7 +2020,8 @@ contains
                ,tup5d              (:,j,:,plume) &
                ,conv_cld_fr5d      (:,j,:,plume) &
                !-- for debug/diag
-               ,AA0(:,j),AA1(:,j),AA2(:,j),AA3(:,j),AA1_BL(:,j),AA1_CIN(:,j),TAU_BL(:,j),TAU_EC(:,j) &
+               ,AA0(:,j),AA1(:,j),AA1_ADV(:,j),AA1_RADPBL(:,j),AA2(:,j),AA3(:,j) &
+               ,AA1_BL(:,j),AA1_CIN(:,j),TAU_BL(:,j),TAU_EC(:,j) &
                !-- for diag
                ,lightn_dens  (:,j)               &
                ,var2d        (:,j)               &
@@ -2187,26 +2191,15 @@ contains
                do k = kts,kte
                   kr=k!+1
                   RBUOYCUTEN (kr,i,j)= (outbuoy(i,k,deep)+outbuoy(i,k,mid)+outbuoy(i,k,shal)) *fixout_qv(i)
+                  !print*,"RBUOYCUTEN", RBUOYCUTEN (kr,i,j),outbuoy(i,k,deep),&
+                  !             outbuoy(i,k,mid),outbuoy(i,k,shal)
                enddo
             enddo
          endif
 
          !-----memory
-         AA3(:,j)=cprr4d(:,j,deep) *fixout_qv(:)
-         AA2(:,j)=cprr4d(:,j,mid)  *fixout_qv(:)
-      !IF(USE_MEMORY > -1 ) THEN
-      ! DO i=its,itf
-      !    AA1_CIN(i,j)=cprr4d(i,j,deep) * fixout_qv(i)
-      !    AA2(i,j)=cprr4d(i,j,deep) *fixout_qv(i)
-      !    IF(AA2(i,j) > 0. .and. AA3(i,j)>0.) then
-      !      AA1_CIN(i,j)=AA1_CIN(i,j)+1.
-      !    ELSE
-      !      AA1_CIN(i,j)=0.
-      !    ENDIF
-      ! ENDDO
-      !ENDIF
-      !-----memory
-
+         !AA3(:,j)=cprr4d(:,j,deep) *fixout_qv(:)
+         !AA2(:,j)=cprr4d(:,j,mid)  *fixout_qv(:)
       enddo
 
    end subroutine GF_GEOS5_DRV
@@ -2300,7 +2293,7 @@ contains
       ,clfrac            &
       !- for convective transport-end
       !- for debug/diag
-      ,AA0_,AA1_,AA2_,AA3_,AA1_BL_,AA1_CIN_,TAU_BL_,TAU_EC_   &
+      ,AA0_,AA1_,AA1_ADV_,AA1_RADPBL_,AA2_,AA3_,AA1_BL_,AA1_CIN_,TAU_BL_,TAU_EC_   &
       ,lightn_dens       &
       ,var2d             &
       ,revsu_gf          &
@@ -2515,7 +2508,8 @@ contains
       real,    dimension (its:ite) :: q_wetbulb,t_wetbulb
       integer :: i_wb=0
 
-      real,    dimension (its:ite) :: col_sat_adv,Q_adv,alpha_adv,aa1_radpbl
+      real,    dimension (its:ite) :: col_sat_adv,Q_adv,alpha_adv,aa1_radpbl,aa1_adv
+      integer, dimension (its:ite) :: ierr_dummy
 
       real,    dimension (its:ite) :: p_cwv_ave,cape, depth_neg_buoy,frh_bcon &
          ,check_sig,random,rh_entr_factor
@@ -2574,7 +2568,7 @@ contains
       !----------------------------------------------------------------------
       !-- debug/diag
       real,  dimension (its:ite)        ,intent (inout)  :: &
-         aa0_,aa1_,aa2_,aa3_,aa1_bl_,aa1_cin_,tau_bl_,tau_ec_
+         aa0_,aa1_,aa2_,aa3_,aa1_bl_,aa1_cin_,tau_bl_,tau_ec_, AA1_RADPBL_,AA1_ADV_
       real,  dimension (its:ite,kts:kte) :: dtdt,dqdt
       real :: s1,s2,q1,q2,rzenv,factor,CWV,entr_threshold,resten_H,resten_Q,resten_T
       integer :: status
@@ -2669,6 +2663,7 @@ contains
          aa0_bl (i) = 0.0
          q_adv  (i) = 0.0
          aa1_radpbl(i) = 0.0
+         aa1_adv   (i) = 0.0
          alpha_adv (i) = 0.0
          cin1   (i) = 0.0
          xk_x   (i) = 0.0
@@ -2860,82 +2855,6 @@ contains
       !
       call precip_cwv_factor(itf,ktf,its,ite,kts,kte,ierr,tn,po,qo,po_cup,cumulus,p_cwv_ave)
       !
-      !-- cold pool parameterization and convective memory
-      !
-      if(CONVECTION_TRACER == 1) then
-         if(cumulus == 'deep') then
-            if(USE_MEMORY == 0) then
-               do i=its,itf
-                  if(ierr(i) /= 0) cycle
-                  x_add_buoy(i) = min(maxval(buoy_exc(i,kts:k22(i))),mx_buoy)
-                  !----------------------
-                  AA3_(i)=x_add_buoy(i) !--- temporary for output
-                  !----------------------
-               enddo
-            endif
-            if(USE_MEMORY > 0 .and. USE_MEMORY <= 10) then
-               do i=its,itf
-
-                  factor = float(USE_MEMORY)
-                  entr_rate   (i  ) = entr_rate_input*factor
-                  if(ierr(i) /= 0) cycle
-
-                  x_add_buoy(i) = min(maxval(buoy_exc(i,kts:k22(i))),mx_buoy)
-
-                  !-v1
-                  entr_threshold = 0.6  ! range 0-1, smaller => smaller entrainment
-                                        ! =0.6 => buoy_exc/mx_buoy > 0.6 => smaller
-                                        !         entrainment
-                  factor =  min(maxval(buoy_exc(i,kts:k22(i))),mx_buoy)/mx_buoy
-                  factor=   0.5*(1.-atan( (factor-entr_threshold)*5.)/1.37)
-                  factor=   max(0.1,min(factor,0.9))
-                  !-v2
-                  !CWV=max(0.1, min(col_sat(i),0.9))
-                  !factor = 1.-exp(15.6*(col_sat(i)-0.603))
-                  !factor = max(0.1,min(factor,0.9))
-                  !-v3
-                  !factor = min(max(4.875e-21*CWV**11.092,0.1),0.9) !CW=TPW [mm]
-                  !factor = 1.-factor
-                  !
-                  !-v4
-                  !factor = sqrt (factor_v1 * factor_v2)
-                  !-v5 avoid extra-buoyancy where rained before
-                  !- rain threshold is 1.e-7 mm/s => above this amount, x_add_buoy(i) -> 0.
-                  !- AA1_CIN is a dummy array that stores the conv precipitation of the previous timestep.
-                  x_add_buoy(i) =  x_add_buoy(i) * max(0.0,min(1.-atan(( (AA1_CIN_(i)-1.e-7)*1.e+7)/1.569),1.0))
-
-                  !- modulates the gross entraiment depending on the cold pool presence.
-                  entr_rate   (i  ) = entr_rate   (i  )*factor
-                  !----------------------
-                  AA0_(i)= max(0.0,min(1.-atan(( (AA1_CIN_(i)-1.e-7)*1.e+7)/1.569),1.0))       !--- temporary for output
-                  AA2_(i)=factor        !--- temporary for output
-                  AA3_(i)=x_add_buoy(i) !--- temporary for output
-                 !----------------------
-               enddo
-            endif
-            if(USE_MEMORY == 20) then
-               do i=its,itf
-                  cap_max_inc = 0.
-                  cap_max(i)           = cap_maxs
-                  cap_max_increment(i) = cap_max_inc
-                  if(ierr(i) /= 0) cycle
-                  x_add_buoy(i) = min(maxval(buoy_exc(i,kts:k22(i))),mx_buoy)
-                  entr_threshold= 0.6 !v5
-                  factor=   0.5*(1.-atan( (factor-entr_threshold)*5)/1.37)
-                  factor=   max(0.1,min(factor,0.9))
-                  !!!factor          = min(1.,5*x_add_buoy(i)/mx_buoy)*200.
-                  cap_max(i) = cap_maxs + (1.-factor) *200.
-                  tau_ec_(i)=cap_max(i) !--- temporary
-                  !----------------------
-                  AA2_(i)=(1.-factor) !--- temporaryfor output
-                  AA3_(i)=x_add_buoy(i) !--- temporary for output
-                 !----------------------
-               enddo
-            endif
-         endif
-      endif !- convection_tracer
-      !
-      !
       !------- determine LCL for the air parcels around K22
       !
       do i=its,itf
@@ -3022,23 +2941,36 @@ contains
          !print*," TPERT=",maxval(Tpert),maxval(wkflcl),maxval(klcl);call flush(6)
       endif
       !
-      !--- determine the moist static energy of air parcels at source level
-      !
-      do i=its,itf
-         if(ierr(i) /= 0)cycle
-         x_add = (xlv*zqexec(i)+cp*ztexec(i)) +  x_add_buoy(i)
-         call get_cloud_bc(cumulus,kts,kte,ktf,xland(i),po(i,kts:kte),he_cup (i,kts:kte),hkb (i),k22(i),x_add,Tpert(i,kts:kte))
-         call get_cloud_bc(cumulus,kts,kte,ktf,xland(i),po(i,kts:kte),heo_cup(i,kts:kte),hkbo(i),k22(i),x_add,Tpert(i,kts:kte))
-      enddo
-      !
-      !
       !--- define entrainment/detrainment profiles for updrafts
       !
       !- initial entrainment/detrainment
       entr_rate   (:  ) = entr_rate_input
       min_entr_rate     = entr_rate_input*0.1
-      entr_rate_2d(:,:) = entr_rate_input !-- here is just array initialization to zero
-      cd          (:,:) = entr_rate_input !-- here is just array initialization to zero
+      !
+      !
+      !-- cold pool parameterization and convective memory
+      !
+      if(convection_tracer == 1 .and. cumulus == 'deep') then
+            if(USE_MEMORY >= 0) then 
+                do i=its,itf
+                   if(ierr(i) /= 0) cycle
+                   x_add_buoy(i) = maxval(buoy_exc(i,kts:klcl(i)))
+                enddo
+                !print*,"BU=",maxval(x_add_buoy),minval(x_add_buoy)
+            endif 
+
+            !if(USE_MEMORY == 2 .or. USE_MEMORY == 3) & ! avoid extra-buoyancy where rained before
+            !   where(AA2_ > 1.e-5) x_add_buoy = 0.0
+            
+            if(USE_MEMORY == 1 .or. USE_MEMORY == 3) & ! reduce entr rate 
+               where(x_add_buoy > 0.25*mx_buoy) entr_rate = entr_rate_input * 0.1
+        
+            if( USE_MEMORY == 3) & ! reduce entr rate 
+               where(x_add_buoy > 0.25*mx_buoy) cap_max = 1.75*cap_maxs
+  
+            !--- temporary for output
+            AA3_(:)=x_add_buoy(:) 
+      endif 
       !
       !--- determine the entrainment dependent on environmental moist (here relative humidity)
       !--- also the controls of RH on the diurnal cycle (see Tian et al 2022 GRL)
@@ -3046,10 +2978,13 @@ contains
           call rh_controls(itf,ktf,its,ite,kts,kte,ierr,tn,po,qo,qeso,po_cup,cumulus,rh_entr_factor, &
                            rh_dicycle_fct,entr_rate_input, entr_rate ,xlons,dtime)         
       !
+      !
       !--- determine the vertical entrainment/detrainment rates, the level of convective cloud base -kbcon-
       !--- and the scale dependence factor (sig).
       !
       do i=its,itf
+         entr_rate_2d(i,:) = entr_rate  (i)
+         cd          (i,:) = entr_rate  (i)
          if(ierr(i) /= 0) cycle
 
          if(cumulus /= 'shallow') then
@@ -3100,6 +3035,15 @@ contains
       start_level(:)=  KLCL(:)
       !start_level(:)=  KTS
       !
+      !--- determine the moist static energy of air parcels at source level
+      !
+      do i=its,itf
+         if(ierr(i) /= 0)cycle
+         x_add = (xlv*zqexec(i)+cp*ztexec(i)) +  x_add_buoy(i)
+         call get_cloud_bc(cumulus,kts,kte,ktf,xland(i),po(i,kts:kte),he_cup (i,kts:kte),hkb (i),k22(i),x_add,Tpert(i,kts:kte))
+         call get_cloud_bc(cumulus,kts,kte,ktf,xland(i),po(i,kts:kte),heo_cup(i,kts:kte),hkbo(i),k22(i),x_add,Tpert(i,kts:kte))
+         !print*,"xi=",i, xlv*zqexec(i)+cp*ztexec(i) , x_add_buoy(i), hkbo(i)
+      enddo
       !
       !--- DETERMINE THE LEVEL OF CONVECTIVE CLOUD BASE  - KBCON
       !
@@ -3107,7 +3051,6 @@ contains
          ,qeso_cup,po,po_cup,zo_cup,heo,hkbo,qo,qeso,entr_rate_2d,hcot,k22,kbmax &
          ,klcl,kbcon,ktop,depth_neg_buoy,frh_bcon,Tpert,start_level              &
          ,use_excess,zqexec,ztexec,x_add_buoy,xland,itf,ktf,its,ite, kts,kte)
-
       !
       !--- SCALE DEPENDENCE FACTOR (SIG), version new
       !
@@ -3129,8 +3072,9 @@ contains
             endif
             sig(i)= max(0.001,min(sig(i),1.))
          enddo
+         !print*,'sig',maxval(sig),minval(sig),maxval(dx),minval(dx)
       endif
-
+      !
       !--- define entrainment/detrainment profiles for downdrafts
       !
       if(ENTRNEW) then
@@ -3144,7 +3088,6 @@ contains
       !- scale dependence factor
       sigd(:)  = 1.
       if( DOWNDRAFT == 0) sigd(:) = 0.0
-
       !
       !--- update hkb/hkbo in case of k22 is redefined in 'cup_kbon'
       !
@@ -3631,24 +3574,38 @@ contains
       !
       !--- Implements Becker et al (2021) closure, part 1
       !
-      if (DICYCLE==2 .and. cumulus == 'deep') then
+      if ( (DICYCLE==2 .or. DICYCLE==3) .and. cumulus == 'deep') then
 
-         !-- get the cloud work function for updrafts associated only with RAD + PBL
-         tn_x = t + tn - tn_adv
-         qo_x = q + qo - qo_adv
+        do ki = 1,2
+         if(DICYCLE==2 .and. ki==2) cycle 
 
-         !-- to check => aa1_radpbl=aa1
-         !! tn_x = tn
-         !! qo_x = qo
+         if(ki==1) then
+          !-- get the cloud work function for updrafts associated only with RAD + PBL
+          tn_x = t + tn - tn_adv
+          qo_x = q + qo - qo_adv
 
-         call cup_env(zo,qeso_x,heo_x,heso_x,tn_x,qo_x,po,z1,psur,ierr,-1,itf,ktf, its,ite, kts,kte)
+          !-- to check => aa1_radpbl=aa1
+          !! tn_x = tn
+          !! qo_x = qo
+         endif
+
+         if(ki==2) then
+            !-- get the cloud work function for updrafts associated only with Qv-advection
+           !tn_x = tn_adv  ! orig 
+           tn_x = t        ! v2
+           qo_x = qo_adv
+         endif
+
+         ierr_dummy=ierr
+
+         call cup_env(zo,qeso_x,heo_x,heso_x,tn_x,qo_x,po,z1,psur,ierr_dummy,-1,itf,ktf, its,ite, kts,kte)
          call cup_env_clev(tn_x,qeso_x,qo_x,heo_x,heso_x,zo,po,qeso_cup_x,qo_cup_x,heo_cup_x,us,vs   &
             ,u_cup_x,v_cup_x,heso_cup_x,zo_cup_x,po_cup_x,gammao_cup_x,tn_cup_x,psur,tsur  &
-            ,ierr,z1,itf,ktf,its,ite, kts,kte)
+            ,ierr_dummy,z1,itf,ktf,its,ite, kts,kte)
 
          !--- get MSE
          do i=its,itf
-            if(ierr(i) /= 0) cycle
+            if(ierr_dummy(i) /= 0) cycle
             x_add = (xlv*zqexec(i)+cp*ztexec(i)) +  x_add_buoy(i)
             call get_cloud_bc(cumulus,kts,kte,ktf,xland(i),po(i,kts:kte),heo_cup_x(i,kts:kte),hkbo_x(i),k22(i),x_add,Tpert(i,kts:kte))
             hco_x (i,kts:start_level(i)) = hkbo_x(i)
@@ -3672,18 +3629,25 @@ contains
             hco_x (i,ktop(i)+2:ktf)=heso_cup_x(i,ktop(i)+2:ktf)
          enddo
 
-         call get_buoyancy(itf,ktf, its,ite, kts,kte,ierr,klcl,kbcon,ktop &
+         call get_buoyancy(itf,ktf, its,ite, kts,kte,ierr_dummy,klcl,kbcon,ktop &
             ,hco_x,heo_cup_x,heso_cup_x,dbyo_x,zo_cup_x)
 
-         call cup_up_aa0(aa1_radpbl,zo_cup_x,zuo,dbyo_x,GAMMAo_CUP_x,tn_cup_x   &
-            ,k22,klcl,kbcon,ktop,ierr,itf,ktf,its,ite, kts,kte)
+         if(ki==1) then  ! RAD+PBL only
+            call cup_up_aa0(aa1_radpbl,zo_cup_x,zuo,dbyo_x,GAMMAo_CUP_x,tn_cup_x   &
+                           ,k22,klcl,kbcon,ktop,ierr_dummy,itf,ktf,its,ite, kts,kte)
+            !-- get AA1_ADV
+            !aa1_adv = aa1 + aa0 - aa1_radpbl
 
-        !do i=its,itf
-        !    if(ierr(i) /= 0) CYCLE
-        !    if(abs(AA0(i)-AA1(i)) > 1.e-5) &
-        !     print*,"AA0-AA1-AA1_RADPBL",AA0(i),AA1(i),AA1_RADPBL(i)
-        !call flush(6)
-        !enddo
+         endif
+
+         if(ki==2) & ! ADV of Qv only
+         call cup_up_aa0(aa1_adv,zo_cup_x,zuo,dbyo_x,GAMMAo_CUP_x,tn_cup_x   &
+            ,k22,klcl,kbcon,ktop,ierr_dummy,itf,ktf,its,ite, kts,kte)
+        
+         !Observe that : 
+         !aa1 ~ aa0 + (aa1_radpbl-aa0) + (aa1_adv-aa0)
+
+        enddo ! ki
       endif
       !
       !--- calculate CIN for updrafts
@@ -3735,17 +3699,10 @@ contains
       !
       if(SGS_W_TIMESCALE == 0) then
          do i=its,itf
-            if(ierr(i) /= 0) cycle
-            !---form tag JASON_2
+            if(ierr(i) /= 0) cycle            
             !- mean vertical velocity
-            wmean(i) = wmeanx ! m/s ! in the future change for Wmean == integral( W dz) / cloud_depth
+            wmean(i) = wmeanx ! m/s 
 
-            !- time-scale cape removal from Bechtold et al. 2008
-            !tau_ecmwf(i)=( zo_cup(i,ktop(i))- zo_cup(i,kbcon(i)) ) / wmean(i)
-            !if(cumulus=='deep') tau_ecmwf(i)=max(tau_ecmwf(i),tau_deep)
-            !if(cumulus=='mid' ) tau_ecmwf(i)=max(tau_ecmwf(i),tau_mid)
-
-            !print*,"tau=",cumulus,real(tau_ecmwf(i),4),real(tau_deep,4),real(tau_mid,4)
             if(cumulus=='deep') then
                tau_ecmwf(i)=tau_deep
             else
@@ -3765,14 +3722,6 @@ contains
             !- time-scale cape removal from Bechtold et al. 2008
             tau_ecmwf(i)=( zo_cup(i,ktop(i))- zo_cup(i,kbcon(i)) ) / wmean(i)
             tau_ecmwf(i)= min(10800., max(720.,tau_ecmwf(i)))
-
-            !if(cumulus=='mid') print*,"vvel=",vvel1d(i),tau_ecmwf(i)&
-            !,( zo_cup(i,ktop(i))/wmean(i))
-            ! call flush(6)
-            !if(cumulus=='deep') tau_ecmwf(i)= min(max(dtime,tau_ecmwf(i)),tau_deep)
-            !if(cumulus=='mid' ) tau_ecmwf(i)= min(max(dtime,tau_ecmwf(i)),tau_mid )
-            !tau_ecmwf(i)= max(dtime,tau_ecmwf(i))
-            !tau_ecmwf(i)= tau_ecmwf(i) * (1. + 1.66 * (dx(i)/(125*1000.)))! dx must be in meters
          enddo
       endif
 
@@ -3781,18 +3730,19 @@ contains
       !
       do i=its,itf
          if(ierr(i) /= 0) cycle
-         if(xland(i) > 0.99 ) then !- over water
-            umean= 2.0+sqrt(0.5*(US(i,1)**2+VS(i,1)**2+US(i,kbcon(i))**2+VS(i,kbcon(i))**2))
-            tau_bl(i) = (zo_cup(i,kbcon(i))- z1(i)) /umean
-         else !- over land
-            !-----------
-            !- orig        tau_bl(i) =( zo_cup(i,ktop(i))- zo_cup(i,kbcon(i)) ) / wmean(i)
-            tau_bl(i) = tau_ecmwf(i)
+         !- over water
+         !   umean= 2.0+sqrt(0.5*(US(i,1)**2+VS(i,1)**2+US(i,kbcon(i))**2+VS(i,kbcon(i))**2))
+         !   tau_bl(i) = (zo_cup(i,kbcon(i))- z1(i)) /umean
+         !- over land
+         !   tau_bl(i) = tau_ecmwf(i)
          !-----------
-         endif
+         umean= 2.0+sqrt(0.5*(US(i,1)**2+VS(i,1)**2+US(i,kbcon(i))**2+VS(i,kbcon(i))**2))
+         !--                    - over land -            -          over ocean       s   -
+         tau_bl(i)=(1.-xland(i))*tau_ecmwf(i) + xland(i)*(zo_cup(i,kbcon(i))- z1(i)) /umean
+         !print*,'bl=', xland(i),tau_bl(i),(1.-xland(i))*tau_ecmwf(i) + xland(i)*(zo_cup(i,kbcon(i))- z1(i)) /umean
       enddo
 
-      if( (dicycle==1 .or. dicycle==2) .or. (dicycle==0 .and. cumulus=='mid') ) then
+      if( (dicycle<=3) .or. (dicycle==0 .and. cumulus=='mid') ) then
 
          !-- calculate "pcape" or equivalent cloud work function from the BL forcing only
          iversion=0
@@ -3812,6 +3762,14 @@ contains
             call get_Qadv(cumulus,itf,ktf,its,ite,kts,kte,ierr,dtime,q,qo,qo_adv,po,po_cup &
                ,qeso, q_adv,col_sat_adv,alpha_adv,tau_bl,zo_cup,kbcon,ktop)
          endif
+      
+         if(dicycle==3 .and. cumulus == 'deep') then
+            do i=its,itf
+                if(ierr(i) /= 0) cycle
+                aa1_adv(i) =  (aa1_adv(i) - aa0(i)) * tau_bl(i)/dtime
+            enddo
+         endif
+
       !
       !--- Implements the Zhang(2002) closure
       !
@@ -4728,7 +4686,7 @@ contains
             ,xf_ens,mconv,qo                         &
             ,po_cup,omeg,zdo,zuo,pr_ens,edto         &
             ,tau_ecmwf,aa1_bl,xf_dicycle, xk_x       &
-            ,alpha_adv,Q_adv,aa1_radpbl)
+            ,alpha_adv,Q_adv,aa1_radpbl,aa1_adv)
 
          if(cumulus == 'mid') &
             call cup_forcing_ens_3d_mid(aa0,aa1,xaa0,mbdt,dtime,ierr                         &
@@ -4886,23 +4844,24 @@ contains
       !--- outputs a model sounding for the stand-alone code (part 2)
       !
       if(OUTPUT_SOUND == 1) then
-         call SOUND(2,cumulus,int_time,dtime,ens4,itf,ktf,its,ite, kts,kte,xlats,xlons,jcol,whoami_all          &
+         call SOUND(2,cumulus,int_time,dtime,ens4,itf,ktf,its,ite, kts,kte,xlats,xlons,jcol,whoami_all &
             ,z ,qes ,he ,hes ,t ,q ,po,z1 ,psur,zo,qeso,heo,heso,tn,qo,us,vs ,omeg,xz     &
             ,h_sfc_flux,le_sfc_flux,tsur, dx,stochastic_sig,zws,ztexec,zqexec, xland      &
             ,kpbl,k22,klcl,kbcon,ktop,aa0,aa1,sig,xaa0,hkb,xmb,pre,edto                   &
             ,zo_cup,dhdt,rho,zuo,zdo,up_massentro,up_massdetro,outt, outq,outqc,outu,outv)
       endif
 
+      !--- for output only
       if( trim(cumulus) == 'deep') then
-         do i=its,itf
-            AA1_(i) =0.
-            AA0_(i) =0.
-            if(ierr(i) /= 0) cycle
-            !AA1_(i) = depth_neg_buoy   (i)
-            !AA0_(i) = frh_bcon(i)
-            AA1_(i) = AA1(i)
-            AA0_(i) = AA0(i)
-         enddo
+            AA1_       (:) = AA1       (:)
+            AA0_       (:) = AA0       (:)
+            AA1_RADPBL_(:) = AA1_RADPBL(:)
+            
+            if(dicycle == 2) then 
+              AA1_ADV_ (:) = Q_adv     (:)
+            else
+              AA1_ADV_ (:) = AA1_ADV   (:)
+            endif
       endif
 
       if(liq_ice_number_conc == 1) then
@@ -5739,7 +5698,7 @@ contains
          ,intent (in   )                   ::                           &
          psur,z1
       integer, dimension (its:ite)                                      &
-         ,intent (inout)                   ::                           &
+         ,intent (in)                   ::                           &
          ierr
       integer                                                           &
          ,intent (in   )                   ::                           &
@@ -5883,7 +5842,7 @@ contains
          ,intent (in   )                   ::                           &
          psur,z1,tsur
       integer, dimension (its:ite)                                      &
-         ,intent (inout)                   ::                           &
+         ,intent (in)                   ::                              &
          ierr
       !
       !  local variables in this routine
@@ -6139,7 +6098,7 @@ contains
          if(xk(1).gt.0.and.xk(1).lt.1.e-2       ) xk(1)=1.e-2
 
          !- diurnal cycle mass flux
-         if(DICYCLE <= 2 ) then
+         if(DICYCLE <= 3 ) then
             !----  Bechtold et al (2014)
             xff_dicycle = AA1_BL(i)/tau_ecmwf(i)
             xf_dicycle(i) = max(0.,-xff_dicycle /xk(1))
@@ -6158,7 +6117,7 @@ contains
             xff_mid(i,4)=xf_dicycle(i)
          endif
         !-set xf_dicycle(i)=0 in case the closure is 4 and then DICYCLE closure will be applied
-        if(DICYCLE <= 2  .and. ichoice == 4) xf_dicycle(:) = 0.       
+        if(DICYCLE <= 3  .and. ichoice == 4) xf_dicycle(:) = 0.       
       enddo
 
       do i=its,itf
@@ -6270,7 +6229,7 @@ contains
          k22,klcl,kbcon,ktop
       character(len=*),optional, intent(in) :: integ_interval
       ! input and output
-      integer, dimension (its:ite) ,intent (inout)  :: ierr
+      integer, dimension (its:ite) ,intent (in   )  :: ierr
       real,    dimension (its:ite) ,intent (out  )  :: aa0
       !
       !  local variables in this routine
@@ -6436,11 +6395,11 @@ contains
                   up_massentr(i,k-1)* q (i,k-1)     &
                   )/ denom
 
-               if(k==start_level(i)+1) qc(i,k)= qc(i,k) + zqexec(i) &
-                  * up_massentr(i,k-1)/denom
-                 !--- assuming no liq/ice water in the environment
-               qrc(i,k)=  ( qrc(i,k-1)*zu(i,k-1)-.5*up_massdetr(i,k-1)* qrc(i,k-1)   &
-                  )/ denom
+               if(k==start_level(i)+1) qc(i,k)= qc(i,k) + (zqexec(i) + 0.5*x_add_buoy(i)/xlv) &
+                                              * up_massentr(i,k-1)/denom
+                                              !--- assuming no liq/ice water in the environment
+                                              qrc(i,k)=  ( qrc(i,k-1)*zu(i,k-1)-.5*up_massdetr(i,k-1)* qrc(i,k-1)   &
+                                              )/ denom
 
             else
                qc (i,k)=    qc (i,k-1)
@@ -6748,8 +6707,8 @@ contains
                qc (i,k)=  ( qc (i,k-1)*zu(i,k-1)-.5*up_massdetr(i,k-1)* qc(i,k-1) +   &
                   up_massentr(i,k-1)* q (i,k-1)     &
                   )/ denom
-               if(k==start_level(i)+1) qc(i,k)= qc(i,k) + zqexec(i) &
-                  * up_massentr(i,k-1)/denom
+               if(k==start_level(i)+1) qc(i,k)= qc(i,k) +  (zqexec(i) + 0.5*x_add_buoy(i)/xlv)&
+                                               * up_massentr(i,k-1)/denom
             else
                qc (i,k)=    qc (i,k-1)
             endif
@@ -9118,7 +9077,7 @@ contains
             !- if am here -> kbcon not found for air parcels from k22 level
             k22(i)=k22(i)+1
             !--- increase capmax
-            if(USE_MEMORY == 20) cap_max(i)=cap_max(i)+cap_inc(i)
+            !if(USE_MEMORY == 2000) cap_max(i)=cap_max(i)+cap_inc(i)
 
             !- get new hkbo
             x_add = (xlv*zqexec(i)+cp*ztexec(i)) +  x_add_buoy(i)
@@ -9697,7 +9656,7 @@ contains
       ,xf_ens,mconv,qo                      &
       ,p_cup,omeg,zd,zu,pr_ens,edt          &
       ,tau_ecmwf,aa1_bl,xf_dicycle,xk_x     &
-      ,alpha_adv,Q_adv,aa1_radpbl           )
+      ,alpha_adv,Q_adv,aa1_radpbl,aa1_adv   )
 
       implicit none
 
@@ -9768,7 +9727,7 @@ contains
          ,intent (in   )                   ::                           &
          ichoice
       real,    intent(in)   , dimension (its:ite) :: aa1_bl,tau_ecmwf &
-         ,alpha_adv,Q_adv,aa1_radpbl
+         ,alpha_adv,Q_adv,aa1_radpbl,aa1_adv
       real,    intent(inout), dimension (its:ite) :: xf_dicycle,xk_x
       !- local var
       real  :: xff_dicycle
@@ -9944,8 +9903,10 @@ contains
             !xff_dicycle  = (AA1(i)-AA1_BL(i))/tau_ecmwf(i)
 
             !--- Bechtold et al (2014) + Becker et al (2021)
-            xff_dicycle  = (1.- alpha_adv(i))* AA1(i) +  alpha_adv(i)*aa1_radpbl(i) &
+            xff_dicycle  = (1.- alpha_adv(i))* AA1(i) +  alpha_adv(i)*AA1_RADPBL(i) &
                               + alpha_adv(i)*Q_adv(i) - AA1_BL(i)
+
+ !xff_dicycle  = Q_adv(i) 
 
             xff_dicycle  = xff_dicycle /tau_ecmwf(i)
 
@@ -9958,15 +9919,32 @@ contains
 !            !else
 !            !    xf_dicycle(i)= 0.
 !            endif
-
-           ! xf_dicycle(i)= xf_ens(i,10)-xf_dicycle(i)
-
-!print*,"x=",xf_ens(i,10),xf_dicycle(i),max(0.,AA1_BL(i)/xk(i)/tau_ecmwf(i));call flush(6)
-
+            ! xf_dicycle(i)= xf_ens(i,10)-xf_dicycle(i)
 !----------
          enddo
-      elseif( DICYCLE==4) then
 
+      elseif( DICYCLE==3) then
+        do i=its,itf
+            xf_dicycle(i) = 0.
+
+            if(ierr(i) /=  0)cycle
+
+            xff_dicycle  = (1.- alpha_adv(i))* AA1(i)                               & 
+!                        +      alpha_adv(i) *(AA1_RADPBL(i) + AA1_ADV(i) - AA0(i)) &
+                         +      alpha_adv(i) *(AA1_RADPBL(i) + AA1_ADV(i)         ) &
+                         - AA1_BL(i)
+!--------tmp           
+!           xff_dicycle  =  AA1_ADV(i)
+!--------tmp
+
+
+            xff_dicycle  = xff_dicycle /tau_ecmwf(i)
+
+            if(xk(i).lt.0) xf_dicycle(i)= max(0.,-xff_dicycle/xk(i))
+            xf_dicycle(i)= xf_ens(i,10)-xf_dicycle(i)
+        enddo
+      
+      elseif( DICYCLE==4) then
          do i=its,itf
             xf_dicycle(i) = 0.
             if(ierr(i) /=  0)cycle
@@ -9976,8 +9954,8 @@ contains
             xf_ens    (i,:) = xf_dicycle(i)
             xf_dicycle(i)   = 0.0
          enddo
-      else
 
+      else
          xf_dicycle(:)=0.0
 
       endif
@@ -12348,7 +12326,8 @@ contains
          ,use_cloud_dissipation,use_smooth_tend,use_gustiness, use_random_num     &
          ,dcape_threshold,beta_sh,c0_shal,use_linear_subcl_mf,liq_ice_number_conc &
          ,alpha_adv_tuning,cap_maxs,sig_factor,cum_fadj_massflx,lcl_trigger       &
-         ,rh_dicycle,cum_t_star 
+         ,rh_dicycle,cum_t_star, convection_tracer, tau_ocea_cp, tau_land_cp      &
+         ,use_memory, add_coldpool_prop
 
       inquire (file = trim (fn_nml), exist = exists)
       if (.not. exists) then
@@ -12380,7 +12359,12 @@ contains
          print*, 'dcape_threshold    ' , real(dcape_threshold    ,4)
          print*, 'tau_deep,tau_mid   ' , real(tau_deep,4),real(tau_mid,4)
          print*, 'sgs_w_timescale    ' , sgs_w_timescale
-
+         print*, 'convection_tracer  ' , convection_tracer
+         print*, 'add_coldpool_prop  ' , add_coldpool_prop
+         print*, 'tau_ocea_cp        ' , tau_ocea_cp
+         print*, 'tau_land_cp        ' , tau_land_cp
+         print*, 'use_memory         ' , use_memory
+         
          print*,'!--- controls rainfall evaporation'
          print*, 'use_rebcb          ' , use_rebcb
          print*, 'downdraft          ' , downdraft
