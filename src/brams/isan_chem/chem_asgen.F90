@@ -673,9 +673,9 @@ SUBROUTINE chem_isan_driver (name_name)
                   trim(assSpecieName(nspc)),maxval(chem_is_grids(ng)%rr_sc(:,:,:,nspc)), &
                   minval(chem_is_grids(ng)%rr_sc(:,:,:,nspc))
 
-		         if(maxval(chem_is_grids(ng)%rr_sc(:,:,:,nspc)) < 1.e-10) &
+		         if(maxval(chem_is_grids(ng)%rr_sc(:,:,:,nspc)) < 1.e-18) &
                  iErrNumber=dumpMessage(c_tty,c_yes,sourceName,procedureName &
-                 ,c_fatal,'wrong dpchem file. Maxval < 1.0e-10')	      
+                 ,c_warning,'wrong dpchem file. Maxval < 1.0e-18 please, check if is valid!')	      
 	         
 		       enddo
 	      endif
@@ -710,7 +710,7 @@ SUBROUTINE chem_isan_driver (name_name)
 
              if(maxval(aer_is_grids(ng)%rr_sc(:,:,:,nspc)) < 1.e-10) &
                  iErrNumber=dumpMessage(c_tty,c_yes,sourceName,procedureName &
-                 ,c_fatal,'wrong dpchem file. Maxval < 1.0e-10')        
+                 ,c_warning,'wrong dpchem file. Maxval < 1.0e-10')        
            
            enddo
            ! close(33)

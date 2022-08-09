@@ -85,20 +85,8 @@ program main
   ! execution time instrumentation
 
   include "tsNames.h"
-  include "modGitInfo.inc"
-
+  
   integer :: ierr
-
-  !Make the versioning visible for all
-  print *,''
-  print *,'----- Git versioning ----'
-  print *,lastCommit
-  print *,lastMerge
-  print *,lastAuthor
-  print *,lastGitDate
-  print *,'--------------------------'
-  print *,''
-
 
   ! enroll MPI; get number of processes, process Id, master Id
 

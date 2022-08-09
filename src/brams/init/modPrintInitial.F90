@@ -163,10 +163,20 @@ module modPrintInitial
       !Local variables
       character(len=12) :: c0
       integer :: son
+      include "modGitInfo.inc"
    
       !Code
           ! master prints initial banner and dumps namelist at stdio
     if (mchnum==master_num) then
+      !Make the versioning visible for all
+      print *,''
+      print *,'----- Git versioning ----'
+      print *,lastCommit
+      print *,lastMerge
+      print *,lastAuthor
+      print *,lastGitDate
+      print *,'--------------------------'
+      print *,''
       write (*,fmt='(A)') c_empty
       write (*,fmt='(A)') c_empty
       write (*,fmt='(A)') c_empty

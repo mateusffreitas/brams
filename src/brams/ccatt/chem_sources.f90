@@ -611,7 +611,7 @@ CONTAINS
           DO nf = 1, nvftot	
 		
              CALL makefnam (sVarName,srcpref,0,inyear,inmonth,indate,inhour,'T',cgrid,'vfm')
-	     print*,'Looking for sources files -->: ',TRIM(sVarName)
+	          print*,'Looking for sources files -->: ',TRIM(sVarName)
              INQUIRE(file=TRIM(sVarName),exist=there)
 		
              IF (there) THEN  
