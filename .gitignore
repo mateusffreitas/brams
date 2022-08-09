@@ -39,9 +39,9 @@ log.txt
 *.app
 
 #documents
-./doc/html/*
-./doc/src/*
-./doc/src
+/doc/html/*
+/doc/src/*
+/doc/src
 
 #Makes e status
 build/Make_utils
