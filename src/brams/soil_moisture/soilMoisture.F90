@@ -1236,7 +1236,7 @@ contains
 
          !-- 2) soil temperature (using soil_energy array)
          call mk_4_buff(globalsoilenergy(:,:,:,2), soil_energy(:,:,:,2), &
-            mzg, nnxp(ifm), nnyp(ifm), npat, mzg, n2, n3, npat, ia, iz, ja, jz)
+            mzg, nnxp(ifm), nnyp(ifm), 2, mzg, n2, n3, 2, ia, iz, ja, jz)
 
          do j=1,n3
             do i=1,n2
