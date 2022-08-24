@@ -181,7 +181,7 @@ contains
                oneBramsGrid%xtn(firstX : lastX), oneBramsGrid%ytn(firstY : lastY), &
                oneBramsGrid%polelat, oneBramsGrid%polelon)
          call rams_comp_avgv (ScrT3N03)    
-         ScrT3N04 = atan(ScrT3N03/ScrT3N02)
+         ScrT3N04 = atan(ScrT3N03/(ScrT3N02 + 1.E-20))
          OutputField = c_i_pi180*ScrT3N04
 
 
