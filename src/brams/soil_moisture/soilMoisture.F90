@@ -270,19 +270,19 @@ contains
       ipref = len_trim(usdata_in)
       pref = usdata_in(ipref_start:ipref)
 
-      if (pref=='SM_V2.') then
+      if (trim(pref)=='SM_V2.') then
          n4us = 6                    ! modelo v2 com 6 camadas
          allocate(slz_us(0:n4us))
          slz_us = (/-3.0, -2.0, -1.0, -0.5, -0.25, -0.1, 0. /)
-      elseif (pref=='GL_SM.GPCP.' .or.  pref=='GL_SM.GPNR.' ) then
+      elseif (trim(pref)=='GL_SM.GPCP.' .or.  trim(pref)=='GL_SM.GPNR.' ) then
          n4us = 8                    ! modelo glsm v2 com 8 camadas
          allocate(slz_us(0:n4us))
          slz_us = (/-4.5, -2.5, -1.75, -1.0, -0.5, -0.25, -0.13, -0.05, 0./)
-      elseif (pref=='GFS025GR.SOILM.') then
+      elseif (trim(pref)=='GFS025GR.SOILM.') then
          n4us = 4                    ! modelo do gfs 4 camadas
          allocate(slz_us(0:n4us))
          slz_us = (/-2.0, -1.0,  -0.40, -0.10, 0./)
-      elseif (pref=='SM.GEOS.') then
+      elseif (trim(pref)=='SM.GEOS.') then
          !do nothing
 
       elseif (usdata_in(ipref-10:ipref)=='YYYYMMDD.nc') then  !DSM - Lendo a umidade do solo proveniente do JULES
@@ -321,14 +321,14 @@ contains
          stop 'STOP in: src/brams/soil_moisture/soilMoisture.F90'
 
 #endif
-      elseif (pref=='GFS.SOIL:UMID_TEMP.') then
+      elseif (trim(pref)=='GFS.SOIL:UMID_TEMP.') then
          n4us = 4                    ! modelo GFS com 4 camadas
          allocate(slz_us(0:n4us))
          slz_us = (/ -2.0, -1.0, -0.4, -0.1, 0. /)
          shift_lon = 360.
          !print*,"UMID1=",trim(pref),slz_us;call flush(6)
 
-      elseif (pref=='ERA5.SOIL:UMID_TEMP.') then
+      elseif (trim(pref)=='ERA5.SOIL:UMID_TEMP.') then
          n4us = 4                    ! modelo ERA5 com 4 camadas
          allocate(slz_us(0:n4us))
          slz_us = (/ -2.89, -1.0, -0.28, -0.07, 0. /)
@@ -384,16 +384,16 @@ contains
          ! calculating the hour of simulation
          if ((itime1>=0000) .and. (itime1<1200)) then
             hourmin = 0000
-            if (pref=='GL_SM.GPCP.' .or. pref=='GL_SM.GPNR.' .or. pref=='GFS.SOIL:UMID_TEMP.' &
-               .or. pref=='ERA5.SOIL:UMID_TEMP.' ) hourmin = 00
+            if (trim(pref)=='GL_SM.GPCP.' .or. trim(pref)=='GL_SM.GPNR.' .or. trim(pref)=='GFS.SOIL:UMID_TEMP.' &
+               .or. trim(pref)=='ERA5.SOIL:UMID_TEMP.' ) hourmin = 00
          else
             hourmin = 1200
-            if (pref=='GL_SM.GPCP.'         .or. pref=='GL_SM.GPNR.'          ) hourmin = 12
-            if (pref=='GFS.SOIL:UMID_TEMP.' .or. pref=='ERA5.SOIL:UMID_TEMP.' ) hourmin = 21
+            if (trim(pref)=='GL_SM.GPCP.'         .or. trim(pref)=='GL_SM.GPNR.'          ) hourmin = 12
+            if (trim(pref)=='GFS.SOIL:UMID_TEMP.' .or. trim(pref)=='ERA5.SOIL:UMID_TEMP.' ) hourmin = 21
          endif
 
-         if (pref=='GL_SM.GPCP.' .or. pref=='GL_SM.GPNR.' .or.  pref=='GFS.SOIL:UMID_TEMP.' &
-            .or. pref=='ERA5.SOIL:UMID_TEMP.' ) then
+         if (trim(pref)=='GL_SM.GPCP.' .or. trim(pref)=='GL_SM.GPNR.' .or.  trim(pref)=='GFS.SOIL:UMID_TEMP.' &
+            .or. trim(pref)=='ERA5.SOIL:UMID_TEMP.' ) then
             write (cihourmin, '(i2.2)') hourmin
             icihourmin = 2
          else
@@ -401,12 +401,12 @@ contains
             icihourmin = 4
          endif
 
-         if (pref=='us') then
+         if (trim(pref)=='us') then
             cihourmin  = ''
             icihourmin = 0
          endif
 
-         if (pref=='GFS.SOIL:UMID_TEMP.' .or. pref=='ERA5.SOIL:UMID_TEMP.' ) then
+         if (trim(pref)=='GFS.SOIL:UMID_TEMP.' .or. trim(pref)=='ERA5.SOIL:UMID_TEMP.' ) then
             usdata = trim(usdata_in)//ciyear//cimon//cidate//cihourmin(1:icihourmin)//'.bin'
          elseif (usdata_in(ipref-10:ipref)/='YYYYMMDD.nc') then
             usdata = trim(usdata_in)//ciyear//cimon//cidate//cihourmin(1:icihourmin)//'.vfm'
@@ -538,7 +538,7 @@ contains
          call parf_bcast(nlat,  master_num)
          call parf_bcast(nlon,  master_num)
 
-      elseif (pref=='GL_SM.GPCP.') then
+      elseif (trim(pref)=='GL_SM.GPCP.') then
          latni =  -89.5            !  gpcp global
          latnf =   89.5
          lonni = -179.5
@@ -547,7 +547,7 @@ contains
          ilonn =    1.
          nlat  =  180
          nlon  =  360
-      elseif (pref=='GL_SM.GPNR.') then
+      elseif (trim(pref)=='GL_SM.GPNR.') then
          latni =  -89.875             !  trmm/navy + gpcp global
          latnf =   89.875
          lonni = -179.875
@@ -559,7 +559,7 @@ contains
 
 
          !====== GFS soil moisture (volumetric: [0-1]) and soil temperature (Kelvin)
-      elseif (pref=='GFS.SOIL:UMID_TEMP.') then
+      elseif (trim(pref)=='GFS.SOIL:UMID_TEMP.') then
          latni =  -89.875
          latnf =   89.875
          lonni =   0. !-179.875
@@ -601,7 +601,7 @@ contains
 
 
          !====== ERA5 soil moisture (wetness: [0-1]) and soil temperature (Kelvin)
-      elseif (pref=='ERA5.SOIL:UMID_TEMP.') then
+      elseif (trim(pref)=='ERA5.SOIL:UMID_TEMP.') then
          latni =  -59.875
          latnf =   29.875
          lonni =  -110. !-179.875
@@ -646,7 +646,7 @@ contains
 
 
          !====== GEOS soil moisture
-      elseif(pref=='SM.GEOS.') then
+      elseif(trim(pref)=='SM.GEOS.') then
 
          !Opening the descriptor file to read info
          print *, usdata(1:len_trim(usdata)-3)//'ctl'
@@ -816,7 +816,7 @@ contains
          endif
 
          if (.not.theref) then ! arquivo .gra
-            if ( pref=='SM.GEOS.') then   ! arquivo .gra acesso direto
+            if ( trim(pref)=='SM.GEOS.') then   ! arquivo .gra acesso direto
                if (mchnum==master_num) then
                   do k=1,n4us,1
                      api_us(1:nlon,1:nlat,k)=us_geos(1:nlon,1:nlat,k) ! wetness
@@ -944,14 +944,16 @@ contains
                                  enddo
                               endif
 
-                              globalsoilenergy(k,i,j,2)=t_soilJ(iii,jjj,k)
+                              do ipat=2,npat
+                                 globalsoilenergy(k,i,j,ipat)=t_soilJ(iii,jjj,k)
+                              enddo
                               api_us(ii,jj,k)=api_us(iii,jjj,k)
                            endif  !DSM }
 
 
                            if (api_us(ii,jj,k)>1.e-5) then
                               !If the value is undef probably is ocean
-                              if(pref=='SM.GEOS.') then
+                              if(trim(pref)=='SM.GEOS.') then
                                  if(api_us(ii,jj,k)>=undef) then
                                     api_us(ii,jj,k)=0.0
                                  endif
@@ -979,10 +981,10 @@ contains
                               globalsoilwater(k,i,j,ipat) = usdum(kk+1)
 !write(90,fmt='(6(I4.4,1X),3(F18.6,1X))') k,kk,i,j,ipat,nsoil,globalsoilwater(k,i,j,ipat),usdum(kk+1),slmsts(nsoil)
                               ! umidade lida em % (armazenamento)
-                              if ( pref=='sm_v2.'      .or. &
-                                 pref=='gl_sm.gpcp.' .or. &
-                                 pref=='gl_sm.gpnr.' .or. &
-                                 pref=='SM.GEOS.') then
+                              if ( trim(pref)=='sm_v2.'      .or. &
+                                 trim(pref)=='gl_sm.gpcp.' .or. &
+                                 trim(pref)=='gl_sm.gpnr.' .or. &
+                                 trim(pref)=='SM.GEOS.') then
                                  globalsoilwater(k,i,j,ipat) = &
                                     globalsoilwater(k,i,j,ipat)*slmsts(nsoil)
                               endif
@@ -1000,10 +1002,10 @@ contains
                               !- umidade em mm3/mm3 (gfs case)
                               globalsoilwater(k,i,j,ipat) = usdum(1)
                               ! umidade lida em % (armazenamento) - v2 (sm_v2.)
-                              if ( pref=='sm_v2.'      .or. &
-                                 pref=='gl_sm.gpcp.' .or. &
-                                 pref=='gl_sm.gpnr.' .or. &
-                                 pref=='SM.GEOS.') then
+                              if ( trim(pref)=='sm_v2.'      .or. &
+                                 trim(pref)=='gl_sm.gpcp.' .or. &
+                                 trim(pref)=='gl_sm.gpnr.' .or. &
+                                 trim(pref)=='SM.GEOS.') then
                                  globalsoilwater(k,i,j,ipat) = &
                                     globalsoilwater(k,i,j,ipat)*slmsts(nsoil)
                               endif
@@ -1235,7 +1237,7 @@ contains
       ELSEIF (usdata_in(ipref-10:ipref)=='YYYYMMDD.nc') then  !DSM - Lendo a temperatura e umidade do solo proveniente do JULES
 
          !-- 2) soil temperature (using soil_energy array)
-         call mk_4_buff(globalsoilenergy(:,:,:,2), soil_energy(:,:,:,2), &
+         call mk_4_buff(globalsoilenergy(:,:,:,:), soil_energy(:,:,:,:), &
             mzg, nnxp(ifm), nnyp(ifm), npat, mzg, n2, n3, npat, ia, iz, ja, jz)
 
          do j=1,n3
@@ -1244,8 +1246,8 @@ contains
                do ipat=2,npat
                   do k=1,mzg
                      nsoil = nint(soil_text(k,i,j,ipat))
-                     if (soil_energy(k,i,j,2)>223. .and. soil_energy(k,i,j,2)<323.) then
-                        soiltemp = soil_energy(k,i,j,2)-273.15        !- this is actually soil temp
+                     if (soil_energy(k,i,j,ipat)>223. .and. soil_energy(k,i,j,ipat)<323.) then
+                        soiltemp = soil_energy(k,i,j,ipat)-273.15        !- this is actually soil temp
                      else
                         soiltemp = 0.5*(seatf(i,j) + seatp(i,j))-273.15
                      endif
