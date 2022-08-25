@@ -4,37 +4,37 @@ cellarea_calc_mod.o : $(JULES_01)/cellarea_calc_mod.F90 conversions_mod_jls.o pa
 	$(F_COMMAND) $(<F:.f90=.f90) $(EXTRAFLAGSF)
 	@mv -f $(<F:.f90=.f90) ../doc/src
 
-clim_calc.o : $(JULES_01)/clim_calc.F90 
+clim_calc.o : $(JULES_01)/clim_calc.F90 missing_data_mod.o 
 	@cp -f $< $(<F:.f90=.f90)
 	$(F_COMMAND) $(<F:.f90=.f90) $(EXTRAFLAGSF)
 	@mv -f $(<F:.f90=.f90) ../doc/src
 
-delta_temp.o : $(JULES_01)/delta_temp.F90 
+delta_temp.o : $(JULES_01)/delta_temp.F90 jules_print_mgr.o 
 	@cp -f $< $(<F:.f90=.f90)
 	$(F_COMMAND) $(<F:.f90=.f90) $(EXTRAFLAGSF)
 	@mv -f $(<F:.f90=.f90) ../doc/src
 
-day_calc.o : $(JULES_01)/day_calc.F90 
+day_calc.o : $(JULES_01)/day_calc.F90 update_mod.o qsat_mod.o datetime_mod.o conversions_mod_jls.o 
 	@cp -f $< $(<F:.f90=.f90)
 	$(F_COMMAND) $(<F:.f90=.f90) $(EXTRAFLAGSF)
 	@mv -f $(<F:.f90=.f90) ../doc/src
 
-diff_atmos_ch4.o : $(JULES_01)/diff_atmos_ch4.F90 imogen_constants.o imogen_progs.o imogen_run.o
+diff_atmos_ch4.o : $(JULES_01)/diff_atmos_ch4.F90 parallel_mod.o model_time_mod.o jules_print_mgr.o imogen_constants.o imogen_progs.o imogen_run.o
 	@cp -f $< $(<F:.f90=.f90)
 	$(F_COMMAND) $(<F:.f90=.f90) $(EXTRAFLAGSF)
 	@mv -f $(<F:.f90=.f90) ../doc/src
 
-diffcarb_land_ch4.o : $(JULES_01)/diffcarb_land_ch4.F90 
+diffcarb_land_ch4.o : $(JULES_01)/diffcarb_land_ch4.F90 parallel_mod.o model_time_mod.o jules_print_mgr.o imogen_run.o cellarea_calc_mod.o 
 	@cp -f $< $(<F:.f90=.f90)
 	$(F_COMMAND) $(<F:.f90=.f90) $(EXTRAFLAGSF)
 	@mv -f $(<F:.f90=.f90) ../doc/src
 
-diffcarb_land_co2.o : $(JULES_01)/diffcarb_land_co2.F90 
+diffcarb_land_co2.o : $(JULES_01)/diffcarb_land_co2.F90 cellarea_calc_mod.o 
 	@cp -f $< $(<F:.f90=.f90)
 	$(F_COMMAND) $(<F:.f90=.f90) $(EXTRAFLAGSF)
 	@mv -f $(<F:.f90=.f90) ../doc/src
 
-drdat.o : $(JULES_01)/drdat.F90 
+drdat.o : $(JULES_01)/drdat.F90 io_constants.o 
 	@cp -f $< $(<F:.f90=.f90)
 	$(F_COMMAND) $(<F:.f90=.f90) $(EXTRAFLAGSF)
 	@mv -f $(<F:.f90=.f90) ../doc/src
@@ -44,32 +44,32 @@ gcm_anlg.o : $(JULES_01)/gcm_anlg.F90 imogen_map.o
 	$(F_COMMAND) $(<F:.f90=.f90) $(EXTRAFLAGSF)
 	@mv -f $(<F:.f90=.f90) ../doc/src
 
-imogen_check.o : $(JULES_01)/imogen_check.F90 
+imogen_check.o : $(JULES_01)/imogen_check.F90 logging_mod.o jules_print_mgr.o 
 	@cp -f $< $(<F:.f90=.f90)
 	$(F_COMMAND) $(<F:.f90=.f90) $(EXTRAFLAGSF)
 	@mv -f $(<F:.f90=.f90) ../doc/src
 
-imogen_update_clim.o : $(JULES_01)/imogen_update_clim.F90 
+imogen_update_clim.o : $(JULES_01)/imogen_update_clim.F90 prognostics.o model_time_mod.o logging_mod.o jules_print_mgr.o jules_fields_mod.o io_constants.o imogen_time.o imogen_run.o imogen_progs.o imogen_drive_vars.o imogen_constants.o imogen_clim.o imogen_anlg_vals.o datetime_mod.o ancil_info.o aero.o 
 	@cp -f $< $(<F:.f90=.f90)
 	$(F_COMMAND) $(<F:.f90=.f90) $(EXTRAFLAGSF)
 	@mv -f $(<F:.f90=.f90) ../doc/src
 
-imogen_update_carb.o : $(JULES_01)/imogen_update_carb.F90 
+imogen_update_carb.o : $(JULES_01)/imogen_update_carb.F90 prognostics.o parallel_mod.o model_time_mod.o model_grid_mod.o logging_mod.o jules_hydrology_mod.o jules_fields_mod.o imogen_run.o imogen_progs.o imogen_io_vars.o imogen_constants.o imogen_clim.o imogen_anlg_vals.o ancil_info.o aero.o 
 	@cp -f $< $(<F:.f90=.f90)
 	$(F_COMMAND) $(<F:.f90=.f90) $(EXTRAFLAGSF)
 	@mv -f $(<F:.f90=.f90) ../doc/src
 
-invert.o : $(JULES_01)/invert.F90 
+invert.o : $(JULES_01)/invert.F90 logging_mod.o 
 	@cp -f $< $(<F:.f90=.f90)
 	$(F_COMMAND) $(<F:.f90=.f90) $(EXTRAFLAGSF)
 	@mv -f $(<F:.f90=.f90) ../doc/src
 
-ocean_co2.o : $(JULES_01)/ocean_co2.F90 
+ocean_co2.o : $(JULES_01)/ocean_co2.F90 jules_print_mgr.o 
 	@cp -f $< $(<F:.f90=.f90)
 	$(F_COMMAND) $(<F:.f90=.f90) $(EXTRAFLAGSF)
 	@mv -f $(<F:.f90=.f90) ../doc/src
 
-radf_ch4.o : $(JULES_01)/radf_ch4.F90 
+radf_ch4.o : $(JULES_01)/radf_ch4.F90 parallel_mod.o model_time_mod.o jules_print_mgr.o io_constants.o imogen_run.o imogen_progs.o imogen_constants.o 
 	@cp -f $< $(<F:.f90=.f90)
 	$(F_COMMAND) $(<F:.f90=.f90) $(EXTRAFLAGSF)
 	@mv -f $(<F:.f90=.f90) ../doc/src
@@ -79,7 +79,7 @@ radf_co2.o : $(JULES_01)/radf_co2.F90
 	$(F_COMMAND) $(<F:.f90=.f90) $(EXTRAFLAGSF)
 	@mv -f $(<F:.f90=.f90) ../doc/src
 
-radf_non_co2.o : $(JULES_01)/radf_non_co2.F90 
+radf_non_co2.o : $(JULES_01)/radf_non_co2.F90 logging_mod.o io_constants.o imogen_constants.o 
 	@cp -f $< $(<F:.f90=.f90)
 	$(F_COMMAND) $(<F:.f90=.f90) $(EXTRAFLAGSF)
 	@mv -f $(<F:.f90=.f90) ../doc/src
@@ -94,7 +94,7 @@ redis.o : $(JULES_01)/redis.F90
 	$(F_COMMAND) $(<F:.f90=.f90) $(EXTRAFLAGSF)
 	@mv -f $(<F:.f90=.f90) ../doc/src
 
-solang.o : $(JULES_01)/solang.F90 
+solang.o : $(JULES_01)/solang.F90 conversions_mod_jls.o 
 	@cp -f $< $(<F:.f90=.f90)
 	$(F_COMMAND) $(<F:.f90=.f90) $(EXTRAFLAGSF)
 	@mv -f $(<F:.f90=.f90) ../doc/src
@@ -104,12 +104,12 @@ rndm.o : $(JULES_01)/rndm.F90
 	$(F_COMMAND) $(<F:.f90=.f90) $(EXTRAFLAGSF)
 	@mv -f $(<F:.f90=.f90) ../doc/src
 
-sunny.o : $(JULES_01)/sunny.F90 
+sunny.o : $(JULES_01)/sunny.F90 datetime_mod.o conversions_mod_jls.o 
 	@cp -f $< $(<F:.f90=.f90)
 	$(F_COMMAND) $(<F:.f90=.f90) $(EXTRAFLAGSF)
 	@mv -f $(<F:.f90=.f90) ../doc/src
 
-solpos.o : $(JULES_01)/solpos.F90 
+solpos.o : $(JULES_01)/solpos.F90 conversions_mod_jls.o 
 	@cp -f $< $(<F:.f90=.f90)
 	$(F_COMMAND) $(<F:.f90=.f90) $(EXTRAFLAGSF)
 	@mv -f $(<F:.f90=.f90) ../doc/src
@@ -405,13 +405,13 @@ switches.o trif_vars_mod.o trifctl.o um_types.o urban_param_mod.o yomhook.o
 	$(F_COMMAND) $(<F:.f90=.f90) $(EXTRAFLAGSF)
 	@mv -f $(<F:.f90=.f90) ../doc/src
 
-jules_griddiag_sf_explicit_jls.o : $(JULES_26)/jules_griddiag_sf_explicit_jls.F90 sf_aero.o switches.o \
+jules_griddiag_sf_explicit_jls.o : $(JULES_26)/jules_griddiag_sf_explicit_jls.F90 jules_snow_mod.o jules_sea_seaice_mod.o ancil_info.o blend_h_mod.o sf_aero.o switches.o \
 	sf_orog_gb_jls.o
 	@cp -f $< $(<F:.f90=.f90)
 	$(F_COMMAND) $(<F:.f90=.f90) $(EXTRAFLAGSF)
 	@mv -f $(<F:.f90=.f90) ../doc/src
 
-jules_gridinit_sf_explicit_jls.o : $(JULES_26)/jules_gridinit_sf_explicit_jls.F90 
+jules_gridinit_sf_explicit_jls.o : $(JULES_26)/jules_gridinit_sf_explicit_jls.F90 yomhook.o um_types.o sf_diags_mod.o planet_constants_mod_jls.o parkind1.o jules_sea_seaice_mod.o bl_option_mod.o atm_fields_bounds_mod.o 
 	@cp -f $< $(<F:.f90=.f90)
 	$(F_COMMAND) $(<F:.f90=.f90) $(EXTRAFLAGSF)
 	@mv -f $(<F:.f90=.f90) ../doc/src
@@ -444,7 +444,7 @@ surf_couple_implicit_mod.o : $(JULES_02)/surf_couple_implicit_mod.F90 aero.o anc
 	$(F_COMMAND) $(<F:.f90=.f90) $(EXTRAFLAGSF)
 	@mv -f $(<F:.f90=.f90) ../doc/src
 
-jules_griddiag_sf_implicit_jls.o : $(JULES_26)/jules_griddiag_sf_implicit_jls.F90
+jules_griddiag_sf_implicit_jls.o : $(JULES_26)/jules_griddiag_sf_implicit_jls.F90 yomhook.o water_constants_mod_jls.o um_types.o timestep_mod.o theta_field_sizes_mod.o sice_htf_jls.o sf_melt_jls.o sf_diags_mod.o screen_tq_jls.o planet_constants_mod_jls.o parkind1.o jules_sea_seaice_mod.o jules_radiation_mod.o im_sf_pt2_jls.o csigma_mod.o atm_fields_bounds_mod.o
 	@cp -f $< $(<F:.f90=.f90)
 	$(F_COMMAND) $(<F:.f90=.f90) $(EXTRAFLAGSF)
 	@mv -f $(<F:.f90=.f90) ../doc/src
@@ -524,7 +524,7 @@ water_resources_control_mod.o : $(JULES_02)/water_resources_control_mod.F90 anci
 	$(F_COMMAND) $(<F:.f90=.f90) $(EXTRAFLAGSF)
 	@mv -f $(<F:.f90=.f90) ../doc/src
 
-fao_evapotranspiration_mod.o : $(JULES_27)/fao_evapotranspiration_mod.F90 
+fao_evapotranspiration_mod.o : $(JULES_27)/fao_evapotranspiration_mod.F90 um_types.o theta_field_sizes_mod.o qsat_mod.o csigma_mod.o conversions_mod_jls.o 
 	@cp -f $< $(<F:.f90=.f90)
 	$(F_COMMAND) $(<F:.f90=.f90) $(EXTRAFLAGSF)
 	@mv -f $(<F:.f90=.f90) ../doc/src
@@ -552,7 +552,7 @@ jules_final_mod.o : $(JULES_03)/jules_final_mod.F90 jules_deposition_mod.o jules
 	$(F_COMMAND) $(<F:.f90=.f90) $(EXTRAFLAGSF)
 	@mv -f $(<F:.f90=.f90) ../doc/src
 
-next_time.o : $(JULES_03)/next_time.F90 
+next_time.o : $(JULES_03)/next_time.F90 trifctl.o time_varying_input_mod.o string_utils_mod.o spinup_mod.o prognostics.o output_mod.o model_time_mod.o logging_mod.o dump_mod.o datetime_mod.o 
 	@cp -f $< $(<F:.f90=.f90)
 	$(F_COMMAND) $(<F:.f90=.f90) $(EXTRAFLAGSF)
 	@mv -f $(<F:.f90=.f90) ../doc/src
@@ -650,12 +650,12 @@ init_flake_ancils_mod.o : $(JULES_05)/init_flake_ancils_mod.F90 dump_mod.o error
 	$(F_COMMAND) $(<F:.f90=.f90) $(EXTRAFLAGSF)
 	@mv -f $(<F:.f90=.f90) ../doc/src
 
-init_ancillaries_mod.o : $(JULES_05)/init_ancillaries_mod.F90 input_mod.o logging_mod.o init_flake_ancils_mod.o
+init_ancillaries_mod.o : $(JULES_05)/init_ancillaries_mod.F90 tilepts_jls.o rivers_route_utils_mod.o rivers_regrid_mod.o jules_model_environment_mod.o allocate_cable_arrays_mod.o input_mod.o logging_mod.o init_flake_ancils_mod.o
 	@cp -f $< $(<F:.f90=.f90)
 	$(F_COMMAND) $(<F:.f90=.f90) $(EXTRAFLAGSF)
 	@mv -f $(<F:.f90=.f90) ../doc/src
 
-init_grid_mod.o : $(JULES_06)/init_grid_mod.F90 logging_mod.o time_varying_input_mod.o
+init_grid_mod.o : $(JULES_06)/init_grid_mod.F90 switches.o parallel_mod.o output_mod.o nlsizes_namelist_mod.o jules_sea_seaice_mod.o dump_mod.o c_elevate.o allocate_jules_arrays.o logging_mod.o time_varying_input_mod.o
 	@cp -f $< $(<F:.f90=.f90)
 	$(F_COMMAND) $(<F:.f90=.f90) $(EXTRAFLAGSF)
 	@mv -f $(<F:.f90=.f90) ../doc/src
@@ -674,7 +674,7 @@ init.o : $(JULES_39)/init.F90 aero.o allocate_cable_arrays_mod.o ancil_info.o co
 	$(F_COMMAND) $(<F:.f90=.f90) $(EXTRAFLAGSF)
 	@mv -f $(<F:.f90=.f90) ../doc/src
 
-init_params_mod.o : $(JULES_40)/init_params_mod.F90 pftparm_io_mod.o nvegparm_io_mod.o trif_io_mod.o
+init_params_mod.o : $(JULES_40)/init_params_mod.F90 trif_mod.o jules_deposition_mod.o deposition_species_mod.o deposition_species_io_mod.o prognostics.o pftparm_mod.o nvegparm_mod.o jules_vegetation_mod.o jules_surface_types_mod.o jules_soil_biogeochem_mod.o jules_radiation_mod.o jules_model_environment_mod.o ereport_mod.o c_z0h_z0m_mod.o cropparm_io_mod.o cropparm_mod.o cable_other_constants_mod.o ancil_info.o pftparm_io_mod.o nvegparm_io_mod.o trif_io_mod.o
 	@cp -f $< $(<F:.f90=.f90)
 	$(F_COMMAND) $(<F:.f90=.f90) $(EXTRAFLAGSF)
 	@mv -f $(<F:.f90=.f90) ../doc/src
@@ -692,7 +692,7 @@ init_check_compatibility.o : $(JULES_39)/init_check_compatibility.F90 check_unav
 	$(F_COMMAND) $(<F:.f90=.f90) $(EXTRAFLAGSF)
 	@mv -f $(<F:.f90=.f90) ../doc/src
 
-check_unavailable_options_mod.o : $(JULES_03)/check_unavailable_options_mod.F90
+check_unavailable_options_mod.o : $(JULES_03)/check_unavailable_options_mod.F90 jules_vegetation_mod.o jules_surface_mod.o jules_rivers_mod.o jules_radiation_mod.o jules_print_mgr.o ereport_mod.o
 	@cp -f $< $(<F:.f90=.f90)
 	$(F_COMMAND) $(<F:.f90=.f90) $(EXTRAFLAGSF)
 	@mv -f $(<F:.f90=.f90) ../doc/src
@@ -703,12 +703,12 @@ init_deposition_mod.o : $(JULES_39)/init_deposition_mod.F90 errormessagelength_m
 	$(F_COMMAND) $(<F:.f90=.f90) $(EXTRAFLAGSF)
 	@mv -f $(<F:.f90=.f90) ../doc/src
 
-init_drive.o : $(JULES_39)/init_drive.F90 
+init_drive.o : $(JULES_39)/init_drive.F90 update_mod.o um_types.o time_varying_input_mod.o theta_field_sizes_mod.o templating_mod.o string_utils_mod.o prognostics.o model_time_mod.o model_interface_mod.o missing_data_mod.o mem_brams_jules.o logging_mod.o jules_surface_mod.o io_constants.o input_mod.o errormessagelength_mod.o disaggregated_precip.o datetime_mod.o conversions_mod_jls.o ancil_info.o 
 	@cp -f $< $(<F:.f90=.f90)
 	$(F_COMMAND) $(<F:.f90=.f90) $(EXTRAFLAGSF)
 	@mv -f $(<F:.f90=.f90) ../doc/src
 
-init_fire.o : $(JULES_39)/init_fire.F90 
+init_fire.o : $(JULES_39)/init_fire.F90 string_utils_mod.o missing_data_mod.o metstats_mod.o logging_mod.o io_constants.o fire_mod.o fire_init.o fire_allocate.o ancil_info.o 
 	@cp -f $< $(<F:.f90=.f90)
 	$(F_COMMAND) $(<F:.f90=.f90) $(EXTRAFLAGSF)
 	@mv -f $(<F:.f90=.f90) ../doc/src
@@ -719,12 +719,12 @@ init_hydrology.o : $(JULES_39)/init_hydrology.F90 errormessagelength_mod.o io_co
 	$(F_COMMAND) $(<F:.f90=.f90) $(EXTRAFLAGSF)
 	@mv -f $(<F:.f90=.f90) ../doc/src
 
-init_imogen.o : $(JULES_39)/init_imogen.F90 
+init_imogen.o : $(JULES_39)/init_imogen.F90 update_mod.o trifctl.o string_utils_mod.o prognostics.o model_time_mod.o logging_mod.o io_constants.o imogen_time.o imogen_run.o imogen_progs.o imogen_map.o imogen_io_vars.o imogen_drive_vars.o imogen_constants.o imogen_clim.o imogen_anlg_vals.o errormessagelength_mod.o dump_mod.o datetime_mod.o ancil_info.o aero.o 
 	@cp -f $< $(<F:.f90=.f90)
 	$(F_COMMAND) $(<F:.f90=.f90) $(EXTRAFLAGSF)
 	@mv -f $(<F:.f90=.f90) ../doc/src
 
-init_irrigation.o : $(JULES_39)/init_irrigation.F90 
+init_irrigation.o : $(JULES_39)/init_irrigation.F90 string_utils_mod.o logging_mod.o jules_vegetation_mod.o jules_irrig_mod.o jules_hydrology_mod.o io_constants.o errormessagelength_mod.o 
 	@cp -f $< $(<F:.f90=.f90)
 	$(F_COMMAND) $(<F:.f90=.f90) $(EXTRAFLAGSF)
 	@mv -f $(<F:.f90=.f90) ../doc/src
@@ -761,7 +761,7 @@ init_plant_n_uptake_mod.o : $(JULES_39)/init_plant_n_uptake_mod.F90 jules_plant_
 	$(F_COMMAND) $(<F:.f90=.f90) $(EXTRAFLAGSF)
 	@mv -f $(<F:.f90=.f90) ../doc/src
 
-init_prescribed_data.o : $(JULES_39)/init_prescribed_data.F90 
+init_prescribed_data.o : $(JULES_39)/init_prescribed_data.F90 update_mod.o time_varying_input_mod.o templating_mod.o string_utils_mod.o model_interface_mod.o missing_data_mod.o max_dimensions.o logging_mod.o jules_water_resources_mod.o jules_vegetation_mod.o jules_soil_mod.o jules_radiation_mod.o jules_irrig_mod.o jules_hydrology_mod.o jules_deposition_mod.o io_constants.o errormessagelength_mod.o datetime_mod.o 
 	@cp -f $< $(<F:.f90=.f90)
 	$(F_COMMAND) $(<F:.f90=.f90) $(EXTRAFLAGSF)
 	@mv -f $(<F:.f90=.f90) ../doc/src
@@ -814,12 +814,12 @@ init_surface_types.o : $(JULES_39)/init_surface_types.F90 cable_surface_types_mo
 	$(F_COMMAND) $(<F:.f90=.f90) $(EXTRAFLAGSF)
 	@mv -f $(<F:.f90=.f90) ../doc/src
 
-init_urban.o : $(JULES_39)/init_urban.F90 
+init_urban.o : $(JULES_39)/init_urban.F90 urban_param_mod.o switches_urban.o jules_surface_mod.o 
 	@cp -f $< $(<F:.f90=.f90)
 	$(F_COMMAND) $(<F:.f90=.f90) $(EXTRAFLAGSF)
 	@mv -f $(<F:.f90=.f90) ../doc/src
 
-init_time.o : $(JULES_39)/init_time.F90 
+init_time.o : $(JULES_39)/init_time.F90 um_types.o trifctl.o timestep_mod.o switches.o string_utils_mod.o spinup_mod.o model_time_mod.o model_interface_mod.o mem_brams_jules.o logging_mod.o io_constants.o errormessagelength_mod.o datetime_mod.o 
 	@cp -f $< $(<F:.f90=.f90)
 	$(F_COMMAND) $(<F:.f90=.f90) $(EXTRAFLAGSF)
 	@mv -f $(<F:.f90=.f90) ../doc/src
@@ -830,7 +830,7 @@ init_vegetation.o : $(JULES_39)/init_vegetation.F90 errormessagelength_mod.o io_
 	$(F_COMMAND) $(<F:.f90=.f90) $(EXTRAFLAGSF)
 	@mv -f $(<F:.f90=.f90) ../doc/src
 
-init_vars_tmp.o : $(JULES_39)/init_vars_tmp.F90 
+init_vars_tmp.o : $(JULES_39)/init_vars_tmp.F90 update_mod.o um_types.o trif_vars_mod.o trifctl.o trif_mod.o top_pdm.o p_s_parms.o prognostics.o pftparm_mod.o logging_mod.o jules_vegetation_mod.o jules_mod.o jules_surface_types_mod.o jules_soil_mod.o jules_sea_seaice_mod.o jules_deposition_mod.o hyd_psi_mod.o forcing.o dump_mod.o crop_vars_mod.o coastal.o CN_utils_mod.o c_kappai_mod.o calc_c_comps_triffid_mod.o ancil_info.o aero.o 
 	@cp -f $< $(<F:.f90=.f90)
 	$(F_COMMAND) $(<F:.f90=.f90) $(EXTRAFLAGSF)
 	@mv -f $(<F:.f90=.f90) ../doc/src
@@ -847,12 +847,12 @@ driver_ascii_mod.o : $(JULES_10)/driver_ascii_mod.F90 io_constants.o logging_mod
 	$(F_COMMAND) $(<F:.f90=.f90) $(EXTRAFLAGSF)
 	@mv -f $(<F:.f90=.f90) ../doc/src
 
-file_ascii_generic_sync_mod.o : $(JULES_10)/file_ascii_generic_sync_mod.F90 logging_mod.o
+file_ascii_generic_sync_mod.o : $(JULES_10)/file_ascii_generic_sync_mod.F90 precision_mod.o logging_mod.o
 	@cp -f $< $(<F:.f90=.f90)
 	$(F_COMMAND) $(<F:.f90=.f90) $(EXTRAFLAGSF)
 	@mv -f $(<F:.f90=.f90) ../doc/src
 
-file_gridded_mod.o : $(JULES_11)/file_gridded_mod.F90 file_mod.o grid_utils_mod.o io_constants.o logging_mod.o
+file_gridded_mod.o : $(JULES_11)/file_gridded_mod.F90 data_cube_mod.o file_mod.o grid_utils_mod.o io_constants.o logging_mod.o
 	@cp -f $< $(<F:.f90=.f90)
 	$(F_COMMAND) $(<F:.f90=.f90) $(EXTRAFLAGSF)
 	@mv -f $(<F:.f90=.f90) ../doc/src
@@ -862,7 +862,7 @@ file_mod.o : $(JULES_12)/file_mod.F90 driver_ascii_mod.o driver_ncdf_mod.o loggi
 	$(F_COMMAND) $(<F:.f90=.f90) $(EXTRAFLAGSF)
 	@mv -f $(<F:.f90=.f90) ../doc/src
 
-input_mod.o : $(JULES_13)/input_mod.F90 grid_utils_mod.o logging_mod.o
+input_mod.o : $(JULES_13)/input_mod.F90 model_interface_mod.o jules_surface_types_mod.o jules_soil_mod.o file_gridded_mod.o dictionary_mod.o data_cube_mod.o grid_utils_mod.o logging_mod.o
 	@cp -f $< $(<F:.f90=.f90)
 	$(F_COMMAND) $(<F:.f90=.f90) $(EXTRAFLAGSF)
 	@mv -f $(<F:.f90=.f90) ../doc/src
@@ -873,7 +873,7 @@ file_ts_mod.o : $(JULES_14)/file_ts_mod.F90 datetime_mod.o dictionary_mod.o file
 	$(F_COMMAND) $(<F:.f90=.f90) $(EXTRAFLAGSF)
 	@mv -f $(<F:.f90=.f90) ../doc/src
 
-interpolation_mod.o : $(JULES_15)/interpolation_mod.F90 logging_mod.o
+interpolation_mod.o : $(JULES_15)/interpolation_mod.F90 data_cube_mod.o logging_mod.o
 	@cp -f $< $(<F:.f90=.f90)
 	$(F_COMMAND) $(<F:.f90=.f90) $(EXTRAFLAGSF)
 	@mv -f $(<F:.f90=.f90) ../doc/src
@@ -1086,7 +1086,7 @@ flake_radflux.o : $(JULES_20)/flake_radflux.F90 data_parameters_mod.o flake_deri
 	$(F_COMMAND) $(<F:.f90=.f90) $(EXTRAFLAGSF)
 	@mv -f $(<F:.f90=.f90) ../doc/src
 
-jules_flake_interface_1D.o : $(JULES_20)/jules_flake_interface_1D.F90 
+jules_flake_interface_1D.o : $(JULES_20)/jules_flake_interface_1D.F90 um_types.o flake_radflux.o flake_paramoptic_ref_mod.o flake_parameters_mod.o flake_driver_mod.o flake_derivedtypes_mod.o flake_mod.o data_parameters_mod.o 
 	@cp -f $< $(<F:.f90=.f90)
 	$(F_COMMAND) $(<F:.f90=.f90) $(EXTRAFLAGSF)
 	@mv -f $(<F:.f90=.f90) ../doc/src
@@ -1755,7 +1755,7 @@ jules_land_sf_implicit.jls.o : $(JULES_26)/jules_land_sf_implicit.jls.F90 ancil_
 	$(F_COMMAND) $(<F:.f90=.f90) $(EXTRAFLAGSF)
 	@mv -f $(<F:.f90=.f90) ../doc/src
 
-generate_anthrop_heat_jls_mod.o : $(JULES_26)/generate_anthrop_heat_jls_mod.F90 tilepts_jls.o
+generate_anthrop_heat_jls_mod.o : $(JULES_26)/generate_anthrop_heat_jls_mod.F90 urban_param_mod.o switches.o tilepts_jls.o
 	@cp -f $< $(<F:.f90=.f90)
 	$(F_COMMAND) $(<F:.f90=.f90) $(EXTRAFLAGSF)
 	@mv -f $(<F:.f90=.f90) ../doc/src
@@ -1954,7 +1954,7 @@ urbanz0.o : $(JULES_26)/urbanz0.F90 get_us.o jules_print_mgr.o jules_surface_typ
 	$(F_COMMAND) $(<F:.f90=.f90) $(EXTRAFLAGSF)
 	@mv -f $(<F:.f90=.f90) ../doc/src
 
-vgrav_jls.o : $(JULES_26)/vgrav_jls.F90 
+vgrav_jls.o : $(JULES_26)/vgrav_jls.F90 yomhook.o um_types.o planet_constants_mod_jls.o parkind1.o dust_param_mod.o conversions_mod_jls.o chemistry_constants_mod.o atm_fields_bounds_mod.o 
 	@cp -f $< $(<F:.f90=.f90)
 	$(F_COMMAND) $(<F:.f90=.f90) $(EXTRAFLAGSF)
 	@mv -f $(<F:.f90=.f90) ../doc/src
@@ -1982,7 +1982,7 @@ decay_jls.o : $(JULES_27)/decay_jls.F90 descent_mod.o jules_soil_mod.o parkind1.
 	$(F_COMMAND) $(<F:.f90=.f90) $(EXTRAFLAGSF)
 	@mv -f $(<F:.f90=.f90) ../doc/src
 
-develop.o : $(JULES_27)/develop.F90 
+develop.o : $(JULES_27)/develop.F90 um_types.o timestep_mod.o cropparm_mod.o conversions_mod_jls.o 
 	@cp -f $< $(<F:.f90=.f90)
 	$(F_COMMAND) $(<F:.f90=.f90) $(EXTRAFLAGSF)
 	@mv -f $(<F:.f90=.f90) ../doc/src
@@ -1992,12 +1992,12 @@ dpm_rpm_jls.o : $(JULES_27)/dpm_rpm_jls.F90 jules_surface_types_mod.o parkind1.o
 	$(F_COMMAND) $(<F:.f90=.f90) $(EXTRAFLAGSF)
 	@mv -f $(<F:.f90=.f90) ../doc/src
 
-emerge.o : $(JULES_27)/emerge.F90 
+emerge.o : $(JULES_27)/emerge.F90 um_types.o timestep_mod.o cropparm_mod.o conversions_mod_jls.o 
 	@cp -f $< $(<F:.f90=.f90)
 	$(F_COMMAND) $(<F:.f90=.f90) $(EXTRAFLAGSF)
 	@mv -f $(<F:.f90=.f90) ../doc/src
 
-jules_subroutine.o : $(JULES_27)/jules_subroutine.F90 
+jules_subroutine.o : $(JULES_27)/jules_subroutine.F90 update_mod.o time_varying_input_mod.o output_mod.o model_time_mod.o jules_print_mgr.o jules_final_mod.o jules_fields_mod.o io_constants.o init.o gridmean_fluxes.o forcing.o 
 	@cp -f $< $(<F:.f90=.f90)
 	$(F_COMMAND) $(<F:.f90=.f90) $(EXTRAFLAGSF)
 	@mv -f $(<F:.f90=.f90) ../doc/src
@@ -2032,7 +2032,7 @@ lotka_noeq_subset_jls.o : $(JULES_27)/lotka_noeq_subset_jls.F90 jules_surface_ty
 	$(F_COMMAND) $(<F:.f90=.f90) $(EXTRAFLAGSF)
 	@mv -f $(<F:.f90=.f90) ../doc/src
 
-partition.o : $(JULES_27)/partition.F90 
+partition.o : $(JULES_27)/partition.F90 um_types.o jules_vegetation_mod.o crop_utils_mod.o cropparm_mod.o 
 	@cp -f $< $(<F:.f90=.f90)
 	$(F_COMMAND) $(<F:.f90=.f90) $(EXTRAFLAGSF)
 	@mv -f $(<F:.f90=.f90) ../doc/src
@@ -2078,7 +2078,7 @@ soilcarb_layers_jls_mod.o : $(JULES_27)/soilcarb_layers_jls_mod.F90 ancil_info.o
 	$(F_COMMAND) $(<F:.f90=.f90) $(EXTRAFLAGSF)
 	@mv -f $(<F:.f90=.f90) ../doc/src
 
-sow.o : $(JULES_27)/sow.F90 
+sow.o : $(JULES_27)/sow.F90 um_types.o time_info_mod.o jules_vegetation_mod.o datetime_utils_mod.o cropparm_mod.o 
 	@cp -f $< $(<F:.f90=.f90)
 	$(F_COMMAND) $(<F:.f90=.f90) $(EXTRAFLAGSF)
 	@mv -f $(<F:.f90=.f90) ../doc/src
@@ -2175,7 +2175,7 @@ gridbox_mean_mod.o : $(JULES_30)/gridbox_mean_mod.F90 ancil_info.o jules_surface
 	$(F_COMMAND) $(<F:.f90=.f90) $(EXTRAFLAGSF)
 	@mv -f $(<F:.f90=.f90) ../doc/src
 
-metstats_init.o : $(JULES_30)/metstats/metstats_init.F90 ancil_info.o jules_surface_mod.o jules_surface_types_mod.o
+metstats_init.o : $(JULES_30)/metstats/metstats_init.F90 theta_field_sizes_mod.o model_grid_mod.o metstats_mod.o conversions_mod_jls.o ancil_info.o jules_surface_mod.o jules_surface_types_mod.o
 	@cp -f $< $(<F:.f90=.f90)
 	$(F_COMMAND) $(<F:.f90=.f90) $(EXTRAFLAGSF)
 	@mv -f $(<F:.f90=.f90) ../doc/src
@@ -2226,18 +2226,18 @@ driver_ncdf_mod.o : $(JULES_33)/driver_ncdf_mod.F90 io_constants.o logging_mod.o
 	$(F_COMMAND) $(<F:.f90=.f90) $(EXTRAFLAGSF)
 	@mv -f $(<F:.f90=.f90) ../doc/src
 
-parallel_mod.o : $(JULES_03)/parallel/parallel_mod.F90 logging_mod.o
+parallel_mod.o : $(JULES_03)/parallel/parallel_mod.F90 model_grid_mod.o missing_data_mod.o grid_utils_mod.o ancil_info.o theta_field_sizes_mod.o jules_fields_mod.o logging_mod.o
 	@cp -f $< $(<F:.f90=.f90)
 	$(F_COMMAND) $(<F:.f90=.f90) $(EXTRAFLAGSF)
 	@mv -f $(<F:.f90=.f90) ../doc/src
 
-output_mod.o : $(JULES_34)/output_mod.F90 data_cube_mod.o datetime_mod.o file_ts_mod.o grid_utils_mod.o io_constants.o \
+output_mod.o : $(JULES_34)/output_mod.F90 model_time_mod.o model_interface_mod.o data_cube_mod.o datetime_mod.o file_ts_mod.o grid_utils_mod.o io_constants.o \
 	logging_mod.o string_utils_mod.o
 	@cp -f $< $(<F:.f90=.f90)
 	$(F_COMMAND) $(<F:.f90=.f90) $(EXTRAFLAGSF)
 	@mv -f $(<F:.f90=.f90) ../doc/src
 
-data_cube_mod.o : $(JULES_07)/data_cube_mod.F90
+data_cube_mod.o : $(JULES_07)/data_cube_mod.F90 logging_mod.o io_constants.o
 	@cp -f $< $(<F:.f90=.f90)
 	$(F_COMMAND) $(<F:.f90=.f90) $(EXTRAFLAGSF)
 	@mv -f $(<F:.f90=.f90) ../doc/src
@@ -2252,40 +2252,40 @@ grid_utils_mod.o : $(JULES_35)/grid_utils_mod.F90 io_constants.o logging_mod.o
 	$(F_COMMAND) $(<F:.f90=.f90) $(EXTRAFLAGSF)
 	@mv -f $(<F:.f90=.f90) ../doc/src
 
-initial_conditions_mod.o : $(JULES_08)/initial_conditions_mod.F90 logging_mod.o
+initial_conditions_mod.o : $(JULES_08)/initial_conditions_mod.F90 soil_biogeochem_control_mod.o layersnow_mod.o calc_zw_inund_jls_mod.o calc_fsat_mod.o calc_baseflow_jules_mod.o water_constants_mod_jls.o veg_param_mod.o update_mod.o time_info_mod.o tilepts_jls.o templating_mod.o root_frac_jls_mod.o rivers_route_mod.o pftparm_mod.o model_interface_mod.o missing_data_mod.o jules_vegetation_mod.o jules_surface_types_mod.o jules_surface_mod.o jules_soil_mod.o jules_soil_ecosse_mod.o jules_soil_biogeochem_mod.o jules_rivers_mod.o jules_irrig_mod.o jules_hydrology_mod.o input_mod.o freeze_soil.o flake_init_mod.o ecosse_init_mod.o dump_mod.o dictionary_mod.o crop_vars_mod.o crop_utils_mod.o conversions_mod_jls.o ancil_info.o logging_mod.o
 	@cp -f $< $(<F:.f90=.f90)
 	$(F_COMMAND) $(<F:.f90=.f90) $(EXTRAFLAGSF)
 	@mv -f $(<F:.f90=.f90) ../doc/src
 
-time_varying_input_mod.o : $(JULES_36)/time_varying_input_mod.F90 data_cube_mod.o datetime_mod.o file_ts_mod.o \
+time_varying_input_mod.o : $(JULES_36)/time_varying_input_mod.F90 model_time_mod.o data_cube_mod.o datetime_mod.o file_ts_mod.o \
 	input_mod.o io_constants.o logging_mod.o interpolation_mod.o
 	@cp -f $< $(<F:.f90=.f90)
 	$(F_COMMAND) $(<F:.f90=.f90) $(EXTRAFLAGSF)
 	@mv -f $(<F:.f90=.f90) ../doc/src
 
-update_mod.o : $(JULES_03)/update/update_mod.F90 missing_data_mod.o sparm_jls_mod.o imogen_drive_vars.o \
+update_mod.o : $(JULES_03)/update/update_mod.F90 model_time_mod.o jules_soil_mod.o jules_irrig_mod.o datetime_utils_mod.o datetime_mod.o qsat_mod.o p_s_parms.o prognostics.o jules_mod.o jules_sea_seaice_mod.o forcing.o fluxes.o csigma_mod.o crop_vars_mod.o coastal.o missing_data_mod.o sparm_jls_mod.o imogen_drive_vars.o \
 	freeze_soil.o disaggregated_precip.o model_grid_mod.o
 	@cp -f $< $(<F:.f90=.f90)
 	$(F_COMMAND) $(<F:.f90=.f90) $(EXTRAFLAGSF)
 	@mv -f $(<F:.f90=.f90) ../doc/src
 
-dump_mod.o : $(JULES_37)/dump_mod.F90 io_constants.o logging_mod.o file_mod.o model_interface_mod.o \
+dump_mod.o : $(JULES_37)/dump_mod.F90 update_mod.o parallel_mod.o imogen_run.o io_constants.o logging_mod.o file_mod.o model_interface_mod.o \
 	output_mod.o
 	@cp -f $< $(<F:.f90=.f90)
 	$(F_COMMAND) $(<F:.f90=.f90) $(EXTRAFLAGSF)
 	@mv -f $(<F:.f90=.f90) ../doc/src
 
-model_interface_mod.o : $(JULES_38)/model_interface_mod.F90 io_constants.o logging_mod.o
+model_interface_mod.o : $(JULES_38)/model_interface_mod.F90 metstats_mod.o jules_snow_mod.o cable_prognostic_info_mod.o water_constants_mod_jls.o jules_vegetation_mod.o jules_surface_types_mod.o jules_surface_mod.o jules_soil_mod.o ancil_info.o aero.o veg_param_mod.o theta_field_sizes_mod.o soil_ecosse_vars_mod.o sf_diags_mod.o ozone_vars.o overbank_inundation_mod.o model_grid_mod.o lake_mod.o jules_water_resources_mod.o jules_soil_ecosse_mod.o jules_soil_biogeochem_mod.o jules_radiation_mod.o jules_fields_mod.o jules_deposition_mod.o imogen_progs.o gridmean_fluxes.o gridbox_mean_mod.o forcing.o fluxes.o fire_mod.o dictionary_mod.o data_cube_mod.o c_z0h_z0m_mod.o csigma_mod.o bvoc_vars.o io_constants.o logging_mod.o
 	@cp -f $< $(<F:.f90=.f90)
 	$(F_COMMAND) $(<F:.f90=.f90) $(EXTRAFLAGSF)
 	@mv -f $(<F:.f90=.f90) ../doc/src
 
-ecosse_init_mod.o : $(JULES_08)/ecosse_init_mod.F90 
+ecosse_init_mod.o : $(JULES_08)/ecosse_init_mod.F90 veg_soil_index_mod.o um_types.o soil_ecosse_vars_mod.o jules_surface_types_mod.o jules_soil_ecosse_mod.o jules_fields_mod.o ecosse_utils_mod.o ecosse_prepare_mod.o ancil_info.o 
 	@cp -f $< $(<F:.f90=.f90)
 	$(F_COMMAND) $(<F:.f90=.f90) $(EXTRAFLAGSF)
 	@mv -f $(<F:.f90=.f90) ../doc/src
 
-flake_init_mod.o : $(JULES_08)/flake_init_mod.F90 
+flake_init_mod.o : $(JULES_08)/flake_init_mod.F90 yomhook.o water_constants_mod_jls.o theta_field_sizes_mod.o prognostics.o parkind1.o model_grid_mod.o lake_mod.o jules_surface_types_mod.o jules_soil_mod.o jules_snow_mod.o conversions_mod_jls.o ancil_info.o 
 	@cp -f $< $(<F:.f90=.f90)
 	$(F_COMMAND) $(<F:.f90=.f90) $(EXTRAFLAGSF)
 	@mv -f $(<F:.f90=.f90) ../doc/src
