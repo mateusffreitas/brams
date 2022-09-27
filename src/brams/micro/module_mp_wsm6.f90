@@ -161,7 +161,7 @@ CONTAINS
   REAL, DIMENSION( its:ite , kts:kte )                 ::         &
                                                       rainprod2d, &
                                                       evapprod2d
-#endif
+!#endif
 
 ! LOCAL VAR
   REAL, DIMENSION( its:ite , kts:kte ) ::   t

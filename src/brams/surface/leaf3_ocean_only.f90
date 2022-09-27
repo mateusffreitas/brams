@@ -199,6 +199,12 @@ subroutine sub_leaf3_ocean_only(m1,m2,m3,mzg,mzs,np,ia,iz,ja,jz  &
     ustar   (:,:,1) = leaf%ustar   (:,:,1)
     tstar   (:,:,1) = leaf%tstar   (:,:,1) 	          	       
     rstar   (:,:,1) = leaf%rstar   (:,:,1)
+    
+    sflux_u  = 0.
+    sflux_v  = 0.
+    sflux_w  = 0.
+    O_albedt  = 0.
+    O_rlongup = 0.
   endif
 
 

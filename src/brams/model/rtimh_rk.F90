@@ -326,7 +326,7 @@ subroutine timestep_rk(OneGrid,oneNamelistFile)
      if (time==0.) &
      call SFCLYR      (mzp,mxp,myp,ia,iz,ja,jz,ibcon)
 
-     call SFCLYR_JULES(mzp,mxp,myp,ia,iz,ja,jz,jdim,julesFile)
+     call SFCLYR_JULES(mzp,mxp,myp,ia,iz,ja,jz,jdim,julesFile,i0,j0)
      !--- this combines the JULES land + LEAF ocean models.
      if (isfcl_ocean == 1) & 
      call sfclyr_ocean_only  (mzp,mxp,myp,ia,iz,ja,jz,ibcon)

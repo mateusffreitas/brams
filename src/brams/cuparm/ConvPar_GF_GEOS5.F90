@@ -2590,7 +2590,8 @@ contains
       !-- only for debug (atmos composition)
       real, allocatable, dimension (:,:,:),save    ::   se_chem_update
           !----------------------------------------------------------------------
-
+    
+      tn_x =0.
 
       !--only for debug
       if(use_gate) then
