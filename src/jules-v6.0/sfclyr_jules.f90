@@ -122,8 +122,8 @@ SUBROUTINE sfclyr_jules(mzp,mxp,myp,iaI,izI,jaI,jzI,jdim,julesFile,i0,j0)
 
 
 !Levar essa variavel para o RAMSIMN
-!pref_vies='NONE' ! prefix to vies files - 'NONE' or '' to no remove vies      
-pref_vies='/home/demerval/intercomparacao_dk/Oper_DSM/vies_emq/vies_ERA5+OBS_' ! 'NONE' to no remove vies  !Levar essa variavel para o RAMSIMN
+pref_vies='NONE' ! prefix to vies files - 'NONE' or '' to no remove vies      
+!pref_vies='/home/demerval/intercomparacao_dk/Oper_DSM/vies_emq/vies_ERA5+OBS_' ! 'NONE' to no remove vies  !Levar essa variavel para o RAMSIMN
 
 IF (LEN(TRIM(pref_vies)) .lt. 5) THEN  
    rem_vies=.false.
