@@ -313,7 +313,7 @@ install:
 	\cp -f -R $(RAMS_ROOT)/jules.in $(BINDIR)/jules.in
 	\cp -f $(RAMS_ROOT)/Bin_files/variables.csv $(BINDIR)/variables.csv
 	\cp -f -R $(RAMS_ROOT)/namelists $(BINDIR)/
-	\cp -f -R -T $(BINDIR)/namelists/tables $(BINDIR)/tables
+	\cp -f -R -T $(RAMS_ROOT)/namelists/tables $(BINDIR)/tables
 	\cp -f $(RAMS_ROOT)/scripts/* $(BINDIR)/
 
 install-strip:
