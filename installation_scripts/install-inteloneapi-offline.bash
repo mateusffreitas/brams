@@ -11,7 +11,9 @@ INTEL_COMPILER_DIR=${INTEL_COMPILER_DIR:-"${PWD}/inteloneapi-${INTEL_COMPILER_VE
 if [[ ! -f  ${INTEL_COMPILER_DIR}/.intelbasekit.done ]]
 then
   sh ${INTEL_KIT_PATH}/l_BaseKit_p_${INTEL_COMPILER_VERSION}*_offline.sh \
-   -r yes -a --silent --eula accept --install-dir ${INTEL_COMPILER_DIR} --instance "${INTEL_COMPILER_VERSION}"
+   -r yes -a --silent --eula accept --install-dir ${INTEL_COMPILER_DIR} --instance "${INTEL_COMPILER_VERSION}" \
+   --components intel.oneapi.lin.mkl.devel:intel.oneapi.lin.dpcpp_dbg
+
   [[ $? -ne 0 ]] && { echo "Error while installing Intel BaseKit" ; exit 1 ; }
   touch ${INTEL_COMPILER_DIR}/.intelbasekit.done
 else
@@ -21,7 +23,8 @@ fi
 if [[ ! -f  ${INTEL_COMPILER_DIR}/.intelhpckit.done ]]
 then
   sh ${INTEL_KIT_PATH}/l_HPCKit_p_${INTEL_COMPILER_VERSION}*_offline.sh \
-   -r yes -a --silent --eula accept --install-dir ${INTEL_COMPILER_DIR} --instance "${INTEL_COMPILER_VERSION}"
+   -r yes -a --silent --eula accept --install-dir ${INTEL_COMPILER_DIR} --instance "${INTEL_COMPILER_VERSION}" \
+   --components intel.oneapi.lin.mpi.devel:intel.oneapi.lin.dpcpp-cpp-compiler-pro:intel.oneapi.lin.ifort-compiler
   [[ $? -ne 0 ]] && { echo "Error while installing Intel HPCKit" ; exit 1 ; }
   touch ${INTEL_COMPILER_DIR}/.intelhpckit.done
 else
