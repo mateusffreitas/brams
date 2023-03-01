@@ -7,13 +7,24 @@ gcc_env() {
     export BRAMS_INSTALL_DIR=${BRAMS_INSTALL_DIR:-"${HOME}/brams-6.0-gcc"}
 }
 
-ifort_env() {
+intel_env() {
     export INTEL_COMPILER_VERSION=${INTEL_COMPILER_VERSION:-"2022.2.0"}
-    export PREREQ_DIR=${PREREQ_DIR:-"${PWD}/opt-intel-${INTEL_COMPILER_VERSION}"}
-    export INSTALL_DIR=${INSTALL_DIR:-"${PWD}/intel-${INTEL_COMPILER_VERSION}-prereq-install"}
     export INTEL_KIT_PATH=${INTEL_KIT_PATH:-"${PWD}/"}
     export INTEL_COMPILER_DIR=${INTEL_COMPILER_DIR:-"${PWD}/inteloneapi-${INTEL_COMPILER_VERSION}/"}
+}
+
+ifort_env() {
+    intel_env
     export BRAMS_INSTALL_DIR=${BRAMS_INSTALL_DIR:-"${HOME}/brams-6.0-ifort"}
+    export PREREQ_DIR=${PREREQ_DIR:-"${PWD}/opt-intel-${INTEL_COMPILER_VERSION}"}
+    export INSTALL_DIR=${INSTALL_DIR:-"${PWD}/intel-${INTEL_COMPILER_VERSION}-prereq-install"}
+}
+
+ifort_impi_env() {
+    intel_env
+    export BRAMS_INSTALL_DIR=${BRAMS_INSTALL_DIR:-"${HOME}/brams-6.0-ifort-impi"}
+    export PREREQ_DIR=${PREREQ_DIR:-"${PWD}/opt-intel-impi-${INTEL_COMPILER_VERSION}"}
+    export INSTALL_DIR=${INSTALL_DIR:-"${PWD}/intel-impi-${INTEL_COMPILER_VERSION}-prereq-install"}
 }
 
 export PREREQ_DL_DIR=${PREREQ_DL_DIR:-"${PWD}/prereq-download-dir/"}
@@ -30,6 +41,16 @@ case $1 in
     [[ $? -ne 0 ]] && { echo "Error while installing intel oneapi" ; exit 1 ; }
 
     ./install-prereq-ifort.bash
+    [[ $? -ne 0 ]] && { echo "Error while installing prerequisites" ; exit 1 ; }
+  ;;
+  "ifort-impi")
+    echo Installing with ifort and intel mpi
+    ifort_impi_env
+
+    ./install-inteloneapi-offline.bash
+    [[ $? -ne 0 ]] && { echo "Error while installing intel oneapi" ; exit 1 ; }
+
+    ./install-prereq-ifort-impi.bash
     [[ $? -ne 0 ]] && { echo "Error while installing prerequisites" ; exit 1 ; }
   ;;
   "gcc")
@@ -55,6 +76,13 @@ case $1 in
      ifort_env
 
      ./install-brams-ifort.bash
+     [[ $? -ne 0 ]] && { echo "Error while installing brams with ifort " ; exit 1 ; }
+  ;;
+  "brams-ifort-impi")
+     echo Installing BRAMS with ifort and intel mpi
+     ifort_impi_env
+
+     ./install-brams-ifort-impi.bash
      [[ $? -ne 0 ]] && { echo "Error while installing brams with ifort " ; exit 1 ; }
   ;;
   "brams-gcc")

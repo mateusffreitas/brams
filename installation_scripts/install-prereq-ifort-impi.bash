@@ -3,10 +3,9 @@
 INTEL_COMPILER_VERSION=${INTEL_COMPILER_VERSION:-"2022.2.0"}
 INTEL_COMPILER_DIR=${INTEL_COMPILER_DIR:-"${PWD}/inteloneapi-${INTEL_COMPILER_VERSION}/"}
 PREREQ_DL_DIR=${PREREQ_DL_DIR:-"${PWD}/prereq-download-dir/"}
-PREREQ_DIR=${PREREQ_DIR:-"${PWD}/opt-intel-${INTEL_COMPILER_VERSION}"}
-INSTALL_DIR=${INSTALL_DIR:-"${PWD}/intel-${INTEL_COMPILER_VERSION}-prereq-install"}
+PREREQ_DIR=${PREREQ_DIR:-"${PWD}/opt-intel-impi-${INTEL_COMPILER_VERSION}"}
+INSTALL_DIR=${INSTALL_DIR:-"${PWD}/intel-impi-${INTEL_COMPILER_VERSION}-prereq-install"}
 NUM_MAKE_JOBS=${NUM_MAKE_JOBS:-8}
-MPICH_VERSION=${MPICH_VERSION:-3.3.1}
 
 source ${INTEL_COMPILER_DIR}/setvars.sh
 export PATH=${PREREQ_DIR}/bin:$PATH
@@ -60,63 +59,49 @@ then
   cd ..
 fi
 
-if [[ ! -f .mpich-${MPICH_VERSION}.done ]]
-then
-  cp ${PREREQ_DL_DIR}/mpich-${MPICH_VERSION}.tar.gz .
-  tar -xzvf mpich-${MPICH_VERSION}.tar.gz
-  cd mpich-${MPICH_VERSION}/
-  ./configure CC=icc FC=ifort CFLAGS=-O2 FFLAGS=-O2 CXXFLAGS=-O2 FCFLAGS=-O2 \
-   --prefix=${PREREQ_DIR} --with-device=ch3
-  make clean &&  make -j $NUM_MAKE_JOBS
-  make install
-  [[ $? -ne 0 ]] && { echo "Error while installing mpich-${MPICH_VERSION}" ; exit 1 ; }
-  touch ../.mpich-${MPICH_VERSION}.done
-  cd ..
-fi
-
-if [[ ! -f .hdf5-mpich-${MPICH_VERSION}.done ]]
+if [[ ! -f .hdf5-impi.done ]]
 then
   cp ${PREREQ_DL_DIR}/hdf5-1_12_1.tar.gz .
   tar -xzvf hdf5-1_12_1.tar.gz
   cd hdf5-hdf5-1_12_1/
-  ./configure --prefix=${PREREQ_DIR} CC=${PREREQ_DIR}/bin/mpicc FC=${PREREQ_DIR}/bin/mpif90 \
+  ./configure --prefix=${PREREQ_DIR} CC=mpiicc FC=mpiifort \
    --with-zlib=${PREREQ_DIR} --with-szlib=${PREREQ_DIR} --enable-parallel --enable-fortran
   make clean && make -j $NUM_MAKE_JOBS
   make install
   [[ $? -ne 0 ]] && { echo "Error while installing hdf5" ; exit 1 ; }
-  touch ../.hdf5-mpich-${MPICH_VERSION}.done
+  touch ../.hdf5-impi.done
   cd ..
 fi
 
-if [[ ! -f .netcdf-c-mpich-${MPICH_VERSION}.done ]]
+if [[ ! -f .netcdf-c-impi.done ]]
 then
   cp ${PREREQ_DL_DIR}/netcdf-c-4.8.1.tar.gz .
   tar -xzvf netcdf-c-4.8.1.tar.gz
   cd netcdf-c-4.8.1/
-  CPPFLAGS=-I${PREREQ_DIR}/include LDFLAGS=-L${PREREQ_DIR}/lib CFLAGS='-O3'  CC=${PREREQ_DIR}/bin/mpicc \
+  CPPFLAGS=-I${PREREQ_DIR}/include LDFLAGS=-L${PREREQ_DIR}/lib CFLAGS='-O3'  CC=mpiicc \
    ./configure --prefix=${PREREQ_DIR} --enable-netcdf4 --enable-shared --enable-dap
   make clean && make -j $NUM_MAKE_JOBS
   make install
   [[ $? -ne 0 ]] && { echo "Error while installing netcdf-c" ; exit 1 ; }
-  touch ../.netcdf-c-mpich-${MPICH_VERSION}.done
+  touch ../.netcdf-c-impi.done
   cd ..
 fi
 
-if [[ ! -f .netcdf-fortran-mpich-${MPICH_VERSION}.done ]]
+if [[ ! -f .netcdf-fortran-impi.done ]]
 then
   cp ${PREREQ_DL_DIR}/netcdf-fortran-4.5.3.tar.gz .
   tar -xzvf netcdf-fortran-4.5.3.tar.gz
   cd netcdf-fortran-4.5.3/
-  CPPFLAGS=-I${PREREQ_DIR}/include LDFLAGS=-L${PREREQ_DIR}/lib CFLAGS='-O3' FC=${PREREQ_DIR}/bin/mpif90 \
-    CC=${PREREQ_DIR}/bin/mpicc ./configure --prefix=${PREREQ_DIR}
+  CPPFLAGS=-I${PREREQ_DIR}/include LDFLAGS=-L${PREREQ_DIR}/lib CFLAGS='-O3' FC=mpiifort \
+    CC=mpiicc ./configure --prefix=${PREREQ_DIR}
   make clean && make -j $NUM_MAKE_JOBS
   make install
   [[ $? -ne 0 ]] && { echo "Error while installing netcdf-fortran" ; exit 1 ; }
-  touch ../.netcdf-fortran-mpich-${MPICH_VERSION}.done
+  touch ../.netcdf-fortran-impi.done
   cd ..
 fi
 
-if [[ ! -f .wgrib2-mpich-${MPICH_VERSION}.done ]]
+if [[ ! -f .wgrib2-impi.done ]]
 then
   cp ${PREREQ_DL_DIR}/wgrib2.tgz .
   tar -xzvf wgrib2.tgz
@@ -145,8 +130,8 @@ then
   sed -i 's/^USE_AEC=.*/USE_AEC=0/' makefile
 
   make CC=icc FC=ifort clean
-  make CC=icc FC=ifort -j $NUM_MAKE_JOBS
-  make CC=icc FC=ifort lib -j $NUM_MAKE_JOBS
+  make CC=icc FC=ifort
+  make CC=icc FC=ifort lib
 
   cp wgrib2/wgrib2 ${PREREQ_DIR}/bin/
   cp wgrib2/libwgrib2.a ${PREREQ_DIR}/lib/
@@ -154,8 +139,7 @@ then
   cp ./lib/*.mod ${PREREQ_DIR}/include/
   [[ $? -ne 0 ]] && { echo "Error while installing wgrib2" ; exit 1 ; }
 
-  touch ../.wgrib2-mpich-${MPICH_VERSION}.done
-  cd ..
+  touch ../.wgrib2-impi.done
 fi
 
 exit 0
