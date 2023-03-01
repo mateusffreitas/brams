@@ -133,10 +133,11 @@ then
   make CC=icc FC=ifort
   make CC=icc FC=ifort lib
 
-  cp wgrib2/wgrib2 ${PREREQ_DIR}/bin/
   cp wgrib2/libwgrib2.a ${PREREQ_DIR}/lib/
   cp ./lib/*.a ${PREREQ_DIR}/lib/
   cp ./lib/*.mod ${PREREQ_DIR}/include/
+  cp wgrib2/wgrib2 ${PREREQ_DIR}/bin/
+
   [[ $? -ne 0 ]] && { echo "Error while installing wgrib2" ; exit 1 ; }
 
   touch ../.wgrib2-impi.done

@@ -145,8 +145,8 @@ then
   sed -i 's/^USE_AEC=.*/USE_AEC=0/' makefile
 
   make CC=icc FC=ifort clean
-  make CC=icc FC=ifort -j $NUM_MAKE_JOBS
-  make CC=icc FC=ifort lib -j $NUM_MAKE_JOBS
+  make CC=icc FC=ifort
+  make CC=icc FC=ifort lib
 
   cp wgrib2/wgrib2 ${PREREQ_DIR}/bin/
   cp wgrib2/libwgrib2.a ${PREREQ_DIR}/lib/

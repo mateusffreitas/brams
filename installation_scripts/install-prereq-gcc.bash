@@ -144,14 +144,15 @@ then
   sed -i 's/^USE_AEC=.*/USE_AEC=0/' makefile
 
   make CC=gcc FC=gfortran clean
-  make CC=gcc FC=gfortran -j $NUM_MAKE_JOBS
-  make CC=gcc FC=gfortran lib -j $NUM_MAKE_JOBS
-  [[ $? -ne 0 ]] && { echo "Error while installing wgrib2" ; exit 1 ; }
+  make CC=gcc FC=gfortran
+  make CC=gcc FC=gfortran lib
 
-  cp wgrib2/wgrib2 ${PREREQ_DIR}/bin/
   cp wgrib2/libwgrib2.a ${PREREQ_DIR}/lib/
   cp ./lib/*.a ${PREREQ_DIR}/lib/
   cp ./lib/*.mod ${PREREQ_DIR}/include/
+  cp wgrib2/wgrib2 ${PREREQ_DIR}/bin/
+
+  [[ $? -ne 0 ]] && { echo "Error while installing wgrib2" ; exit 1 ; }
 
   touch ../.wgrib2-mpich-${MPICH_VERSION}.done
   cd ..
