@@ -56,7 +56,7 @@ def main():
         exit(0)
 
     patched_filename_list = []
-    num_days, remaining_hours = timmax // min_hours, timmax % min_hours
+    num_days, remaining_hours = int(timmax // min_hours), timmax % min_hours
     base_date = datetime.strptime(f"{iyear1}{imonth1:02d}{idate1:02d}", "%Y%m%d")
 
     for idx in range(num_days):
