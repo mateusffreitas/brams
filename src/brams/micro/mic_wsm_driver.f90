@@ -372,7 +372,12 @@ END SUBROUTINE micro_wsm
      REAL    , PARAMETER :: EP_1         = R_v/R_d-1. !  constant for virtual temperature (r_v/r_d - 1) (dimensionless)
      REAL    , PARAMETER :: EP_2         = R_d/R_v    ! constant for specific humidity calculation (dimensionless)
 
-     INTEGER :: k,kr
+     INTEGER :: k,kr, p_index
+
+     REAL, DIMENSION( its:ite , kts:kte ) ::                         &
+     praut, &
+     prevp, &
+     pracw
 
         nt_c_var =    ocean_fraction *nt_c_ocean + &
 	               (1.-ocean_fraction)*nt_c_land
@@ -558,7 +563,16 @@ END SUBROUTINE micro_wsm
                      IDS,IDE, JDS,JDE, KDS,KDE, &
                      IMS,IME, JMS,JME, KMS,KME, &
                      ITS,ITE, JTS,JTE, KTS,KTE  &
+                     praut,prevp, pracw         &
                      )
+                     print *, "praut, prevp, pracw\n"        
+                     do k = kts, kte
+                      do p_index = its, ite
+                       print *, praut(p_index, k), prevp(p_index, k), pracw(p_index, k),"\n"
+
+                      end do                      
+                    end do
+                    print *, "praut, prevp, pracw\n"        
         
         IF(mcphys_type == 6)                    &   
              
