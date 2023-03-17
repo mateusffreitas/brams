@@ -928,23 +928,21 @@ CONTAINS
         enddo
       enddo
 
-      if ( mynum == 0) then
-        print *, "praut, prevp, pracw"
+      if ( mynum == 1) then
         do k = kts, kte
          do i = its, ite
-           if ( praut(i, k) > 0 ) then
+           if ( praut(i, k) /= 0 ) then
                print *, "praut ", i," ", k, " ", praut(i, k)
            end if
-           if ( prevp(i, k) > 0 ) then
+           if ( prevp(i, k) /= 0 ) then
                print *, "prevp ", i," ", k, " ", prevp(i, k)
            end if
-           if ( pracw(i, k) > 0 ) then
+           if ( pracw(i, k) /= 0 ) then
                print *, "pracw ", i," ", k, " ", pracw(i, k)
            end if
 
          end do                      
        end do
-       print *, "praut, prevp, pracw"
      end if
 !
 !===============================================================
