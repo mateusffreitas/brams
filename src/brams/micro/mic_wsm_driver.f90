@@ -568,11 +568,11 @@ END SUBROUTINE micro_wsm
                      if ( mynum == 1) then
                      do k = kts, kte
                       do p_index = its, ite
-                        if ( praut(p_index, k) /= 0 )
+                        if ( praut(p_index, k) /= 0 ) &
                             print *, "praut ", p_index," ", k, " ", praut(p_index, k)
-                        if ( prevp(p_index, k) /= 0 )
+                        if ( prevp(p_index, k) /= 0 ) &
                             print *, "prevp ", p_index," ", k, " ", prevp(p_index, k)
-                        if ( pracw(p_index, k) /= 0 )
+                        if ( pracw(p_index, k) /= 0 ) &
                             print *, "pracw ", p_index," ", k, " ", pracw(p_index, k)
                       end do                      
                     end do

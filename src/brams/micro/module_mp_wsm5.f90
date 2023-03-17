@@ -931,16 +931,12 @@ CONTAINS
       if ( mynum == 1) then
         do k = kts, kte
          do i = its, ite
-           if ( praut(i, k) /= 0 ) then
+           if ( praut(i, k) /= 0 ) &
                print *, "praut ", i," ", k, " ", praut(i, k)
-           end if
-           if ( prevp(i, k) /= 0 ) then
+           if ( prevp(i, k) /= 0 ) &
                print *, "prevp ", i," ", k, " ", prevp(i, k)
-           end if
-           if ( pracw(i, k) /= 0 ) then
+           if ( pracw(i, k) /= 0 ) &
                print *, "pracw ", i," ", k, " ", pracw(i, k)
-           end if
-
          end do                      
        end do
      end if

@@ -12,7 +12,6 @@
 !Including inline expansion statistical function 
 MODULE module_mp_wsm5
 !
-   !USE module_mp_radar
    !-srf
    ! USE module_model_constants, only : RE_QC_BG, RE_QI_BG, RE_QS_BG
    REAL    , PARAMETER :: RE_QC_BG     = 2.51E-6     ! effective radius of cloud for background (m)
@@ -162,7 +161,7 @@ CONTAINS
 
 !+---+-----------------------------------------------------------------+
 
-  REAL, DIMENSION( its:ite , kts:kte ), INTENT(OUT) ::                         &
+  REAL, DIMENSION( its:ite , kts:kte ), INTENT(OUT) ::                   &
   praut, &
   prevp, &
   pracw
