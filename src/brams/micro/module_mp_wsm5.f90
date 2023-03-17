@@ -926,13 +926,13 @@ CONTAINS
         enddo
       enddo
 
-      print *, "praut, prevp, pracw\n"        
+      print *, "praut, prevp, pracw"
       do k = kts, kte
        do i = its, ite
-        print *, praut(i, k), prevp(i, k), pracw(i, k),"\n"
+        print *, praut(i, k), prevp(i, k), pracw(i, k)
        end do                      
      end do
-     print *, "praut, prevp, pracw\n" 
+     print *, "praut, prevp, pracw"
 !
 !===============================================================
 !
