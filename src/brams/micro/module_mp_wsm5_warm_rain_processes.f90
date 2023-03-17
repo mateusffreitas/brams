@@ -12,7 +12,7 @@
 !Including inline expansion statistical function 
 MODULE module_mp_wsm5
 !
-   USE module_mp_radar
+   !USE module_mp_radar
    !-srf
    ! USE module_model_constants, only : RE_QC_BG, RE_QI_BG, RE_QS_BG
    REAL    , PARAMETER :: RE_QC_BG     = 2.51E-6     ! effective radius of cloud for background (m)
@@ -167,9 +167,9 @@ CONTAINS
   prevp, &
   pracw
 
-  praut(:,:) = 0.
-  prevp(:,:) = 0.
-  pracw(:,:) = 0.
+  ! praut(:,:) = 0.
+  ! prevp(:,:) = 0.
+  ! pracw(:,:) = 0.
 
 !#ifndef XEON_OPTIMIZED_WSM5
       DO j=jts,jte
@@ -200,61 +200,61 @@ CONTAINS
                     ,snow,snowncv                                  &
                     ,praut,prevp,pracw                             &
                                                                    )
-         DO K=kts,kte
-         DO I=its,ite
-            th(i,k,j)=t(i,k)/pii(i,k,j)
-            qc(i,k,j) = qci(i,k,1)
-            qi(i,k,j) = qci(i,k,2)
-            qr(i,k,j) = qrs(i,k,1)
-            qs(i,k,j) = qrs(i,k,2)
-         ENDDO
-         ENDDO
+!          DO K=kts,kte
+!          DO I=its,ite
+!             th(i,k,j)=t(i,k)/pii(i,k,j)
+!             qc(i,k,j) = qci(i,k,1)
+!             qi(i,k,j) = qci(i,k,2)
+!             qr(i,k,j) = qrs(i,k,1)
+!             qs(i,k,j) = qrs(i,k,2)
+!          ENDDO
+!          ENDDO
 
-!+---+-----------------------------------------------------------------+
-         IF ( PRESENT (diagflag) ) THEN
-         if (diagflag .and. do_radar_ref == 1) then
-!       WRITE(emess,*)'calling refl10cm_wsm5 ',its, jts
-!       CALL wrf_debug ( 0, emess )
-            DO I=its,ite
-               DO K=kts,kte
-                  t1d(k)=th(i,k,j)*pii(i,k,j)
-                  p1d(k)=p(i,k,j)
-                  qv1d(k)=q(i,k,j)
-                  qr1d(k)=qr(i,k,j)
-                  qs1d(k)=qs(i,k,j)
-               ENDDO
-               call refl10cm_wsm5 (qv1d, qr1d, qs1d,                    &
-                       t1d, p1d, dBZ, kts, kte, i, j)
-               do k = kts, kte
-                  refl_10cm(i,k,j) = MAX(-35., dBZ(k))
-               enddo
-            ENDDO
-         endif
-         ENDIF
+! !+---+-----------------------------------------------------------------+
+!          IF ( PRESENT (diagflag) ) THEN
+!          if (diagflag .and. do_radar_ref == 1) then
+! !       WRITE(emess,*)'calling refl10cm_wsm5 ',its, jts
+! !       CALL wrf_debug ( 0, emess )
+!             DO I=its,ite
+!                DO K=kts,kte
+!                   t1d(k)=th(i,k,j)*pii(i,k,j)
+!                   p1d(k)=p(i,k,j)
+!                   qv1d(k)=q(i,k,j)
+!                   qr1d(k)=qr(i,k,j)
+!                   qs1d(k)=qs(i,k,j)
+!                ENDDO
+!                call refl10cm_wsm5 (qv1d, qr1d, qs1d,                    &
+!                        t1d, p1d, dBZ, kts, kte, i, j)
+!                do k = kts, kte
+!                   refl_10cm(i,k,j) = MAX(-35., dBZ(k))
+!                enddo
+!             ENDDO
+!          endif
+!          ENDIF
 
-         if (has_reqc.ne.0 .and. has_reqi.ne.0 .and. has_reqs.ne.0) then
-           do i=its,ite
-             do k=kts,kte
-               re_qc(k) = RE_QC_BG
-               re_qi(k) = RE_QI_BG 
-               re_qs(k) = RE_QS_BG
+!          if (has_reqc.ne.0 .and. has_reqi.ne.0 .and. has_reqs.ne.0) then
+!            do i=its,ite
+!              do k=kts,kte
+!                re_qc(k) = RE_QC_BG
+!                re_qi(k) = RE_QI_BG 
+!                re_qs(k) = RE_QS_BG
 
-               t1d(k)  = th(i,k,j)*pii(i,k,j)
-               den1d(k)= den(i,k,j)
-               qc1d(k) = qc(i,k,j)
-               qi1d(k) = qi(i,k,j)
-               qs1d(k) = qs(i,k,j)
-             enddo
-             call effectRad_wsm5(t1d, qc1d, qi1d, qs1d, den1d,                 &
-                                 qmin, t0c, re_qc, re_qi, re_qs,               &
-                                 kts, kte, i, j)
-             do k=kts,kte
-               re_cloud(i,k,j) = MAX(RE_QC_BG, MIN(re_qc(k),  50.E-6))
-               re_ice(i,k,j)   = MAX(RE_QI_BG, MIN(re_qi(k), 125.E-6))
-               re_snow(i,k,j)  = MAX(RE_QS_BG, MIN(re_qs(k), 999.E-6))
-             enddo
-           enddo
-         endif     ! has_reqc, etc...
+!                t1d(k)  = th(i,k,j)*pii(i,k,j)
+!                den1d(k)= den(i,k,j)
+!                qc1d(k) = qc(i,k,j)
+!                qi1d(k) = qi(i,k,j)
+!                qs1d(k) = qs(i,k,j)
+!              enddo
+!              call effectRad_wsm5(t1d, qc1d, qi1d, qs1d, den1d,                 &
+!                                  qmin, t0c, re_qc, re_qi, re_qs,               &
+!                                  kts, kte, i, j)
+!              do k=kts,kte
+!                re_cloud(i,k,j) = MAX(RE_QC_BG, MIN(re_qc(k),  50.E-6))
+!                re_ice(i,k,j)   = MAX(RE_QI_BG, MIN(re_qi(k), 125.E-6))
+!                re_snow(i,k,j)  = MAX(RE_QS_BG, MIN(re_qs(k), 999.E-6))
+!              enddo
+!            enddo
+!          endif     ! has_reqc, etc...
 !+---+-----------------------------------------------------------------+
 
       ENDDO
@@ -351,10 +351,13 @@ CONTAINS
                                       lat
   REAL, DIMENSION( its:ite , kts:kte ),                           &
         INTENT(INOUT) ::                                          &
-                                                           t,     &
-                                                           praut, &
-                                                           prevp, &
-                                                           pracw 
+                                                           t
+
+  REAL, DIMENSION( its:ite , kts:kte ),                           &
+  INTENT(OUT) ::                                          &
+                                                    praut, &
+                                                    prevp, &
+                                                    pracw 
   REAL, DIMENSION( its:ite , kts:kte, 2 ),                        &
         INTENT(INOUT) ::                                          &
                                                              qci, &
@@ -1371,141 +1374,141 @@ CONTAINS
 ! remainder of routines are common to original and MIC version
 
 !+---+-----------------------------------------------------------------+
-      subroutine refl10cm_wsm5 (qv1d, qr1d, qs1d,                       &
-                       t1d, p1d, dBZ, kts, kte, ii, jj)
+!       subroutine refl10cm_wsm5 (qv1d, qr1d, qs1d,                       &
+!                        t1d, p1d, dBZ, kts, kte, ii, jj)
 
-      IMPLICIT NONE
+!       IMPLICIT NONE
 
-!..Sub arguments
-      INTEGER, INTENT(IN):: kts, kte, ii, jj
-      REAL, DIMENSION(kts:kte), INTENT(IN)::                            &
-                      qv1d, qr1d, qs1d, t1d, p1d
-      REAL, DIMENSION(kts:kte), INTENT(INOUT):: dBZ
+! !..Sub arguments
+!       INTEGER, INTENT(IN):: kts, kte, ii, jj
+!       REAL, DIMENSION(kts:kte), INTENT(IN)::                            &
+!                       qv1d, qr1d, qs1d, t1d, p1d
+!       REAL, DIMENSION(kts:kte), INTENT(INOUT):: dBZ
 
-!..Local variables
-      REAL, DIMENSION(kts:kte):: temp, pres, qv, rho
-      REAL, DIMENSION(kts:kte):: rr, rs
-      REAL:: temp_C
+! !..Local variables
+!       REAL, DIMENSION(kts:kte):: temp, pres, qv, rho
+!       REAL, DIMENSION(kts:kte):: rr, rs
+!       REAL:: temp_C
 
-      DOUBLE PRECISION, DIMENSION(kts:kte):: ilamr, ilams
-      DOUBLE PRECISION, DIMENSION(kts:kte):: N0_r, N0_s
-      DOUBLE PRECISION:: lamr, lams
-      LOGICAL, DIMENSION(kts:kte):: L_qr, L_qs
+!       DOUBLE PRECISION, DIMENSION(kts:kte):: ilamr, ilams
+!       DOUBLE PRECISION, DIMENSION(kts:kte):: N0_r, N0_s
+!       DOUBLE PRECISION:: lamr, lams
+!       LOGICAL, DIMENSION(kts:kte):: L_qr, L_qs
 
-      REAL, DIMENSION(kts:kte):: ze_rain, ze_snow
-      DOUBLE PRECISION:: fmelt_s
+!       REAL, DIMENSION(kts:kte):: ze_rain, ze_snow
+!       DOUBLE PRECISION:: fmelt_s
 
-      INTEGER:: i, k, k_0, kbot, n
-      LOGICAL:: melti
+!       INTEGER:: i, k, k_0, kbot, n
+!       LOGICAL:: melti
 
-      DOUBLE PRECISION:: cback, x, eta, f_d
-      REAL, PARAMETER:: R=287.
+!       DOUBLE PRECISION:: cback, x, eta, f_d
+!       REAL, PARAMETER:: R=287.
 
-!+---+
+! !+---+
 
-      do k = kts, kte
-         dBZ(k) = -35.0
-      enddo
+!       do k = kts, kte
+!          dBZ(k) = -35.0
+!       enddo
 
-!+---+-----------------------------------------------------------------+
-!..Put column of data into local arrays.
-!+---+-----------------------------------------------------------------+
-      do k = kts, kte
-         temp(k) = t1d(k)
-         temp_C = min(-0.001, temp(K)-273.15)
-         qv(k) = MAX(1.E-10, qv1d(k))
-         pres(k) = p1d(k)
-         rho(k) = 0.622*pres(k)/(R*temp(k)*(qv(k)+0.622))
+! !+---+-----------------------------------------------------------------+
+! !..Put column of data into local arrays.
+! !+---+-----------------------------------------------------------------+
+!       do k = kts, kte
+!          temp(k) = t1d(k)
+!          temp_C = min(-0.001, temp(K)-273.15)
+!          qv(k) = MAX(1.E-10, qv1d(k))
+!          pres(k) = p1d(k)
+!          rho(k) = 0.622*pres(k)/(R*temp(k)*(qv(k)+0.622))
 
-         if (qr1d(k) .gt. 1.E-9) then
-            rr(k) = qr1d(k)*rho(k)
-            N0_r(k) = n0r
-            lamr = (xam_r*xcrg(3)*N0_r(k)/rr(k))**(1./xcre(1))
-            ilamr(k) = 1./lamr
-            L_qr(k) = .true.
-         else
-            rr(k) = 1.E-12
-            L_qr(k) = .false.
-         endif
+!          if (qr1d(k) .gt. 1.E-9) then
+!             rr(k) = qr1d(k)*rho(k)
+!             N0_r(k) = n0r
+!             lamr = (xam_r*xcrg(3)*N0_r(k)/rr(k))**(1./xcre(1))
+!             ilamr(k) = 1./lamr
+!             L_qr(k) = .true.
+!          else
+!             rr(k) = 1.E-12
+!             L_qr(k) = .false.
+!          endif
 
-         if (qs1d(k) .gt. 1.E-9) then
-            rs(k) = qs1d(k)*rho(k)
-            N0_s(k) = min(n0smax, n0s*exp(-alpha*temp_C))
-            lams = (xam_s*xcsg(3)*N0_s(k)/rs(k))**(1./xcse(1))
-            ilams(k) = 1./lams
-            L_qs(k) = .true.
-         else
-            rs(k) = 1.E-12
-            L_qs(k) = .false.
-         endif
-      enddo
+!          if (qs1d(k) .gt. 1.E-9) then
+!             rs(k) = qs1d(k)*rho(k)
+!             N0_s(k) = min(n0smax, n0s*exp(-alpha*temp_C))
+!             lams = (xam_s*xcsg(3)*N0_s(k)/rs(k))**(1./xcse(1))
+!             ilams(k) = 1./lams
+!             L_qs(k) = .true.
+!          else
+!             rs(k) = 1.E-12
+!             L_qs(k) = .false.
+!          endif
+!       enddo
 
-!+---+-----------------------------------------------------------------+
-!..Locate K-level of start of melting (k_0 is level above).
-!+---+-----------------------------------------------------------------+
-      melti = .false.
-      k_0 = kts
-      do k = kte-1, kts, -1
-         if ( (temp(k).gt.273.15) .and. L_qr(k) .and. L_qs(k+1) ) then
-            k_0 = MAX(k+1, k_0)
-            melti=.true.
-            goto 195
-         endif
-      enddo
- 195  continue
+! !+---+-----------------------------------------------------------------+
+! !..Locate K-level of start of melting (k_0 is level above).
+! !+---+-----------------------------------------------------------------+
+!       melti = .false.
+!       k_0 = kts
+!       do k = kte-1, kts, -1
+!          if ( (temp(k).gt.273.15) .and. L_qr(k) .and. L_qs(k+1) ) then
+!             k_0 = MAX(k+1, k_0)
+!             melti=.true.
+!             goto 195
+!          endif
+!       enddo
+!  195  continue
 
-!+---+-----------------------------------------------------------------+
-!..Assume Rayleigh approximation at 10 cm wavelength. Rain (all temps)
-!.. and non-water-coated snow and graupel when below freezing are
-!.. simple. Integrations of m(D)*m(D)*N(D)*dD.
-!+---+-----------------------------------------------------------------+
+! !+---+-----------------------------------------------------------------+
+! !..Assume Rayleigh approximation at 10 cm wavelength. Rain (all temps)
+! !.. and non-water-coated snow and graupel when below freezing are
+! !.. simple. Integrations of m(D)*m(D)*N(D)*dD.
+! !+---+-----------------------------------------------------------------+
 
-      do k = kts, kte
-         ze_rain(k) = 1.e-22
-         ze_snow(k) = 1.e-22
-         if (L_qr(k)) ze_rain(k) = N0_r(k)*xcrg(4)*ilamr(k)**xcre(4)
-         if (L_qs(k)) ze_snow(k) = (0.176/0.93) * (6.0/PI)*(6.0/PI)     &
-                                 * (xam_s/900.0)*(xam_s/900.0)          &
-                                 * N0_s(k)*xcsg(4)*ilams(k)**xcse(4)
-      enddo
+!       do k = kts, kte
+!          ze_rain(k) = 1.e-22
+!          ze_snow(k) = 1.e-22
+!          if (L_qr(k)) ze_rain(k) = N0_r(k)*xcrg(4)*ilamr(k)**xcre(4)
+!          if (L_qs(k)) ze_snow(k) = (0.176/0.93) * (6.0/PI)*(6.0/PI)     &
+!                                  * (xam_s/900.0)*(xam_s/900.0)          &
+!                                  * N0_s(k)*xcsg(4)*ilams(k)**xcse(4)
+!       enddo
 
 
-!+---+-----------------------------------------------------------------+
-!..Special case of melting ice (snow/graupel) particles.  Assume the
-!.. ice is surrounded by the liquid water.  Fraction of meltwater is
-!.. extremely simple based on amount found above the melting level.
-!.. Uses code from Uli Blahak (rayleigh_soak_wetgraupel and supporting
-!.. routines).
-!+---+-----------------------------------------------------------------+
+! !+---+-----------------------------------------------------------------+
+! !..Special case of melting ice (snow/graupel) particles.  Assume the
+! !.. ice is surrounded by the liquid water.  Fraction of meltwater is
+! !.. extremely simple based on amount found above the melting level.
+! !.. Uses code from Uli Blahak (rayleigh_soak_wetgraupel and supporting
+! !.. routines).
+! !+---+-----------------------------------------------------------------+
 
-      if (melti .and. k_0.ge.kts+1) then
-       do k = k_0-1, kts, -1
+!       if (melti .and. k_0.ge.kts+1) then
+!        do k = k_0-1, kts, -1
 
-!..Reflectivity contributed by melting snow
-          if (L_qs(k) .and. L_qs(k_0) ) then
-           fmelt_s = MAX(0.005d0, MIN(1.0d0-rs(k)/rs(k_0), 0.99d0))
-           eta = 0.d0
-           lams = 1./ilams(k)
-           do n = 1, nrbins
-              x = xam_s * xxDs(n)**xbm_s
-              call rayleigh_soak_wetgraupel (x,DBLE(xocms),DBLE(xobms), &
-                    fmelt_s, melt_outside_s, m_w_0, m_i_0, lamda_radar, &
-                    CBACK, mixingrulestring_s, matrixstring_s,          &
-                    inclusionstring_s, hoststring_s,                    &
-                    hostmatrixstring_s, hostinclusionstring_s)
-              f_d = N0_s(k)*xxDs(n)**xmu_s * DEXP(-lams*xxDs(n))
-              eta = eta + f_d * CBACK * simpson(n) * xdts(n)
-           enddo
-           ze_snow(k) = SNGL(lamda4 / (pi5 * K_w) * eta)
-          endif
-       enddo
-      endif
+! !..Reflectivity contributed by melting snow
+!           if (L_qs(k) .and. L_qs(k_0) ) then
+!            fmelt_s = MAX(0.005d0, MIN(1.0d0-rs(k)/rs(k_0), 0.99d0))
+!            eta = 0.d0
+!            lams = 1./ilams(k)
+!            do n = 1, nrbins
+!               x = xam_s * xxDs(n)**xbm_s
+!               call rayleigh_soak_wetgraupel (x,DBLE(xocms),DBLE(xobms), &
+!                     fmelt_s, melt_outside_s, m_w_0, m_i_0, lamda_radar, &
+!                     CBACK, mixingrulestring_s, matrixstring_s,          &
+!                     inclusionstring_s, hoststring_s,                    &
+!                     hostmatrixstring_s, hostinclusionstring_s)
+!               f_d = N0_s(k)*xxDs(n)**xmu_s * DEXP(-lams*xxDs(n))
+!               eta = eta + f_d * CBACK * simpson(n) * xdts(n)
+!            enddo
+!            ze_snow(k) = SNGL(lamda4 / (pi5 * K_w) * eta)
+!           endif
+!        enddo
+!       endif
 
-      do k = kte, kts, -1
-         dBZ(k) = 10.*log10((ze_rain(k)+ze_snow(k))*1.d18)
-      enddo
+!       do k = kte, kts, -1
+!          dBZ(k) = 10.*log10((ze_rain(k)+ze_snow(k))*1.d18)
+!       enddo
 
-      end subroutine refl10cm_wsm5
+!       end subroutine refl10cm_wsm5
 !+---+-----------------------------------------------------------------+
 !-------------------------------------------------------------------
   SUBROUTINE wsm5init(den0,denr,dens,cl,cpv,allowed_to_read)
@@ -1568,17 +1571,17 @@ CONTAINS
 !..Set these variables needed for computing radar reflectivity.  These
 !.. get used within radar_init to create other variables used in the
 !.. radar module.
-   xam_r = PI*denr/6.
-   xbm_r = 3.
-   xmu_r = 0.
-   xam_s = PI*dens/6.
-   xbm_s = 3.
-   xmu_s = 0.
-   xam_g = PI*dens/6.      !  These 3 variables for graupel are set but unused.
-   xbm_g = 3.
-   xmu_g = 0.
+  !  xam_r = PI*denr/6.
+  !  xbm_r = 3.
+  !  xmu_r = 0.
+  !  xam_s = PI*dens/6.
+  !  xbm_s = 3.
+  !  xmu_s = 0.
+  !  xam_g = PI*dens/6.      !  These 3 variables for graupel are set but unused.
+  !  xbm_g = 3.
+  !  xmu_g = 0.
 
-   call radar_init
+  !  call radar_init
 !+---+-----------------------------------------------------------------+
 
   END SUBROUTINE wsm5init
