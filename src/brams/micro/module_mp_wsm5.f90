@@ -297,6 +297,8 @@ CONTAINS
                    ,its,ite, jts,jte, kts,kte                     &
                    ,snow,snowncv                                  &
                                                                   )
+
+    use node_mod, only: mynum
 !-------------------------------------------------------------------
   IMPLICIT NONE
 !-------------------------------------------------------------------
@@ -926,13 +928,24 @@ CONTAINS
         enddo
       enddo
 
-      print *, "praut, prevp, pracw"
-      do k = kts, kte
-       do i = its, ite
-        print *, praut(i, k), prevp(i, k), pracw(i, k)
-       end do                      
-     end do
-     print *, "praut, prevp, pracw"
+      if ( mynum == 0) then
+        print *, "praut, prevp, pracw"
+        do k = kts, kte
+         do i = its, ite
+           if ( praut(i, k) > 0 ) then
+               print *, "praut ", i," ", k, " ", praut(i, k)
+           end if
+           if ( prevp(i, k) > 0 ) then
+               print *, "prevp ", i," ", k, " ", prevp(i, k)
+           end if
+           if ( pracw(i, k) > 0 ) then
+               print *, "pracw ", i," ", k, " ", pracw(i, k)
+           end if
+
+         end do                      
+       end do
+       print *, "praut, prevp, pracw"
+     end if
 !
 !===============================================================
 !

@@ -565,14 +565,24 @@ END SUBROUTINE micro_wsm
                      ITS,ITE, JTS,JTE, KTS,KTE  &
                      praut,prevp, pracw         &
                      )
+                     if ( mynum == 0) then
                      print *, "praut, prevp, pracw"
                      do k = kts, kte
                       do p_index = its, ite
-                       print *, praut(p_index, k), prevp(p_index, k), pracw(p_index, k)
+                        if ( praut(p_index, k) > 0 ) then
+                            print *, "praut ", p_index," ", k, " ", praut(p_index, k)
+                        end if
+                        if ( prevp(p_index, k) > 0 ) then
+                            print *, "prevp ", p_index," ", k, " ", prevp(p_index, k)
+                        end if
+                        if ( pracw(p_index, k) > 0 ) then
+                            print *, "pracw ", p_index," ", k, " ", pracw(p_index, k)
+                        end if
 
                       end do                      
                     end do
                     print *, "praut, prevp, pracw"
+                  end if
         
         IF(mcphys_type == 6)                    &   
              
