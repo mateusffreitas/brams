@@ -562,8 +562,8 @@ END SUBROUTINE micro_wsm
                      re_snow,                   &
                      IDS,IDE, JDS,JDE, KDS,KDE, &
                      IMS,IME, JMS,JME, KMS,KME, &
-                     ITS,ITE, JTS,JTE, KTS,KTE  &
-                     praut,prevp, pracw         &
+                     ITS,ITE, JTS,JTE, KTS,KTE, &
+                     praut, prevp, pracw        &
                      )
                      if ( mynum == 1) then
                      do k = kts, kte
