@@ -149,7 +149,7 @@ END SUBROUTINE micro_wsm
             ,ocean_fraction &
             )
          
-   USE module_mp_wsm5, only: wsm5init, wsm5_warm_rain, wsm5_warm_rain
+   USE module_mp_wsm5, only: wsm5init, wsm5, wsm5_warm_rain
    USE module_mp_wsm6, only: wsm6init, wsm6
    USE module_mp_wsm7, only: wsm7init, wsm7
    USE rconstants, only: p00,cpor,alvl,alvi,cpi,cpi4,cp253i
