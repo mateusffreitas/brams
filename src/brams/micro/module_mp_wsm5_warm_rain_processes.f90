@@ -138,37 +138,20 @@ CONTAINS
         INTENT(INOUT) ::                                    snow, &
                                                          snowncv
 ! LOCAL VAR
-!#ifdef XEON_OPTIMIZED_WSM5
-!#  include "mic-wsm5-3-5-locvar.h"
-!#else
   REAL, DIMENSION( its:ite , kts:kte ) ::   t
   REAL, DIMENSION( its:ite , kts:kte, 2 ) ::   qci, qrs
-  CHARACTER*256 :: emess
   INTEGER ::               i,j,k
-!#endif
 
 !+---+-----------------------------------------------------------------+
-      REAL, DIMENSION(kts:kte):: qv1d, t1d, p1d, qr1d, qs1d, dBZ
+
       LOGICAL, OPTIONAL, INTENT(IN) :: diagflag
       INTEGER, OPTIONAL, INTENT(IN) :: do_radar_ref
 !+---+-----------------------------------------------------------------+
 
-! to calculate effective radius for radiation
-  REAL, DIMENSION( kts:kte ) :: den1d
-  REAL, DIMENSION( kts:kte ) :: qc1d
-  REAL, DIMENSION( kts:kte ) :: qi1d
-  REAL, DIMENSION( kts:kte ) :: re_qc, re_qi, re_qs
-
-!+---+-----------------------------------------------------------------+
-
-  REAL, DIMENSION( its:ite , kts:kte ), INTENT(OUT) ::                   &
-  praut, &
-  prevp, &
-  pracw
-
-  ! praut(:,:) = 0.
-  ! prevp(:,:) = 0.
-  ! pracw(:,:) = 0.
+  REAL, DIMENSION( its:ite , kts:kte ), INTENT(OUT) ::             &
+                                                            praut, &
+                                                            prevp, &
+                                                            pracw
 
 !#ifndef XEON_OPTIMIZED_WSM5
       DO j=jts,jte
@@ -199,94 +182,8 @@ CONTAINS
                     ,snow,snowncv                                  &
                     ,praut,prevp,pracw                             &
                                                                    )
-!          DO K=kts,kte
-!          DO I=its,ite
-!             th(i,k,j)=t(i,k)/pii(i,k,j)
-!             qc(i,k,j) = qci(i,k,1)
-!             qi(i,k,j) = qci(i,k,2)
-!             qr(i,k,j) = qrs(i,k,1)
-!             qs(i,k,j) = qrs(i,k,2)
-!          ENDDO
-!          ENDDO
-
-! !+---+-----------------------------------------------------------------+
-!          IF ( PRESENT (diagflag) ) THEN
-!          if (diagflag .and. do_radar_ref == 1) then
-! !       WRITE(emess,*)'calling refl10cm_wsm5 ',its, jts
-! !       CALL wrf_debug ( 0, emess )
-!             DO I=its,ite
-!                DO K=kts,kte
-!                   t1d(k)=th(i,k,j)*pii(i,k,j)
-!                   p1d(k)=p(i,k,j)
-!                   qv1d(k)=q(i,k,j)
-!                   qr1d(k)=qr(i,k,j)
-!                   qs1d(k)=qs(i,k,j)
-!                ENDDO
-!                call refl10cm_wsm5 (qv1d, qr1d, qs1d,                    &
-!                        t1d, p1d, dBZ, kts, kte, i, j)
-!                do k = kts, kte
-!                   refl_10cm(i,k,j) = MAX(-35., dBZ(k))
-!                enddo
-!             ENDDO
-!          endif
-!          ENDIF
-
-!          if (has_reqc.ne.0 .and. has_reqi.ne.0 .and. has_reqs.ne.0) then
-!            do i=its,ite
-!              do k=kts,kte
-!                re_qc(k) = RE_QC_BG
-!                re_qi(k) = RE_QI_BG 
-!                re_qs(k) = RE_QS_BG
-
-!                t1d(k)  = th(i,k,j)*pii(i,k,j)
-!                den1d(k)= den(i,k,j)
-!                qc1d(k) = qc(i,k,j)
-!                qi1d(k) = qi(i,k,j)
-!                qs1d(k) = qs(i,k,j)
-!              enddo
-!              call effectRad_wsm5(t1d, qc1d, qi1d, qs1d, den1d,                 &
-!                                  qmin, t0c, re_qc, re_qi, re_qs,               &
-!                                  kts, kte, i, j)
-!              do k=kts,kte
-!                re_cloud(i,k,j) = MAX(RE_QC_BG, MIN(re_qc(k),  50.E-6))
-!                re_ice(i,k,j)   = MAX(RE_QI_BG, MIN(re_qi(k), 125.E-6))
-!                re_snow(i,k,j)  = MAX(RE_QS_BG, MIN(re_qs(k), 999.E-6))
-!              enddo
-!            enddo
-!          endif     ! has_reqc, etc...
-!+---+-----------------------------------------------------------------+
 
       ENDDO
-!#else
-!  ! Code to call the XEON-optimized WSM5 is included here
-!  ! this also contains OpenMP directives, so they are 
-!  ! removed from the driver in the case where WSM5SCHEME
-!  ! is selected.
-!#  include "mic-wsm5-3-5-callsite.h"
-!   IF ( PRESENT (diagflag) ) THEN
-!     IF (diagflag .and. do_radar_ref == 1) then
-!      !$OMP PARALLEL DO   &
-!      !$OMP PRIVATE ( i,j,k,t1d,p1d,qv1d,qr1d,qs1d,dBZ )
-!      DO j=jts,jte
-!        DO I=its,ite
-!          DO K=kts,kte
-!            t1d(k)=th(i,k,j)*pii(i,k,j)
-!            p1d(k)=p(i,k,j)
-!            qv1d(k)=q(i,k,j)
-!            qr1d(k)=qr(i,k,j)
-!            qs1d(k)=qs(i,k,j)
-!          ENDDO
-!          call refl10cm_wsm5 (qv1d, qr1d, qs1d,                    &
-!                              t1d, p1d, dBZ, kts, kte, i, j)
-!          DO k = kts, kte
-!                   refl_10cm(i,k,j) = MAX(-35., dBZ(k))
-!          ENDDO
-!        ENDDO
-!      ENDDO
-!      !$OMP END PARALLEL DO
-!     ENDIF
-!   ENDIF
-!#endif
 
   END SUBROUTINE wsm5
 
@@ -420,8 +317,8 @@ CONTAINS
                                                            work2, &
                                                            workr, &
                                                            works, &
-                                                          work1c, &
-                                                          work2c
+                                                          work1c
+
   REAL, DIMENSION( its:ite , kts:kte ) ::                         &
                                                          den_tmp, &
                                                         delz_tmp
@@ -440,31 +337,26 @@ CONTAINS
                                                            pcond, &
                                                            psmlt
   INTEGER, DIMENSION( its:ite ) ::                                &
-                                                           mstep, &
-                                                           numdt
+                                                           mstep
   REAL, DIMENSION(its:ite) ::                             tstepsnow
-  REAL, DIMENSION(its:ite) ::                             rmstep
-  REAL dtcldden, rdelz, rdtcld
   LOGICAL, DIMENSION( its:ite ) ::                        flgcld
 !#define WSM_NO_CONDITIONAL_IN_VECTOR
 !#ifdef WSM_NO_CONDITIONAL_IN_VECTOR
 !  REAL, DIMENSION(its:ite) :: xal, xbl
 !#endif
   REAL  ::                                                        &
-            cpmcal, xlcal, diffus,                                &
-            viscos, xka, venfac, conden, diffac,                  &
-            x, y, z, a, b, c, d, e,                               &
-            qdt, holdrr, holdrs, supcol, supcolt, pvt,            &
-            coeres, supsat, dtcld, xmi, eacrs, satdt,             &
-            vt2i,vt2s,acrfac,                                     &
-            qimax, diameter, xni0, roqi0,                         &
-            fallsum, fallsum_qsi, xlwork2, factor, source,        &
-            value, xlf, pfrzdtc, pfrzdtr, supice,  holdc, holdci
+            cpmcal, xlcal,                             &
+            x,                              &
+            supcol, supcolt,            &
+            coeres, supsat, dtcld, xmi, satdt,             &
+            diameter,                         &
+            fallsum, fallsum_qsi,         &
+            xlf, pfrzdtc, pfrzdtr
 ! variables for optimization
   REAL, DIMENSION( its:ite )           ::                    tvec1
   REAL ::                                                    temp 
-  INTEGER :: i, j, k, mstepmax,                                   &
-            iprt, latd, lond, loop, loops, ifsat, n, idim, kdim
+  INTEGER :: i, k,                                  &
+            loop, loops, idim, kdim
 ! Temporaries used for inlining fpvs function
   REAL  :: dldti, xb, xai, tr, xbi, xa, hvap, cvap, hsub, dldt, ttp
   REAL  :: logtr
@@ -1565,22 +1457,7 @@ CONTAINS
    rslopes2max = rslopesmax * rslopesmax
    rsloper3max = rsloper2max * rslopermax
    rslopes3max = rslopes2max * rslopesmax
-!
-!+---+-----------------------------------------------------------------+
-!..Set these variables needed for computing radar reflectivity.  These
-!.. get used within radar_init to create other variables used in the
-!.. radar module.
-  !  xam_r = PI*denr/6.
-  !  xbm_r = 3.
-  !  xmu_r = 0.
-  !  xam_s = PI*dens/6.
-  !  xbm_s = 3.
-  !  xmu_s = 0.
-  !  xam_g = PI*dens/6.      !  These 3 variables for graupel are set but unused.
-  !  xbm_g = 3.
-  !  xmu_g = 0.
 
-  !  call radar_init
 !+---+-----------------------------------------------------------------+
 
   END SUBROUTINE wsm5init

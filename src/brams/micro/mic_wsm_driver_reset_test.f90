@@ -560,139 +560,136 @@ END SUBROUTINE micro_wsm
                      IMS,IME, JMS,JME, KMS,KME, &
                      ITS,ITE, JTS,JTE, KTS,KTE &                    
                      )
-                     print *, "PART2"
+                     if (mynum == 1) &
+                        print *, "PART2"
 
                      nt_c_var =    ocean_fraction *nt_c_ocean + &
-	               (1.-ocean_fraction)*nt_c_land
+                              (1.-ocean_fraction)*nt_c_land
 
-        !- column quantities
-	     thp  (1:m1)= basic%thp  (1:m1,i,j)
-        theta(1:m1)= basic%theta(1:m1,i,j)
-        pp   (1:m1)= basic%pp   (1:m1,i,j)
-        rtp  (1:m1)= basic%rtp  (1:m1,i,j)
-        rv   (1:m1)= basic%rv   (1:m1,i,j)
-        wp   (1:m1)= basic%wp   (1:m1,i,j)
-        dn0  (1:m1)= basic%dn0  (1:m1,i,j)
-        pi0  (1:m1)= basic%pi0  (1:m1,i,j)
-        !--- mass mixing ratio
-        rcp  (1:m1)= mic%rcp    (1:m1,i,j)
-        rrp  (1:m1)= mic%rrp    (1:m1,i,j)
-        rpp  (1:m1)= mic%rpp    (1:m1,i,j)
-        rsp  (1:m1)= mic%rsp    (1:m1,i,j)
-        
-	!- surface quantities
-	     rtgt = grd%rtgt (i,j)
-	     accpr= mic%accpr(i,j)
-        pcprr= mic%pcprr(i,j)
-        accps= mic%accps(i,j)
-        pcprs= mic%pcprs(i,j)      
+                      !- column quantities
+                    thp  (1:m1)= basic%thp  (1:m1,i,j)
+                      theta(1:m1)= basic%theta(1:m1,i,j)
+                      pp   (1:m1)= basic%pp   (1:m1,i,j)
+                      rtp  (1:m1)= basic%rtp  (1:m1,i,j)
+                      rv   (1:m1)= basic%rv   (1:m1,i,j)
+                      wp   (1:m1)= basic%wp   (1:m1,i,j)
+                      dn0  (1:m1)= basic%dn0  (1:m1,i,j)
+                      pi0  (1:m1)= basic%pi0  (1:m1,i,j)
+                      !--- mass mixing ratio
+                      rcp  (1:m1)= mic%rcp    (1:m1,i,j)
+                      rrp  (1:m1)= mic%rrp    (1:m1,i,j)
+                      rpp  (1:m1)= mic%rpp    (1:m1,i,j)
+                      rsp  (1:m1)= mic%rsp    (1:m1,i,j)
+                      
+                !- surface quantities
+                    rtgt = grd%rtgt (i,j)
+                    accpr= mic%accpr(i,j)
+                      pcprr= mic%pcprr(i,j)
+                      accps= mic%accps(i,j)
+                      pcprs= mic%pcprs(i,j)      
 
-        if(mcphys_type == 7 )  then 
-          rhp  (1:m1)= mic%rhp  (1:m1,i,j)
-          accph      = mic%accph(i,j)
-          pcprh      = mic%pcprh(i,j)
-        else
-          rhp  (1:m1)= 0.
-          accph      = 0.
-          pcprh      = 0.
-        endif
+                      if(mcphys_type == 7 )  then 
+                        rhp  (1:m1)= mic%rhp  (1:m1,i,j)
+                        accph      = mic%accph(i,j)
+                        pcprh      = mic%pcprh(i,j)
+                      else
+                        rhp  (1:m1)= 0.
+                        accph      = 0.
+                        pcprh      = 0.
+                      endif
 
-        if(mcphys_type /= 5) then
-          rgp  (1:m1)= mic%rgp  (1:m1,i,j)
-          accpg      = mic%accpg(i,j)
-          pcprg      = mic%pcprg(i,j)
-        else
-          rgp  (1:m1)= 0.
-          accpg      = 0.
-          pcprg      = 0.
-        endif
+                      if(mcphys_type /= 5) then
+                        rgp  (1:m1)= mic%rgp  (1:m1,i,j)
+                        accpg      = mic%accpg(i,j)
+                        pcprg      = mic%pcprg(i,j)
+                      else
+                        rgp  (1:m1)= 0.
+                        accpg      = 0.
+                        pcprg      = 0.
+                      endif
 
-!
-!- for coupling with brams
-!       !- converting WRF setting to BRAMS
-!       ids=1   ;ide=mxp ;jds=1   ;jde=myp ;kds=1; kde=mzp              
-!       ims=1   ;ime=mxp ;jms=1   ;jme=myp ;kms=1; kme=mzp                        
-!       its=ia  ;ite=iz  ;jts=ja  ;jte=jz  ;kts=1; kte=mzp-1  
+              !
+              !- for coupling with brams
+              !       !- converting WRF setting to BRAMS
+              !       ids=1   ;ide=mxp ;jds=1   ;jde=myp ;kds=1; kde=mzp              
+              !       ims=1   ;ime=mxp ;jms=1   ;jme=myp ;kms=1; kme=mzp                        
+              !       its=ia  ;ite=iz  ;jts=ja  ;jte=jz  ;kts=1; kte=mzp-1  
 
-        ! flags to calculate effec radius
-        IF( (ilwrtyp==6 .or. iswrtyp==6)) then           
-           has_reqc= 1 ; has_reqi= 1 ; has_reqs= 1 
-        ELSE
-           has_reqc= 0 ; has_reqi= 0 ; has_reqs= 0 
-        ENDIF
-        
-        dt= dtlt        ! time step            (s)
-        rainprod  =0.0  ! for scaveging   aerosols/gases
-        evapprod  =0.0  ! for evaporation aerosols/gases
-        SR        =0.0  ! fraction of snow of the total water
-                        ! ( for land surface models)
-        refl_10cm =0.0  ! 
-        ke_diag   = kte
-       
-        !- surface precipitation (total accumulated)
-        RAINNC    (1,1)=  accpr !- rain+ice+snow+graupel+hail
-        SNOWNC    (1,1)=  accps !- ice+snow
-        GRAUPELNC (1,1)=  accpg !- graupel
-        HAIL      (1,1)=  accph !- hail
-        
-        DO k=1,kme-1
-          kr = k + 1
-          qv_curr (1,k,1)= max(1.e-12,rtp(kr) - &    ! QV
-                               (rcp(kr)+rrp(kr)+rpp(kr)+rsp(kr)+rgp(kr)+rhp(kr)))                    
-          qc_curr (1,k,1)= max(0.0,rcp(kr))          ! QC     
-          qr_curr (1,k,1)= max(0.0,rrp(kr))          ! QR   
-          qi_curr (1,k,1)= max(0.0,rpp(kr))          ! QI   
-          qs_curr (1,k,1)= max(0.0,rsp(kr))          ! QS   
-          qg_curr (1,k,1)= max(0.0,rgp(kr))          ! QG
+                      ! flags to calculate effec radius
+                      IF( (ilwrtyp==6 .or. iswrtyp==6)) then           
+                        has_reqc= 1 ; has_reqi= 1 ; has_reqs= 1 
+                      ELSE
+                        has_reqc= 0 ; has_reqi= 0 ; has_reqs= 0 
+                      ENDIF
+                      
+                      dt= dtlt        ! time step            (s)
+                      rainprod  =0.0  ! for scaveging   aerosols/gases
+                      evapprod  =0.0  ! for evaporation aerosols/gases
+                      SR        =0.0  ! fraction of snow of the total water
+                                      ! ( for land surface models)
+                      refl_10cm =0.0  ! 
+                      ke_diag   = kte
+                    
+                      !- surface precipitation (total accumulated)
+                      RAINNC    (1,1)=  accpr !- rain+ice+snow+graupel+hail
+                      SNOWNC    (1,1)=  accps !- ice+snow
+                      GRAUPELNC (1,1)=  accpg !- graupel
+                      HAIL      (1,1)=  accph !- hail
+                      
+                      DO k=1,kme-1
+                        kr = k + 1
+                        qv_curr (1,k,1)= max(1.e-12,rtp(kr) - &    ! QV
+                                            (rcp(kr)+rrp(kr)+rpp(kr)+rsp(kr)+rgp(kr)+rhp(kr)))                    
+                        qc_curr (1,k,1)= max(0.0,rcp(kr))          ! QC     
+                        qr_curr (1,k,1)= max(0.0,rrp(kr))          ! QR   
+                        qi_curr (1,k,1)= max(0.0,rpp(kr))          ! QI   
+                        qs_curr (1,k,1)= max(0.0,rsp(kr))          ! QS   
+                        qg_curr (1,k,1)= max(0.0,rgp(kr))          ! QG
 
-          qh_curr (1,k,1)= max(0.0,rhp(kr))          ! QH   
-         
-          pi_phy  (1,k,1)= (pp(kr)+pi0(kr))*cpi ! Exner function/cp (dimensionless)
-          
-          P       (1,k,1)= ( (pp(kr)+pi0(kr))*cpi )** cpor * p00        ! pressure(Pa)
-         !W       (1,k,1)= wp(kr)       ! vertical velocity (m/s) ! must be at center or face? ASK
-          
-          dz8w    (1,k,1)= rtgt/dzt(kr) ! layer thickness (m) 
+                        qh_curr (1,k,1)= max(0.0,rhp(kr))          ! QH   
+                      
+                        pi_phy  (1,k,1)= (pp(kr)+pi0(kr))*cpi ! Exner function/cp (dimensionless)
+                        
+                        P       (1,k,1)= ( (pp(kr)+pi0(kr))*cpi )** cpor * p00        ! pressure(Pa)
+                      !W       (1,k,1)= wp(kr)       ! vertical velocity (m/s) ! must be at center or face? ASK
+                        
+                        dz8w    (1,k,1)= rtgt/dzt(kr) ! layer thickness (m) 
 
-        ENDDO
+                      ENDDO
 
-        !- get potential temperature (theta) from theta_il (thp) and condensates
-        DO k=1,kme -1 
-           kr = k + 1
-           tempK    = theta(kr)* (pp(kr)+pi0(kr))*cpi 
-              til   = thp  (kr)* (pp(kr)+pi0(kr))*cpi 
-         
-           rliq     =  qc_curr(1,k,1) + qr_curr(1,k,1)                
-           rice     =  qi_curr(1,k,1) + qs_curr(1,k,1) + qg_curr(1,k,1) + qh_curr(1,k,1)
-           qhydm    =  alvl * rliq + alvi * rice
-           
-           if (tempK .gt. 253.) then
-              tairstr = 0.5 * (til + sqrt(til * (til + cpi4 * qhydm)))
-           else
-              tairstr = til * (1. + qhydm * cp253i)
-           endif
-           !- updated potential temperature TH in Kelvin (adv+dif+rad+conv+)
-           TH (1,k,1) = tairstr / pi_phy(1,k,1)
+                      !- get potential temperature (theta) from theta_il (thp) and condensates
+                      DO k=1,kme -1 
+                        kr = k + 1
+                        tempK    = theta(kr)* (pp(kr)+pi0(kr))*cpi 
+                            til   = thp  (kr)* (pp(kr)+pi0(kr))*cpi 
+                      
+                        rliq     =  qc_curr(1,k,1) + qr_curr(1,k,1)                
+                        rice     =  qi_curr(1,k,1) + qs_curr(1,k,1) + qg_curr(1,k,1) + qh_curr(1,k,1)
+                        qhydm    =  alvl * rliq + alvi * rice
+                        
+                        if (tempK .gt. 253.) then
+                            tairstr = 0.5 * (til + sqrt(til * (til + cpi4 * qhydm)))
+                        else
+                            tairstr = til * (1. + qhydm * cp253i)
+                        endif
+                        !- updated potential temperature TH in Kelvin (adv+dif+rad+conv+)
+                        TH (1,k,1) = tairstr / pi_phy(1,k,1)
 
-           !- air density
-           air_dens(1,k,1) = P(1,k,1)/(287.04*tempK*(1.+0.608*qv_curr(1,k,1)))
-          !air_dens(1,k,1)= dn0(kr) 
+                        !- air density
+                        air_dens(1,k,1) = P(1,k,1)/(287.04*tempK*(1.+0.608*qv_curr(1,k,1)))
+                        !air_dens(1,k,1)= dn0(kr) 
 
-        ENDDO
-        
-        !
-        IF(start_of_simulation_second) THEN !.or.restart.)   
-           IF(mcphys_type == 5 ) &   
-              CALL wsm5init(rhoair0,rhowater,rhosnow,cliq,cpv,   .false. )
-           IF(mcphys_type == 6 ) &   
-              CALL wsm6init(rhoair0,rhowater,rhosnow,cliq,cpv, 0,.false. )
-           IF(mcphys_type == 7 ) &   
-              CALL wsm7init(rhoair0,rhowater,rhosnow,cliq,cpv,   .false. )
+                      ENDDO
+                      
+                      !
+                      IF(start_of_simulation_second) THEN !.or.restart.)   
+                        IF(mcphys_type == 5 ) &   
+                            CALL wsm5init(rhoair0,rhowater,rhosnow,cliq,cpv,   .false. )
+                  
+                        start_of_simulation_second =.false.
+                      ENDIF
 
-           start_of_simulation_second =.false.
-        ENDIF
-
-        CALL wsm5(                         &
+                      CALL wsm5(                         &
                      TH,                        &! potential temperature    (K)
                      qv_curr,                   &! QV=qv_curr,     
                      qc_curr,                   &! QC=qc_curr,     
