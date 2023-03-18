@@ -149,7 +149,7 @@ END SUBROUTINE micro_wsm
             ,ocean_fraction &
             )
          
-   USE module_mp_wsm5, only: wsm5init, wsm5
+   USE module_mp_wsm5, only: wsm5init, wsm5_warm_rain, wsm5_warm_rain
    USE module_mp_wsm6, only: wsm6init, wsm6
    USE module_mp_wsm7, only: wsm7init, wsm7
    USE rconstants, only: p00,cpor,alvl,alvi,cpi,cpi4,cp253i
@@ -373,7 +373,12 @@ END SUBROUTINE micro_wsm
      REAL    , PARAMETER :: EP_1         = R_v/R_d-1. !  constant for virtual temperature (r_v/r_d - 1) (dimensionless)
      REAL    , PARAMETER :: EP_2         = R_d/R_v    ! constant for specific humidity calculation (dimensionless)
 
-     INTEGER :: k,kr
+     INTEGER :: k,kr, p_index
+
+     REAL, DIMENSION( its:ite , kts:kte ) ::                         &
+     praut, &
+     prevp, &
+     pracw
 
         nt_c_var =    ocean_fraction *nt_c_ocean + &
 	               (1.-ocean_fraction)*nt_c_land
@@ -507,7 +512,7 @@ END SUBROUTINE micro_wsm
         
         IF(mcphys_type == 5)                 &   
              
-             CALL wsm5(                         &
+             CALL wsm5_warm_rain(                         &
                      TH,                        &! potential temperature    (K)
                      qv_curr,                   &! QV=qv_curr,     
                      qc_curr,                   &! QC=qc_curr,     
@@ -558,8 +563,23 @@ END SUBROUTINE micro_wsm
                      re_snow,                   &
                      IDS,IDE, JDS,JDE, KDS,KDE, &
                      IMS,IME, JMS,JME, KMS,KME, &
-                     ITS,ITE, JTS,JTE, KTS,KTE &                    
+                     ITS,ITE, JTS,JTE, KTS,KTE, &
+                     praut, prevp, pracw        &
                      )
+                
+                     if ( mynum == 1) then
+                      do k = kts, kte
+                        do p_index = its, ite
+                          if ( praut(p_index, k) /= 0 ) &
+                              print *, "praut ", p_index," ", k, " ", praut(p_index, k)
+                          if ( prevp(p_index, k) /= 0 ) &
+                              print *, "prevp ", p_index," ", k, " ", prevp(p_index, k)
+                          if ( pracw(p_index, k) /= 0 ) &
+                              print *, "pracw ", p_index," ", k, " ", pracw(p_index, k)
+                        end do
+                      end do
+                    end if
+
                      if (mynum == 1) &
                         print *, "PART2"
 
@@ -689,7 +709,7 @@ END SUBROUTINE micro_wsm
                         start_of_simulation_second =.false.
                       ENDIF
 
-                      CALL wsm5(                         &
+                      CALL wsm5_warm_rain(                         &
                      TH,                        &! potential temperature    (K)
                      qv_curr,                   &! QV=qv_curr,     
                      qc_curr,                   &! QC=qc_curr,     

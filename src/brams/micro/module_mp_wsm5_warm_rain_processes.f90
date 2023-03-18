@@ -59,7 +59,7 @@ MODULE module_mp_wsm5
 CONTAINS
 !===================================================================
 !
-  SUBROUTINE wsm5(th, q, qc, qr, qi, qs                            &
+  SUBROUTINE wsm5_warm_rain(th, q, qc, qr, qi, qs                            &
                  ,den, pii, p, delz                                &
                  ,delt,g, cpd, cpv, rd, rv, t0c                    &
                  ,ep1, ep2, qmin                                   &
@@ -166,7 +166,7 @@ CONTAINS
          ENDDO
          !  Sending array starting locations of optional variables may cause
          !  troubles, so we explicitly change the call.
-         CALL wsm52D(t, q(ims,kms,j), qci, qrs                     &
+         CALL wsm52D_warm_rain(t, q(ims,kms,j), qci, qrs                     &
                     ,den(ims,kms,j)                                &
                     ,p(ims,kms,j), delz(ims,kms,j)                 &
                     ,delt,g, cpd, cpv, rd, rv, t0c                 &
@@ -182,15 +182,14 @@ CONTAINS
                     ,snow,snowncv                                  &
                     ,praut,prevp,pracw                             &
                                                                    )
-
       ENDDO
 
-  END SUBROUTINE wsm5
+  END SUBROUTINE wsm5_warm_rain
 
 !#ifndef XEON_OPTIMIZED_WSM5
 !===================================================================
 !
-  SUBROUTINE wsm52D(t, q                                          & 
+  SUBROUTINE wsm52D_warm_rain(t, q                                          & 
                    ,qci, qrs, den, p, delz                        &
                    ,delt,g, cpd, cpv, rd, rv, t0c                 &
                    ,ep1, ep2, qmin                                &
@@ -300,11 +299,9 @@ CONTAINS
                                                          rslope3, &
                                                          rslopeb, &
                                                          qrs_tmp, &
-                                                            falk, &
                                                             fall, &
                                                            work1
   REAL, DIMENSION( its:ite , kts:kte ) ::                         &
-                                                           falkc, &
                                                            fallc, &
                                                               xl, &
                                                              cpm, &
@@ -327,14 +324,6 @@ CONTAINS
                                                          delqrs2, &
                                                            delqi
   REAL, DIMENSION( its:ite , kts:kte ) ::                         &
-                                                           pigen, &
-                                                           pidep, &
-                                                           psdep, &
-                                                           psaut, &
-                                                           psevp, &
-                                                           psacw, &
-                                                           psaci, &
-                                                           pcond, &
                                                            psmlt
   INTEGER, DIMENSION( its:ite ) ::                                &
                                                            mstep
@@ -522,23 +511,12 @@ CONTAINS
       do k = kts, kte
         do i = its, ite
           prevp(i,k) = 0.
-          psdep(i,k) = 0.
           praut(i,k) = 0.
-          psaut(i,k) = 0.
           pracw(i,k) = 0.
-          psaci(i,k) = 0.
-          psacw(i,k) = 0.
-          pigen(i,k) = 0.
-          pidep(i,k) = 0.
-          pcond(i,k) = 0.
           psmlt(i,k) = 0.
-          psevp(i,k) = 0.
-          falk(i,k,1) = 0.
-          falk(i,k,2) = 0.
           fall(i,k,1) = 0.
           fall(i,k,2) = 0.
           fallc(i,k) = 0.
-          falkc(i,k) = 0.
           xni(i,k) = 1.e3
         enddo
       enddo
@@ -832,7 +810,7 @@ CONTAINS
         enddo
       enddo
     enddo                  ! big loops
-  END SUBROUTINE wsm52D
+  END SUBROUTINE wsm52D_warm_rain
 ! ...................................................................
 !--------------------------------------------------------------------------
       REAL FUNCTION fpvs(t,ice,rd,rv,cvap,cliq,cice,hvap,hsub,psat,t0c)

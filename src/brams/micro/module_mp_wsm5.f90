@@ -60,6 +60,760 @@ MODULE module_mp_wsm5
 CONTAINS
 !===================================================================
 !
+
+   SUBROUTINE wsm5_warm_rain(th, q, qc, qr, qi, qs                            &
+                 ,den, pii, p, delz                                &
+                 ,delt,g, cpd, cpv, rd, rv, t0c                    &
+                 ,ep1, ep2, qmin                                   &
+                 ,XLS, XLV0, XLF0, den0, denr                      &
+                 ,cliq,cice,psat                                   &
+                 ,rain, rainncv                                    &
+                 ,snow, snowncv                                    &
+                 ,sr                                               &
+                 ,refl_10cm, diagflag, do_radar_ref                &
+                 ,has_reqc, has_reqi, has_reqs                     &  ! for radiation
+                 ,re_cloud, re_ice,   re_snow                      &  ! for radiation       
+                 ,ids,ide, jds,jde, kds,kde                        &
+                 ,ims,ime, jms,jme, kms,kme                        &
+                 ,its,ite, jts,jte, kts,kte                        &
+                 ,praut,prevp,pracw                                &
+                                                                   )
+!-------------------------------------------------------------------
+  IMPLICIT NONE
+!-------------------------------------------------------------------
+!
+  INTEGER,      INTENT(IN   )    ::   ids,ide, jds,jde, kds,kde , &
+                                      ims,ime, jms,jme, kms,kme , &
+                                      its,ite, jts,jte, kts,kte
+  REAL, DIMENSION( ims:ime , kms:kme , jms:jme ),                 &
+        INTENT(INOUT) ::                                          &
+                                                             th,  &
+                                                              q,  &
+                                                              qc, &
+                                                              qi, &
+                                                              qr, &
+                                                              qs
+  REAL, DIMENSION( ims:ime , kms:kme , jms:jme ),                 &
+        INTENT(IN   ) ::                                          &
+                                                             den, &
+                                                             pii, &
+                                                               p, &
+                                                            delz
+  REAL, INTENT(IN   ) ::                                    delt, &
+                                                               g, &
+                                                              rd, &
+                                                              rv, &
+                                                             t0c, &
+                                                            den0, &
+                                                             cpd, &
+                                                             cpv, &
+                                                             ep1, &
+                                                             ep2, &
+                                                            qmin, &
+                                                             XLS, &
+                                                            XLV0, &
+                                                            XLF0, &
+                                                            cliq, &
+                                                            cice, &
+                                                            psat, &
+                                                            denr
+  REAL, DIMENSION( ims:ime , jms:jme ),                           &
+        INTENT(INOUT) ::                                    rain, &
+                                                         rainncv, &
+                                                              sr
+! for radiation connecting
+  INTEGER, INTENT(IN)::                                           &
+                                                        has_reqc, &
+                                                        has_reqi, &
+                                                        has_reqs
+  REAL, DIMENSION(ims:ime, kms:kme, jms:jme),                     &
+        INTENT(INOUT)::                                           &
+                                                        re_cloud, &
+                                                          re_ice, &
+                                                         re_snow
+!+---+-----------------------------------------------------------------+
+  REAL, DIMENSION(ims:ime, kms:kme, jms:jme), INTENT(INOUT)::     &  ! GT
+                                                       refl_10cm
+!+---+-----------------------------------------------------------------+
+
+  REAL, DIMENSION( ims:ime , jms:jme ), OPTIONAL,                 &
+        INTENT(INOUT) ::                                    snow, &
+                                                         snowncv
+! LOCAL VAR
+  REAL, DIMENSION( its:ite , kts:kte ) ::   t
+  REAL, DIMENSION( its:ite , kts:kte, 2 ) ::   qci, qrs
+  INTEGER ::               i,j,k
+
+!+---+-----------------------------------------------------------------+
+
+      LOGICAL, OPTIONAL, INTENT(IN) :: diagflag
+      INTEGER, OPTIONAL, INTENT(IN) :: do_radar_ref
+!+---+-----------------------------------------------------------------+
+
+  REAL, DIMENSION( its:ite , kts:kte ), INTENT(OUT) ::             &
+                                                            praut, &
+                                                            prevp, &
+                                                            pracw
+
+!#ifndef XEON_OPTIMIZED_WSM5
+      DO j=jts,jte
+         DO k=kts,kte
+         DO i=its,ite
+            t(i,k)=th(i,k,j)*pii(i,k,j)
+            qci(i,k,1) = qc(i,k,j)
+            qci(i,k,2) = qi(i,k,j)
+            qrs(i,k,1) = qr(i,k,j)
+            qrs(i,k,2) = qs(i,k,j)
+         ENDDO
+         ENDDO
+         !  Sending array starting locations of optional variables may cause
+         !  troubles, so we explicitly change the call.
+         CALL wsm52D_warm_rain(t, q(ims,kms,j), qci, qrs                     &
+                    ,den(ims,kms,j)                                &
+                    ,p(ims,kms,j), delz(ims,kms,j)                 &
+                    ,delt,g, cpd, cpv, rd, rv, t0c                 &
+                    ,ep1, ep2, qmin                                &
+                    ,XLS, XLV0, XLF0, den0, denr                   &
+                    ,cliq,cice,psat                                &
+                    ,j                                             &
+                    ,rain(ims,j),rainncv(ims,j)                    &
+                    ,sr(ims,j)                                     &
+                    ,ids,ide, jds,jde, kds,kde                     &
+                    ,ims,ime, jms,jme, kms,kme                     &
+                    ,its,ite, jts,jte, kts,kte                     &
+                    ,snow,snowncv                                  &
+                    ,praut,prevp,pracw                             &
+                                                                   )
+      ENDDO
+
+  END SUBROUTINE wsm5_warm_rain
+
+!#ifndef XEON_OPTIMIZED_WSM5
+!===================================================================
+!
+  SUBROUTINE wsm52D_warm_rain(t, q                                          & 
+                   ,qci, qrs, den, p, delz                        &
+                   ,delt,g, cpd, cpv, rd, rv, t0c                 &
+                   ,ep1, ep2, qmin                                &
+                   ,XLS, XLV0, XLF0, den0, denr                   &
+                   ,cliq,cice,psat                                &
+                   ,lat                                           &
+                   ,rain,rainncv                                  &
+                   ,sr                                            &
+                   ,ids,ide, jds,jde, kds,kde                     &
+                   ,ims,ime, jms,jme, kms,kme                     &
+                   ,its,ite, jts,jte, kts,kte                     &
+                   ,snow,snowncv                                  &
+                   ,praut,prevp,pracw                                  &
+                                                                  )
+!-------------------------------------------------------------------
+  IMPLICIT NONE
+!-------------------------------------------------------------------
+!
+!  This code is a 5-class mixed ice microphyiscs scheme (WSM5) of the 
+!  Single-Moment MicroPhyiscs (WSMMP). The WSMMP assumes that ice nuclei
+!  number concentration is a function of temperature, and seperate assumption
+!  is developed, in which ice crystal number concentration is a function
+!  of ice amount. A theoretical background of the ice-microphysics and related
+!  processes in the WSMMPs are described in Hong et al. (2004).
+!  Production terms in the WSM6 scheme are described in Hong and Lim (2006).
+!  All units are in m.k.s. and source/sink terms in kgkg-1s-1.
+!
+!  WSM5 cloud scheme
+!
+!  Coded by Song-You Hong (Yonsei Univ.)
+!             Jimy Dudhia (NCAR) and Shu-Hua Chen (UC Davis)
+!             Summer 2002
+!
+!  Implemented by Song-You Hong (Yonsei Univ.) and Jimy Dudhia (NCAR)
+!             Summer 2003
+!
+!  further modifications :
+!        semi-lagrangian sedimentation (JH,2010),hong, aug 2009
+!        ==> higher accuracy and efficient at lower resolutions
+!        reflectivity computation from greg thompson, lim, jun 2011
+!        ==> only diagnostic, but with removal of too large drops
+!        effective radius of hydrometeors, bae from kiaps, jan 2015
+!        ==> consistency in solar insolation of rrtmg radiation
+!        bug fix in melting terms, bae from kiaps, nov 2015
+!        ==> density of air is divided, which has not been
+!
+!  Reference) Hong, Dudhia, Chen (HDC, 2004) Mon. Wea. Rev.
+!             Rutledge, Hobbs (RH83, 1983) J. Atmos. Sci.
+!             Hong and Lim (HL, 2006) J. Korean Meteor. Soc.
+!
+  INTEGER,      INTENT(IN   )    ::   ids,ide, jds,jde, kds,kde , &
+                                      ims,ime, jms,jme, kms,kme , &
+                                      its,ite, jts,jte, kts,kte,  &
+                                      lat
+  REAL, DIMENSION( its:ite , kts:kte ),                           &
+        INTENT(INOUT) ::                                          &
+                                                           t
+
+  REAL, DIMENSION( its:ite , kts:kte ),                           &
+  INTENT(OUT) ::                                          &
+                                                    praut, &
+                                                    prevp, &
+                                                    pracw 
+  REAL, DIMENSION( its:ite , kts:kte, 2 ),                        &
+        INTENT(INOUT) ::                                          &
+                                                             qci, &
+                                                             qrs
+  REAL, DIMENSION( ims:ime , kms:kme ),                           &
+        INTENT(INOUT) ::                                          &
+                                                               q
+  REAL, DIMENSION( ims:ime , kms:kme ),                           &
+        INTENT(IN   ) ::                                          &
+                                                             den, &
+                                                               p, &
+                                                            delz
+  REAL, INTENT(IN   ) ::                                    delt, &
+                                                               g, &
+                                                             cpd, &
+                                                             cpv, &
+                                                             t0c, &
+                                                            den0, &
+                                                              rd, &
+                                                              rv, &
+                                                             ep1, &
+                                                             ep2, &
+                                                            qmin, &
+                                                             XLS, &
+                                                            XLV0, &
+                                                            XLF0, &
+                                                            cliq, &
+                                                            cice, &
+                                                            psat, &
+                                                            denr
+  REAL, DIMENSION( ims:ime ),                                     &
+        INTENT(INOUT) ::                                    rain, &
+                                                         rainncv, &
+                                                              sr
+  REAL, DIMENSION( ims:ime, jms:jme ),     OPTIONAL,              &
+        INTENT(INOUT) ::                                    snow, &
+                                                         snowncv
+! LOCAL VAR
+  REAL, DIMENSION( its:ite , kts:kte , 2) ::                      &
+                                                              rh, &
+                                                              qs, &
+                                                          rslope, &
+                                                         rslope2, &
+                                                         rslope3, &
+                                                         rslopeb, &
+                                                         qrs_tmp, &
+                                                            fall, &
+                                                           work1
+  REAL, DIMENSION( its:ite , kts:kte ) ::                         &
+                                                           fallc, &
+                                                              xl, &
+                                                             cpm, &
+                                                          denfac, &
+                                                             xni, &
+                                                         denqrs1, &
+                                                         denqrs2, &
+                                                          denqci, &
+                                                          n0sfac, &
+                                                           work2, &
+                                                           workr, &
+                                                           works, &
+                                                          work1c
+
+  REAL, DIMENSION( its:ite , kts:kte ) ::                         &
+                                                         den_tmp, &
+                                                        delz_tmp
+  REAL, DIMENSION( its:ite ) ::                                   &
+                                                         delqrs1, &
+                                                         delqrs2, &
+                                                           delqi
+  REAL, DIMENSION( its:ite , kts:kte ) ::                         &
+                                                           psmlt
+  INTEGER, DIMENSION( its:ite ) ::                                &
+                                                           mstep
+  REAL, DIMENSION(its:ite) ::                             tstepsnow
+  LOGICAL, DIMENSION( its:ite ) ::                        flgcld
+!#define WSM_NO_CONDITIONAL_IN_VECTOR
+!#ifdef WSM_NO_CONDITIONAL_IN_VECTOR
+!  REAL, DIMENSION(its:ite) :: xal, xbl
+!#endif
+  REAL  ::                                                        &
+            cpmcal, xlcal,                             &
+            x,                              &
+            supcol, supcolt,            &
+            coeres, supsat, dtcld, xmi, satdt,             &
+            diameter,                         &
+            fallsum, fallsum_qsi,         &
+            xlf, pfrzdtc, pfrzdtr
+! variables for optimization
+  REAL, DIMENSION( its:ite )           ::                    tvec1
+  REAL ::                                                    temp 
+  INTEGER :: i, k,                                  &
+            loop, loops, idim, kdim
+! Temporaries used for inlining fpvs function
+  REAL  :: dldti, xb, xai, tr, xbi, xa, hvap, cvap, hsub, dldt, ttp
+  REAL  :: logtr
+!
+!=================================================================
+!   compute internal functions
+!
+      cpmcal(x) = cpd*(1.-max(x,qmin))+max(x,qmin)*cpv
+      xlcal(x) = xlv0-xlv1*(x-t0c)
+!----------------------------------------------------------------
+!     diffus: diffusion coefficient of the water vapor
+!     viscos: kinematic viscosity(m2s-1)
+!     diffus(x,y) = 8.794e-5 * exp(log(x)*(1.81)) / y        ! 8.794e-5*x**1.81/y
+!     viscos(x,y) = 1.496e-6 * (x*sqrt(x)) /(x+120.)/y  ! 1.496e-6*x**1.5/(x+120.)/y
+!     xka(x,y) = 1.414e3*viscos(x,y)*y
+!     diffac(a,b,c,d,e) = d*a*a/(xka(c,d)*rv*c*c)+1./(e*diffus(c,b))
+!     venfac(a,b,c) = exp(log((viscos(b,c)/diffus(b,a)))*((.3333333)))         &
+!                    /sqrt(viscos(b,c))*sqrt(sqrt(den0/c))
+!     conden(a,b,c,d,e) = (max(b,qmin)-c)/(1.+d*d/(rv*e)*c/(a*a))
+!
+!----------------------------------------------------------------
+      idim = ite-its+1
+      kdim = kte-kts+1
+!
+!----------------------------------------------------------------
+!     paddint 0 for negative values generated by dynamics
+!
+      do k = kts, kte
+        do i = its, ite
+          qci(i,k,1) = max(qci(i,k,1),0.0)
+          qrs(i,k,1) = max(qrs(i,k,1),0.0)
+          qci(i,k,2) = max(qci(i,k,2),0.0)
+          qrs(i,k,2) = max(qrs(i,k,2),0.0)
+        enddo
+      enddo
+!
+!----------------------------------------------------------------
+!     latent heat for phase changes and heat capacity. neglect the
+!     changes during microphysical process calculation
+!     emanuel(1994)
+!
+      do k = kts, kte
+        do i = its, ite
+          cpm(i,k) = cpmcal(q(i,k))
+          xl(i,k) = xlcal(t(i,k))
+        enddo
+      enddo
+      do k = kts, kte
+        do i = its, ite
+          delz_tmp(i,k) = delz(i,k)
+          den_tmp(i,k) = den(i,k)
+        enddo
+      enddo
+!
+!----------------------------------------------------------------
+!    initialize the surface rain, snow
+!
+      do i = its, ite
+        rainncv(i) = 0.
+        if(PRESENT (snowncv) .AND. PRESENT (snow)) snowncv(i,lat) = 0.
+        sr(i) = 0.
+! new local array to catch step snow
+        tstepsnow(i) = 0.
+      enddo
+!
+!----------------------------------------------------------------
+!     compute the minor time steps.
+!
+      loops = max(nint(delt/dtcldcr),1)
+      dtcld = delt/loops
+      if(delt.le.dtcldcr) dtcld = delt
+!
+      do loop = 1,loops
+!
+!----------------------------------------------------------------
+!     initialize the large scale variables
+!
+      do i = its, ite
+        mstep(i) = 1
+        flgcld(i) = .true.
+      enddo
+!
+!     do k = kts, kte
+!       do i = its, ite
+!         denfac(i,k) = sqrt(den0/den(i,k))
+!       enddo
+!     enddo
+      do k = kts, kte
+        CALL vsrec( tvec1(its), den(its,k), ite-its+1)
+        do i = its, ite
+          tvec1(i) = tvec1(i)*den0
+        enddo
+        CALL vssqrt( denfac(its,k), tvec1(its), ite-its+1)
+      enddo
+!
+! Inline expansion for fpvs
+!         qs(i,k,1) = fpvs(t(i,k),0,rd,rv,cpv,cliq,cice,xlv0,xls,psat,t0c)
+!         qs(i,k,2) = fpvs(t(i,k),1,rd,rv,cpv,cliq,cice,xlv0,xls,psat,t0c)
+      hsub = xls
+      hvap = xlv0
+      cvap = cpv
+      ttp=t0c+0.01
+      dldt=cvap-cliq
+      xa=-dldt/rv
+      xb=xa+hvap/(rv*ttp)
+      dldti=cvap-cice
+      xai=-dldti/rv
+      xbi=xai+hsub/(rv*ttp)
+! this is for compilers where the conditional inhibits vectorization
+!#ifdef WSM_NO_CONDITIONAL_IN_VECTOR
+!      do k = kts, kte
+!        do i = its, ite
+!          if(t(i,k).lt.ttp) then
+!            xal(i) = xai
+!            xbl(i) = xbi
+!          else
+!            xal(i) = xa
+!            xbl(i) = xb
+!          endif
+!        enddo
+!        do i = its, ite
+!          tr=ttp/t(i,k)
+!          logtr=log(tr)
+!          qs(i,k,1)=psat*exp(logtr*(xa)+xb*(1.-tr))
+!          qs(i,k,1) = min(qs(i,k,1),0.99*p(i,k))
+!          qs(i,k,1) = ep2 * qs(i,k,1) / (p(i,k) - qs(i,k,1))
+!          qs(i,k,1) = max(qs(i,k,1),qmin)
+!          rh(i,k,1) = max(q(i,k) / qs(i,k,1),qmin)
+!          qs(i,k,2)=psat*exp(logtr*(xal(i))+xbl(i)*(1.-tr))
+!          qs(i,k,2) = min(qs(i,k,2),0.99*p(i,k))
+!          qs(i,k,2) = ep2 * qs(i,k,2) / (p(i,k) - qs(i,k,2))
+!          qs(i,k,2) = max(qs(i,k,2),qmin)
+!          rh(i,k,2) = max(q(i,k) / qs(i,k,2),qmin)
+!#else
+      do k = kts, kte
+        do i = its, ite
+          tr=ttp/t(i,k)
+          logtr=log(tr)
+          qs(i,k,1)=psat*exp(logtr*(xa)+xb*(1.-tr))
+          qs(i,k,1) = min(qs(i,k,1),0.99*p(i,k))
+          qs(i,k,1) = ep2 * qs(i,k,1) / (p(i,k) - qs(i,k,1))
+          qs(i,k,1) = max(qs(i,k,1),qmin)
+          rh(i,k,1) = max(q(i,k) / qs(i,k,1),qmin)
+          if(t(i,k).lt.ttp) then
+            qs(i,k,2)=psat*exp(logtr*(xai)+xbi*(1.-tr))
+          else
+            qs(i,k,2)=psat*exp(logtr*(xa)+xb*(1.-tr))
+          endif
+          qs(i,k,2) = min(qs(i,k,2),0.99*p(i,k))
+          qs(i,k,2) = ep2 * qs(i,k,2) / (p(i,k) - qs(i,k,2))
+          qs(i,k,2) = max(qs(i,k,2),qmin)
+          rh(i,k,2) = max(q(i,k) / qs(i,k,2),qmin)
+        enddo
+      enddo
+!#endif
+!        enddo
+!      enddo
+!
+!----------------------------------------------------------------
+!     initialize the variables for microphysical physics
+!
+!
+      do k = kts, kte
+        do i = its, ite
+          prevp(i,k) = 0.
+          praut(i,k) = 0.
+          pracw(i,k) = 0.
+          psmlt(i,k) = 0.
+          fall(i,k,1) = 0.
+          fall(i,k,2) = 0.
+          fallc(i,k) = 0.
+          xni(i,k) = 1.e3
+        enddo
+      enddo
+!-------------------------------------------------------------
+! Ni: ice crystal number concentraiton   [HDC 5c]
+!-------------------------------------------------------------
+      do k = kts, kte
+        do i = its, ite
+          temp = (den(i,k)*max(qci(i,k,2),qmin))
+          temp = sqrt(sqrt(temp*temp*temp))
+          xni(i,k) = min(max(5.38e7*temp,1.e3),1.e6)
+        enddo
+      enddo
+!
+!----------------------------------------------------------------
+!     compute the fallout term:
+!     first, vertical terminal velosity for minor loops
+!----------------------------------------------------------------
+      do k = kts, kte
+        do i = its, ite
+          qrs_tmp(i,k,1) = qrs(i,k,1)
+          qrs_tmp(i,k,2) = qrs(i,k,2)
+        enddo
+      enddo
+      call slope_wsm5(qrs_tmp,den_tmp,denfac,t,rslope,rslopeb,rslope2,rslope3, &
+                     work1,its,ite,kts,kte)
+!
+      do k = kte, kts, -1
+        do i = its, ite
+          workr(i,k) = work1(i,k,1) 
+          works(i,k) = work1(i,k,2) 
+          denqrs1(i,k) = den(i,k)*qrs(i,k,1)
+          denqrs2(i,k) = den(i,k)*qrs(i,k,2)
+          if(qrs(i,k,1).le.0.0) workr(i,k) = 0.0
+          if(qrs(i,k,2).le.0.0) works(i,k) = 0.0
+        enddo
+      enddo
+      call nislfv_rain_plm(idim,kdim,den_tmp,denfac,t,delz_tmp,workr,denqrs1,  &
+                           delqrs1,dtcld,1,1)
+      call nislfv_rain_plm(idim,kdim,den_tmp,denfac,t,delz_tmp,works,denqrs2,  &
+                           delqrs2,dtcld,2,1)
+      do k = kts, kte
+        do i = its, ite
+          qrs(i,k,1) = max(denqrs1(i,k)/den(i,k),0.)
+          qrs(i,k,2) = max(denqrs2(i,k)/den(i,k),0.)
+          fall(i,k,1) = denqrs1(i,k)*workr(i,k)/delz(i,k)
+          fall(i,k,2) = denqrs2(i,k)*works(i,k)/delz(i,k)
+        enddo
+      enddo
+      do i = its, ite
+        fall(i,1,1) = delqrs1(i)/delz(i,1)/dtcld
+        fall(i,1,2) = delqrs2(i)/delz(i,1)/dtcld
+      enddo
+      do k = kts, kte
+        do i = its, ite
+          qrs_tmp(i,k,1) = qrs(i,k,1)
+          qrs_tmp(i,k,2) = qrs(i,k,2)
+        enddo
+      enddo
+      call slope_wsm5(qrs_tmp,den_tmp,denfac,t,rslope,rslopeb,rslope2,rslope3, &
+                     work1,its,ite,kts,kte)
+      do k = kte, kts, -1
+        do i = its, ite
+          supcol = t0c-t(i,k)
+          n0sfac(i,k) = max(min(exp(alpha*supcol),n0smax/n0s),1.)
+          if(t(i,k).gt.t0c.and.qrs(i,k,2).gt.0.) then
+!----------------------------------------------------------------
+! psmlt: melting of snow [HL A33] [RH83 A25]
+!       (T>T0: S->R)
+!----------------------------------------------------------------
+            xlf = xlf0
+!           work2(i,k)= venfac(p(i,k),t(i,k),den(i,k))
+            work2(i,k)= (exp(log(((1.496e-6*((t(i,k))*sqrt(t(i,k)))        &
+                        /((t(i,k))+120.)/(den(i,k)))/(8.794e-5             &
+                        *exp(log(t(i,k))*(1.81))/p(i,k))))                 &
+                        *((.3333333)))/sqrt((1.496e-6*((t(i,k))            &
+                        *sqrt(t(i,k)))/((t(i,k))+120.)/(den(i,k))))        &
+                        *sqrt(sqrt(den0/(den(i,k)))))
+            coeres = rslope2(i,k,2)*sqrt(rslope(i,k,2)*rslopeb(i,k,2))
+            psmlt(i,k) = (1.414e3*(1.496e-6*((t(i,k))*sqrt(t(i,k)))        &
+                        /((t(i,k))+120.)/(den(i,k)) )*(den(i,k)))          &
+                        /xlf*(t0c-t(i,k))*pi/2.                            &
+                        *n0sfac(i,k)*(precs1*rslope2(i,k,2)+precs2         &
+                        *work2(i,k)*coeres)/den(i,k)
+            psmlt(i,k) = min(max(psmlt(i,k)*dtcld/mstep(i),                &
+                        -qrs(i,k,2)/mstep(i)),0.)
+            qrs(i,k,2) = qrs(i,k,2) + psmlt(i,k)
+            qrs(i,k,1) = qrs(i,k,1) - psmlt(i,k)
+            t(i,k) = t(i,k) + xlf/cpm(i,k)*psmlt(i,k)
+          endif
+        enddo
+      enddo
+!---------------------------------------------------------------
+! Vice [ms-1] : fallout of ice crystal [HDC 5a]
+!---------------------------------------------------------------
+      do k = kte, kts, -1
+        do i = its, ite
+          if(qci(i,k,2).le.0.) then
+            work1c(i,k) = 0.
+          else
+            xmi = den(i,k)*qci(i,k,2)/xni(i,k)
+            diameter  = max(min(dicon * sqrt(xmi),dimax), 1.e-25)
+            work1c(i,k) = 1.49e4*exp(log(diameter)*(1.31))
+          endif
+        enddo
+      enddo
+!
+!  forward semi-laglangian scheme (JH), PCM (piecewise constant),  (linear)
+!
+      do k = kte, kts, -1
+        do i = its, ite
+          denqci(i,k) = den(i,k)*qci(i,k,2)
+        enddo
+      enddo
+      call nislfv_rain_plm(idim,kdim,den_tmp,denfac,t,delz_tmp,work1c,denqci,  &
+                           delqi,dtcld,1,0)
+      do k = kts, kte
+        do i = its, ite
+          qci(i,k,2) = max(denqci(i,k)/den(i,k),0.)
+        enddo
+      enddo
+      do i = its, ite
+        fallc(i,1) = delqi(i)/delz(i,1)/dtcld
+      enddo
+!
+!----------------------------------------------------------------
+!      rain (unit is mm/sec;kgm-2s-1: /1000*delt ===> m)==> mm for wrf
+!
+      do i = its, ite
+        fallsum = fall(i,1,1)+fall(i,1,2)+fallc(i,1)
+        fallsum_qsi = fall(i,1,2)+fallc(i,1)
+        if(fallsum.gt.0.) then
+          rainncv(i) = fallsum*delz(i,1)/denr*dtcld*1000. + rainncv(i)
+          rain(i) = fallsum*delz(i,1)/denr*dtcld*1000. + rain(i)
+        endif
+        if(fallsum_qsi.gt.0.) then
+          tstepsnow(i)   = fallsum_qsi*delz(i,kts)/denr*dtcld*1000.            &
+                           +tstepsnow(i) 
+        IF ( PRESENT (snowncv) .AND. PRESENT (snow)) THEN
+          snowncv(i,lat) = fallsum_qsi*delz(i,kts)/denr*dtcld*1000.            & 
+                           +snowncv(i,lat)    
+          snow(i,lat) = fallsum_qsi*delz(i,kts)/denr*dtcld*1000. + snow(i,lat)
+        ENDIF
+        endif
+        IF ( PRESENT (snowncv) ) THEN
+          if(fallsum.gt.0.)sr(i)=snowncv(i,lat)/(rainncv(i)+1.e-12)
+        ELSE
+          if(fallsum.gt.0.)sr(i)=tstepsnow(i)/(rainncv(i)+1.e-12)
+        ENDIF
+      enddo
+!
+!---------------------------------------------------------------
+! pimlt: instantaneous melting of cloud ice [HL A47] [RH83 A28]
+!       (T>T0: I->C)
+!---------------------------------------------------------------
+      do k = kts, kte
+        do i = its, ite
+          supcol = t0c-t(i,k)
+          xlf = xls-xl(i,k)
+          if(supcol.lt.0.) xlf = xlf0
+          if(supcol.lt.0.and.qci(i,k,2).gt.0.) then
+            qci(i,k,1) = qci(i,k,1) + qci(i,k,2)
+            t(i,k) = t(i,k) - xlf/cpm(i,k)*qci(i,k,2)
+            qci(i,k,2) = 0.
+          endif
+!---------------------------------------------------------------
+! pihmf: homogeneous freezing of cloud water below -40c [HL A45]
+!        (T<-40C: C->I)
+!---------------------------------------------------------------
+          if(supcol.gt.40..and.qci(i,k,1).gt.0.) then
+            qci(i,k,2) = qci(i,k,2) + qci(i,k,1)
+            t(i,k) = t(i,k) + xlf/cpm(i,k)*qci(i,k,1)
+            qci(i,k,1) = 0.
+          endif
+!---------------------------------------------------------------
+! pihtf: heterogeneous freezing of cloud water [HL A44]
+!        (T0>T>-40C: C->I)
+!---------------------------------------------------------------
+          if(supcol.gt.0..and.qci(i,k,1).gt.0.) then
+            supcolt=min(supcol,50.)
+!           pfrzdtc = min(pfrz1*(exp(pfrz2*supcol)-1.)                         &
+!              *den(i,k)/denr/xncr*qci(i,k,1)**2*dtcld,qci(i,k,1))
+            pfrzdtc = min(pfrz1*(exp(pfrz2*supcolt)-1.)                        &
+            *den(i,k)/denr/xncr*qci(i,k,1)*qci(i,k,1)*dtcld,qci(i,k,1))
+            qci(i,k,2) = qci(i,k,2) + pfrzdtc
+            t(i,k) = t(i,k) + xlf/cpm(i,k)*pfrzdtc
+            qci(i,k,1) = qci(i,k,1)-pfrzdtc
+          endif
+!---------------------------------------------------------------
+! psfrz: freezing of rain water [HL A20] [LFO 45]
+!        (T<T0, R->S)
+!---------------------------------------------------------------
+          if(supcol.gt.0..and.qrs(i,k,1).gt.0.) then
+            supcolt=min(supcol,50.)
+!           pfrzdtr = min(20.*pi**2*pfrz1*n0r*denr/den(i,k)                    &
+!                 *(exp(pfrz2*supcol)-1.)*rslope(i,k,1)**7*dtcld,              &
+!                 qrs(i,k,1))
+            temp = rslope(i,k,1)
+            temp = temp*temp*temp*temp*temp*temp*temp
+            pfrzdtr = min(20.*(pi*pi)*pfrz1*n0r*denr/den(i,k)                  &
+                  *(exp(pfrz2*supcolt)-1.)*temp*dtcld,                         &
+                  qrs(i,k,1))
+            qrs(i,k,2) = qrs(i,k,2) + pfrzdtr
+            t(i,k) = t(i,k) + xlf/cpm(i,k)*pfrzdtr
+            qrs(i,k,1) = qrs(i,k,1)-pfrzdtr
+          endif
+        enddo
+      enddo
+!
+!----------------------------------------------------------------
+!     update the slope parameters for microphysics computation
+!
+      do k = kts, kte
+        do i = its, ite
+          qrs_tmp(i,k,1) = qrs(i,k,1)
+          qrs_tmp(i,k,2) = qrs(i,k,2)
+        enddo
+      enddo
+      call slope_wsm5(qrs_tmp,den_tmp,denfac,t,rslope,rslopeb,rslope2,rslope3, &
+                     work1,its,ite,kts,kte)
+!------------------------------------------------------------------
+!     work1:  the thermodynamic term in the denominator associated with
+!             heat conduction and vapor diffusion
+!             (ry88, y93, h85)
+!     work2: parameter associated with the ventilation effects(y93)
+!
+      do k = kts, kte
+        do i = its, ite
+!         work1(i,k,1) = diffac(xl(i,k),p(i,k),t(i,k),den(i,k),qs(i,k,1))
+          work1(i,k,1) = ((((den(i,k))*(xl(i,k))*(xl(i,k)))*((t(i,k))+120.)    &
+                       *(den(i,k)))/(1.414e3*(1.496e-6*((t(i,k))*sqrt(t(i,k))))&
+                       *(den(i,k))*(rv*(t(i,k))*(t(i,k)))))                    &
+                      +  p(i,k)/((qs(i,k,1))*(8.794e-5*exp(log(t(i,k))*(1.81))))
+!         work1(i,k,2) = diffac(xls,p(i,k),t(i,k),den(i,k),qs(i,k,2))
+          work1(i,k,2) = ((((den(i,k))*(xls)*(xls))*((t(i,k))+120.)*(den(i,k)))&
+                       /(1.414e3*(1.496e-6*((t(i,k))*sqrt(t(i,k))))*(den(i,k)) &
+                       *(rv*(t(i,k))*(t(i,k))))                                &
+                      + p(i,k)/(qs(i,k,2)*(8.794e-5*exp(log(t(i,k))*(1.81)))))
+!         work2(i,k) = venfac(p(i,k),t(i,k),den(i,k))
+          work2(i,k) = (exp(.3333333*log(((1.496e-6 * ((t(i,k))*sqrt(t(i,k)))) &
+                     *p(i,k))/(((t(i,k))+120.)*den(i,k)*(8.794e-5              &
+                     *exp(log(t(i,k))*(1.81))))))*sqrt(sqrt(den0/(den(i,k))))) &
+                      /sqrt((1.496e-6*((t(i,k))*sqrt(t(i,k))))                 &
+                      /(((t(i,k))+120.)*den(i,k)))
+        enddo 
+      enddo 
+!
+!===============================================================
+!
+! warm rain processes
+!
+! - follows the processes in RH83 and LFO except for autoconcersion
+!
+!===============================================================
+!
+      do k = kts, kte
+        do i = its, ite
+          supsat = max(q(i,k),qmin)-qs(i,k,1)
+          satdt = supsat/dtcld
+!---------------------------------------------------------------
+! praut: auto conversion rate from cloud to rain [HDC 16]
+!        (C->R)
+!---------------------------------------------------------------
+          if(qci(i,k,1).gt.qc0) then
+            praut(i,k) = qck1*exp(log(qci(i,k,1))*((7./3.)))
+            praut(i,k) = min(praut(i,k),qci(i,k,1)/dtcld)
+          endif
+!---------------------------------------------------------------
+! pracw: accretion of cloud water by rain [HL A40] [LFO 51]
+!        (C->R)
+!---------------------------------------------------------------
+          if(qrs(i,k,1).gt.qcrmin.and.qci(i,k,1).gt.qmin) then
+            pracw(i,k) = min(pacrr*rslope3(i,k,1)*rslopeb(i,k,1)               & 
+                         *qci(i,k,1)*denfac(i,k),qci(i,k,1)/dtcld)
+          endif
+!---------------------------------------------------------------
+! prevp: evaporation/condensation rate of rain [HDC 14]
+!        (V->R or R->V)
+!---------------------------------------------------------------
+          if(qrs(i,k,1).gt.0.) then
+            coeres = rslope2(i,k,1)*sqrt(rslope(i,k,1)*rslopeb(i,k,1))
+            prevp(i,k) = (rh(i,k,1)-1.)*(precr1*rslope2(i,k,1)                 &
+                         +precr2*work2(i,k)*coeres)/work1(i,k,1)
+            if(prevp(i,k).lt.0.) then
+              prevp(i,k) = max(prevp(i,k),-qrs(i,k,1)/dtcld)
+              prevp(i,k) = max(prevp(i,k),satdt/2)
+            else
+              prevp(i,k) = min(prevp(i,k),satdt/2)
+            endif
+          endif
+        enddo
+      enddo
+    enddo                  ! big loops
+  END SUBROUTINE wsm52D_warm_rain
+ 
   SUBROUTINE wsm5(th, q, qc, qr, qi, qs                            &
                  ,den, pii, p, delz                                &
                  ,delt,g, cpd, cpv, rd, rv, t0c                    &
@@ -297,8 +1051,6 @@ CONTAINS
                    ,its,ite, jts,jte, kts,kte                     &
                    ,snow,snowncv                                  &
                                                                   )
-
-    use node_mod, only: mynum
 !-------------------------------------------------------------------
   IMPLICIT NONE
 !-------------------------------------------------------------------
@@ -927,19 +1679,6 @@ CONTAINS
           endif
         enddo
       enddo
-
-      if ( mynum == 1) then
-        do k = kts, kte
-         do i = its, ite
-           if ( praut(i, k) /= 0 ) &
-               print *, "praut ", i," ", k, " ", praut(i, k)
-           if ( prevp(i, k) /= 0 ) &
-               print *, "prevp ", i," ", k, " ", prevp(i, k)
-           if ( pracw(i, k) /= 0 ) &
-               print *, "pracw ", i," ", k, " ", pracw(i, k)
-         end do                      
-       end do
-     end if
 !
 !===============================================================
 !
@@ -2032,784 +2771,6 @@ CONTAINS
       end
 !-srf
 !-----------------------------------------------------------------------
-
-      
-      SUBROUTINE wsm5_warm_rain(th, q, qc, qr, qi, qs                            &
-        ,den, pii, p, delz                                &
-        ,delt,g, cpd, cpv, rd, rv, t0c                    &
-        ,ep1, ep2, qmin                                   &
-        ,XLS, XLV0, XLF0, den0, denr                      &
-        ,cliq,cice,psat                                   &
-        ,rain, rainncv                                    &
-        ,snow, snowncv                                    &
-        ,sr                                               &
-        ,refl_10cm, diagflag, do_radar_ref                &
-        ,has_reqc, has_reqi, has_reqs                     &  ! for radiation
-        ,re_cloud, re_ice,   re_snow                      &  ! for radiation       
-        ,ids,ide, jds,jde, kds,kde                        &
-        ,ims,ime, jms,jme, kms,kme                        &
-        ,its,ite, jts,jte, kts,kte                        &
-        ,praut,prevp,pracw                                &
-                                                          )
-!-------------------------------------------------------------------
-IMPLICIT NONE
-!-------------------------------------------------------------------
-!
-INTEGER,      INTENT(IN   )    ::   ids,ide, jds,jde, kds,kde , &
-                             ims,ime, jms,jme, kms,kme , &
-                             its,ite, jts,jte, kts,kte
-REAL, DIMENSION( ims:ime , kms:kme , jms:jme ),                 &
-INTENT(INOUT) ::                                          &
-                                                    th,  &
-                                                     q,  &
-                                                     qc, &
-                                                     qi, &
-                                                     qr, &
-                                                     qs
-REAL, DIMENSION( ims:ime , kms:kme , jms:jme ),                 &
-INTENT(IN   ) ::                                          &
-                                                    den, &
-                                                    pii, &
-                                                      p, &
-                                                   delz
-REAL, INTENT(IN   ) ::                                    delt, &
-                                                      g, &
-                                                     rd, &
-                                                     rv, &
-                                                    t0c, &
-                                                   den0, &
-                                                    cpd, &
-                                                    cpv, &
-                                                    ep1, &
-                                                    ep2, &
-                                                   qmin, &
-                                                    XLS, &
-                                                   XLV0, &
-                                                   XLF0, &
-                                                   cliq, &
-                                                   cice, &
-                                                   psat, &
-                                                   denr
-REAL, DIMENSION( ims:ime , jms:jme ),                           &
-INTENT(INOUT) ::                                    rain, &
-                                                rainncv, &
-                                                     sr
-! for radiation connecting
-INTEGER, INTENT(IN)::                                           &
-                                               has_reqc, &
-                                               has_reqi, &
-                                               has_reqs
-REAL, DIMENSION(ims:ime, kms:kme, jms:jme),                     &
-INTENT(INOUT)::                                           &
-                                               re_cloud, &
-                                                 re_ice, &
-                                                re_snow
-!+---+-----------------------------------------------------------------+
-REAL, DIMENSION(ims:ime, kms:kme, jms:jme), INTENT(INOUT)::     &  ! GT
-                                              refl_10cm
-!+---+-----------------------------------------------------------------+
-
-REAL, DIMENSION( ims:ime , jms:jme ), OPTIONAL,                 &
-INTENT(INOUT) ::                                    snow, &
-                                                snowncv
-! LOCAL VAR
-REAL, DIMENSION( its:ite , kts:kte ) ::   t
-REAL, DIMENSION( its:ite , kts:kte, 2 ) ::   qci, qrs
-INTEGER ::               i,j,k
-
-!+---+-----------------------------------------------------------------+
-
-LOGICAL, OPTIONAL, INTENT(IN) :: diagflag
-INTEGER, OPTIONAL, INTENT(IN) :: do_radar_ref
-!+---+-----------------------------------------------------------------+
-
-REAL, DIMENSION( its:ite , kts:kte ), INTENT(OUT) ::             &
-                                                   praut, &
-                                                   prevp, &
-                                                   pracw
-
-!#ifndef XEON_OPTIMIZED_WSM5
-DO j=jts,jte
-DO k=kts,kte
-DO i=its,ite
-   t(i,k)=th(i,k,j)*pii(i,k,j)
-   qci(i,k,1) = qc(i,k,j)
-   qci(i,k,2) = qi(i,k,j)
-   qrs(i,k,1) = qr(i,k,j)
-   qrs(i,k,2) = qs(i,k,j)
-ENDDO
-ENDDO
-!  Sending array starting locations of optional variables may cause
-!  troubles, so we explicitly change the call.
-CALL wsm52D(t, q(ims,kms,j), qci, qrs                     &
-           ,den(ims,kms,j)                                &
-           ,p(ims,kms,j), delz(ims,kms,j)                 &
-           ,delt,g, cpd, cpv, rd, rv, t0c                 &
-           ,ep1, ep2, qmin                                &
-           ,XLS, XLV0, XLF0, den0, denr                   &
-           ,cliq,cice,psat                                &
-           ,j                                             &
-           ,rain(ims,j),rainncv(ims,j)                    &
-           ,sr(ims,j)                                     &
-           ,ids,ide, jds,jde, kds,kde                     &
-           ,ims,ime, jms,jme, kms,kme                     &
-           ,its,ite, jts,jte, kts,kte                     &
-           ,snow,snowncv                                  &
-           ,praut,prevp,pracw                             &
-                                                          )
-
-ENDDO
-
-END SUBROUTINE wsm5_warm_rain
-
-!#ifndef XEON_OPTIMIZED_WSM5
-!===================================================================
-!
-SUBROUTINE wsm52D_warm_rain(t, q                                          & 
-          ,qci, qrs, den, p, delz                        &
-          ,delt,g, cpd, cpv, rd, rv, t0c                 &
-          ,ep1, ep2, qmin                                &
-          ,XLS, XLV0, XLF0, den0, denr                   &
-          ,cliq,cice,psat                                &
-          ,lat                                           &
-          ,rain,rainncv                                  &
-          ,sr                                            &
-          ,ids,ide, jds,jde, kds,kde                     &
-          ,ims,ime, jms,jme, kms,kme                     &
-          ,its,ite, jts,jte, kts,kte                     &
-          ,snow,snowncv                                  &
-          ,praut,prevp,pracw                                  &
-                                                         )
-!-------------------------------------------------------------------
-IMPLICIT NONE
-!-------------------------------------------------------------------
-!
-!  This code is a 5-class mixed ice microphyiscs scheme (WSM5) of the 
-!  Single-Moment MicroPhyiscs (WSMMP). The WSMMP assumes that ice nuclei
-!  number concentration is a function of temperature, and seperate assumption
-!  is developed, in which ice crystal number concentration is a function
-!  of ice amount. A theoretical background of the ice-microphysics and related
-!  processes in the WSMMPs are described in Hong et al. (2004).
-!  Production terms in the WSM6 scheme are described in Hong and Lim (2006).
-!  All units are in m.k.s. and source/sink terms in kgkg-1s-1.
-!
-!  WSM5 cloud scheme
-!
-!  Coded by Song-You Hong (Yonsei Univ.)
-!             Jimy Dudhia (NCAR) and Shu-Hua Chen (UC Davis)
-!             Summer 2002
-!
-!  Implemented by Song-You Hong (Yonsei Univ.) and Jimy Dudhia (NCAR)
-!             Summer 2003
-!
-!  further modifications :
-!        semi-lagrangian sedimentation (JH,2010),hong, aug 2009
-!        ==> higher accuracy and efficient at lower resolutions
-!        reflectivity computation from greg thompson, lim, jun 2011
-!        ==> only diagnostic, but with removal of too large drops
-!        effective radius of hydrometeors, bae from kiaps, jan 2015
-!        ==> consistency in solar insolation of rrtmg radiation
-!        bug fix in melting terms, bae from kiaps, nov 2015
-!        ==> density of air is divided, which has not been
-!
-!  Reference) Hong, Dudhia, Chen (HDC, 2004) Mon. Wea. Rev.
-!             Rutledge, Hobbs (RH83, 1983) J. Atmos. Sci.
-!             Hong and Lim (HL, 2006) J. Korean Meteor. Soc.
-!
-INTEGER,      INTENT(IN   )    ::   ids,ide, jds,jde, kds,kde , &
-                             ims,ime, jms,jme, kms,kme , &
-                             its,ite, jts,jte, kts,kte,  &
-                             lat
-REAL, DIMENSION( its:ite , kts:kte ),                           &
-INTENT(INOUT) ::                                          &
-                                                  t
-
-REAL, DIMENSION( its:ite , kts:kte ),                           &
-INTENT(OUT) ::                                          &
-                                           praut, &
-                                           prevp, &
-                                           pracw 
-REAL, DIMENSION( its:ite , kts:kte, 2 ),                        &
-INTENT(INOUT) ::                                          &
-                                                    qci, &
-                                                    qrs
-REAL, DIMENSION( ims:ime , kms:kme ),                           &
-INTENT(INOUT) ::                                          &
-                                                      q
-REAL, DIMENSION( ims:ime , kms:kme ),                           &
-INTENT(IN   ) ::                                          &
-                                                    den, &
-                                                      p, &
-                                                   delz
-REAL, INTENT(IN   ) ::                                    delt, &
-                                                      g, &
-                                                    cpd, &
-                                                    cpv, &
-                                                    t0c, &
-                                                   den0, &
-                                                     rd, &
-                                                     rv, &
-                                                    ep1, &
-                                                    ep2, &
-                                                   qmin, &
-                                                    XLS, &
-                                                   XLV0, &
-                                                   XLF0, &
-                                                   cliq, &
-                                                   cice, &
-                                                   psat, &
-                                                   denr
-REAL, DIMENSION( ims:ime ),                                     &
-INTENT(INOUT) ::                                    rain, &
-                                                rainncv, &
-                                                     sr
-REAL, DIMENSION( ims:ime, jms:jme ),     OPTIONAL,              &
-INTENT(INOUT) ::                                    snow, &
-                                                snowncv
-! LOCAL VAR
-REAL, DIMENSION( its:ite , kts:kte , 2) ::                      &
-                                                     rh, &
-                                                     qs, &
-                                                 rslope, &
-                                                rslope2, &
-                                                rslope3, &
-                                                rslopeb, &
-                                                qrs_tmp, &
-                                                   falk, &
-                                                   fall, &
-                                                  work1
-REAL, DIMENSION( its:ite , kts:kte ) ::                         &
-                                                  falkc, &
-                                                  fallc, &
-                                                     xl, &
-                                                    cpm, &
-                                                 denfac, &
-                                                    xni, &
-                                                denqrs1, &
-                                                denqrs2, &
-                                                 denqci, &
-                                                 n0sfac, &
-                                                  work2, &
-                                                  workr, &
-                                                  works, &
-                                                 work1c
-
-REAL, DIMENSION( its:ite , kts:kte ) ::                         &
-                                                den_tmp, &
-                                               delz_tmp
-REAL, DIMENSION( its:ite ) ::                                   &
-                                                delqrs1, &
-                                                delqrs2, &
-                                                  delqi
-REAL, DIMENSION( its:ite , kts:kte ) ::                         &
-                                                  pigen, &
-                                                  pidep, &
-                                                  psdep, &
-                                                  psaut, &
-                                                  psevp, &
-                                                  psacw, &
-                                                  psaci, &
-                                                  pcond, &
-                                                  psmlt
-INTEGER, DIMENSION( its:ite ) ::                                &
-                                                  mstep
-REAL, DIMENSION(its:ite) ::                             tstepsnow
-LOGICAL, DIMENSION( its:ite ) ::                        flgcld
-!#define WSM_NO_CONDITIONAL_IN_VECTOR
-!#ifdef WSM_NO_CONDITIONAL_IN_VECTOR
-!  REAL, DIMENSION(its:ite) :: xal, xbl
-!#endif
-REAL  ::                                                        &
-   cpmcal, xlcal,                             &
-   x,                              &
-   supcol, supcolt,            &
-   coeres, supsat, dtcld, xmi, satdt,             &
-   diameter,                         &
-   fallsum, fallsum_qsi,         &
-   xlf, pfrzdtc, pfrzdtr
-! variables for optimization
-REAL, DIMENSION( its:ite )           ::                    tvec1
-REAL ::                                                    temp 
-INTEGER :: i, k,                                  &
-   loop, loops, idim, kdim
-! Temporaries used for inlining fpvs function
-REAL  :: dldti, xb, xai, tr, xbi, xa, hvap, cvap, hsub, dldt, ttp
-REAL  :: logtr
-!
-!=================================================================
-!   compute internal functions
-!
-cpmcal(x) = cpd*(1.-max(x,qmin))+max(x,qmin)*cpv
-xlcal(x) = xlv0-xlv1*(x-t0c)
-!----------------------------------------------------------------
-!     diffus: diffusion coefficient of the water vapor
-!     viscos: kinematic viscosity(m2s-1)
-!     diffus(x,y) = 8.794e-5 * exp(log(x)*(1.81)) / y        ! 8.794e-5*x**1.81/y
-!     viscos(x,y) = 1.496e-6 * (x*sqrt(x)) /(x+120.)/y  ! 1.496e-6*x**1.5/(x+120.)/y
-!     xka(x,y) = 1.414e3*viscos(x,y)*y
-!     diffac(a,b,c,d,e) = d*a*a/(xka(c,d)*rv*c*c)+1./(e*diffus(c,b))
-!     venfac(a,b,c) = exp(log((viscos(b,c)/diffus(b,a)))*((.3333333)))         &
-!                    /sqrt(viscos(b,c))*sqrt(sqrt(den0/c))
-!     conden(a,b,c,d,e) = (max(b,qmin)-c)/(1.+d*d/(rv*e)*c/(a*a))
-!
-!----------------------------------------------------------------
-idim = ite-its+1
-kdim = kte-kts+1
-!
-!----------------------------------------------------------------
-!     paddint 0 for negative values generated by dynamics
-!
-do k = kts, kte
-do i = its, ite
- qci(i,k,1) = max(qci(i,k,1),0.0)
- qrs(i,k,1) = max(qrs(i,k,1),0.0)
- qci(i,k,2) = max(qci(i,k,2),0.0)
- qrs(i,k,2) = max(qrs(i,k,2),0.0)
-enddo
-enddo
-!
-!----------------------------------------------------------------
-!     latent heat for phase changes and heat capacity. neglect the
-!     changes during microphysical process calculation
-!     emanuel(1994)
-!
-do k = kts, kte
-do i = its, ite
- cpm(i,k) = cpmcal(q(i,k))
- xl(i,k) = xlcal(t(i,k))
-enddo
-enddo
-do k = kts, kte
-do i = its, ite
- delz_tmp(i,k) = delz(i,k)
- den_tmp(i,k) = den(i,k)
-enddo
-enddo
-!
-!----------------------------------------------------------------
-!    initialize the surface rain, snow
-!
-do i = its, ite
-rainncv(i) = 0.
-if(PRESENT (snowncv) .AND. PRESENT (snow)) snowncv(i,lat) = 0.
-sr(i) = 0.
-! new local array to catch step snow
-tstepsnow(i) = 0.
-enddo
-!
-!----------------------------------------------------------------
-!     compute the minor time steps.
-!
-loops = max(nint(delt/dtcldcr),1)
-dtcld = delt/loops
-if(delt.le.dtcldcr) dtcld = delt
-!
-do loop = 1,loops
-!
-!----------------------------------------------------------------
-!     initialize the large scale variables
-!
-do i = its, ite
-mstep(i) = 1
-flgcld(i) = .true.
-enddo
-!
-!     do k = kts, kte
-!       do i = its, ite
-!         denfac(i,k) = sqrt(den0/den(i,k))
-!       enddo
-!     enddo
-do k = kts, kte
-CALL vsrec( tvec1(its), den(its,k), ite-its+1)
-do i = its, ite
- tvec1(i) = tvec1(i)*den0
-enddo
-CALL vssqrt( denfac(its,k), tvec1(its), ite-its+1)
-enddo
-!
-! Inline expansion for fpvs
-!         qs(i,k,1) = fpvs(t(i,k),0,rd,rv,cpv,cliq,cice,xlv0,xls,psat,t0c)
-!         qs(i,k,2) = fpvs(t(i,k),1,rd,rv,cpv,cliq,cice,xlv0,xls,psat,t0c)
-hsub = xls
-hvap = xlv0
-cvap = cpv
-ttp=t0c+0.01
-dldt=cvap-cliq
-xa=-dldt/rv
-xb=xa+hvap/(rv*ttp)
-dldti=cvap-cice
-xai=-dldti/rv
-xbi=xai+hsub/(rv*ttp)
-! this is for compilers where the conditional inhibits vectorization
-!#ifdef WSM_NO_CONDITIONAL_IN_VECTOR
-!      do k = kts, kte
-!        do i = its, ite
-!          if(t(i,k).lt.ttp) then
-!            xal(i) = xai
-!            xbl(i) = xbi
-!          else
-!            xal(i) = xa
-!            xbl(i) = xb
-!          endif
-!        enddo
-!        do i = its, ite
-!          tr=ttp/t(i,k)
-!          logtr=log(tr)
-!          qs(i,k,1)=psat*exp(logtr*(xa)+xb*(1.-tr))
-!          qs(i,k,1) = min(qs(i,k,1),0.99*p(i,k))
-!          qs(i,k,1) = ep2 * qs(i,k,1) / (p(i,k) - qs(i,k,1))
-!          qs(i,k,1) = max(qs(i,k,1),qmin)
-!          rh(i,k,1) = max(q(i,k) / qs(i,k,1),qmin)
-!          qs(i,k,2)=psat*exp(logtr*(xal(i))+xbl(i)*(1.-tr))
-!          qs(i,k,2) = min(qs(i,k,2),0.99*p(i,k))
-!          qs(i,k,2) = ep2 * qs(i,k,2) / (p(i,k) - qs(i,k,2))
-!          qs(i,k,2) = max(qs(i,k,2),qmin)
-!          rh(i,k,2) = max(q(i,k) / qs(i,k,2),qmin)
-!#else
-do k = kts, kte
-do i = its, ite
- tr=ttp/t(i,k)
- logtr=log(tr)
- qs(i,k,1)=psat*exp(logtr*(xa)+xb*(1.-tr))
- qs(i,k,1) = min(qs(i,k,1),0.99*p(i,k))
- qs(i,k,1) = ep2 * qs(i,k,1) / (p(i,k) - qs(i,k,1))
- qs(i,k,1) = max(qs(i,k,1),qmin)
- rh(i,k,1) = max(q(i,k) / qs(i,k,1),qmin)
- if(t(i,k).lt.ttp) then
-   qs(i,k,2)=psat*exp(logtr*(xai)+xbi*(1.-tr))
- else
-   qs(i,k,2)=psat*exp(logtr*(xa)+xb*(1.-tr))
- endif
- qs(i,k,2) = min(qs(i,k,2),0.99*p(i,k))
- qs(i,k,2) = ep2 * qs(i,k,2) / (p(i,k) - qs(i,k,2))
- qs(i,k,2) = max(qs(i,k,2),qmin)
- rh(i,k,2) = max(q(i,k) / qs(i,k,2),qmin)
-enddo
-enddo
-!#endif
-!        enddo
-!      enddo
-!
-!----------------------------------------------------------------
-!     initialize the variables for microphysical physics
-!
-!
-do k = kts, kte
-do i = its, ite
- prevp(i,k) = 0.
- psdep(i,k) = 0.
- praut(i,k) = 0.
- psaut(i,k) = 0.
- pracw(i,k) = 0.
- psaci(i,k) = 0.
- psacw(i,k) = 0.
- pigen(i,k) = 0.
- pidep(i,k) = 0.
- pcond(i,k) = 0.
- psmlt(i,k) = 0.
- psevp(i,k) = 0.
- falk(i,k,1) = 0.
- falk(i,k,2) = 0.
- fall(i,k,1) = 0.
- fall(i,k,2) = 0.
- fallc(i,k) = 0.
- falkc(i,k) = 0.
- xni(i,k) = 1.e3
-enddo
-enddo
-!-------------------------------------------------------------
-! Ni: ice crystal number concentraiton   [HDC 5c]
-!-------------------------------------------------------------
-do k = kts, kte
-do i = its, ite
- temp = (den(i,k)*max(qci(i,k,2),qmin))
- temp = sqrt(sqrt(temp*temp*temp))
- xni(i,k) = min(max(5.38e7*temp,1.e3),1.e6)
-enddo
-enddo
-!
-!----------------------------------------------------------------
-!     compute the fallout term:
-!     first, vertical terminal velosity for minor loops
-!----------------------------------------------------------------
-do k = kts, kte
-do i = its, ite
- qrs_tmp(i,k,1) = qrs(i,k,1)
- qrs_tmp(i,k,2) = qrs(i,k,2)
-enddo
-enddo
-call slope_wsm5(qrs_tmp,den_tmp,denfac,t,rslope,rslopeb,rslope2,rslope3, &
-            work1,its,ite,kts,kte)
-!
-do k = kte, kts, -1
-do i = its, ite
- workr(i,k) = work1(i,k,1) 
- works(i,k) = work1(i,k,2) 
- denqrs1(i,k) = den(i,k)*qrs(i,k,1)
- denqrs2(i,k) = den(i,k)*qrs(i,k,2)
- if(qrs(i,k,1).le.0.0) workr(i,k) = 0.0
- if(qrs(i,k,2).le.0.0) works(i,k) = 0.0
-enddo
-enddo
-call nislfv_rain_plm(idim,kdim,den_tmp,denfac,t,delz_tmp,workr,denqrs1,  &
-                  delqrs1,dtcld,1,1)
-call nislfv_rain_plm(idim,kdim,den_tmp,denfac,t,delz_tmp,works,denqrs2,  &
-                  delqrs2,dtcld,2,1)
-do k = kts, kte
-do i = its, ite
- qrs(i,k,1) = max(denqrs1(i,k)/den(i,k),0.)
- qrs(i,k,2) = max(denqrs2(i,k)/den(i,k),0.)
- fall(i,k,1) = denqrs1(i,k)*workr(i,k)/delz(i,k)
- fall(i,k,2) = denqrs2(i,k)*works(i,k)/delz(i,k)
-enddo
-enddo
-do i = its, ite
-fall(i,1,1) = delqrs1(i)/delz(i,1)/dtcld
-fall(i,1,2) = delqrs2(i)/delz(i,1)/dtcld
-enddo
-do k = kts, kte
-do i = its, ite
- qrs_tmp(i,k,1) = qrs(i,k,1)
- qrs_tmp(i,k,2) = qrs(i,k,2)
-enddo
-enddo
-call slope_wsm5(qrs_tmp,den_tmp,denfac,t,rslope,rslopeb,rslope2,rslope3, &
-            work1,its,ite,kts,kte)
-do k = kte, kts, -1
-do i = its, ite
- supcol = t0c-t(i,k)
- n0sfac(i,k) = max(min(exp(alpha*supcol),n0smax/n0s),1.)
- if(t(i,k).gt.t0c.and.qrs(i,k,2).gt.0.) then
-!----------------------------------------------------------------
-! psmlt: melting of snow [HL A33] [RH83 A25]
-!       (T>T0: S->R)
-!----------------------------------------------------------------
-   xlf = xlf0
-!           work2(i,k)= venfac(p(i,k),t(i,k),den(i,k))
-   work2(i,k)= (exp(log(((1.496e-6*((t(i,k))*sqrt(t(i,k)))        &
-               /((t(i,k))+120.)/(den(i,k)))/(8.794e-5             &
-               *exp(log(t(i,k))*(1.81))/p(i,k))))                 &
-               *((.3333333)))/sqrt((1.496e-6*((t(i,k))            &
-               *sqrt(t(i,k)))/((t(i,k))+120.)/(den(i,k))))        &
-               *sqrt(sqrt(den0/(den(i,k)))))
-   coeres = rslope2(i,k,2)*sqrt(rslope(i,k,2)*rslopeb(i,k,2))
-   psmlt(i,k) = (1.414e3*(1.496e-6*((t(i,k))*sqrt(t(i,k)))        &
-               /((t(i,k))+120.)/(den(i,k)) )*(den(i,k)))          &
-               /xlf*(t0c-t(i,k))*pi/2.                            &
-               *n0sfac(i,k)*(precs1*rslope2(i,k,2)+precs2         &
-               *work2(i,k)*coeres)/den(i,k)
-   psmlt(i,k) = min(max(psmlt(i,k)*dtcld/mstep(i),                &
-               -qrs(i,k,2)/mstep(i)),0.)
-   qrs(i,k,2) = qrs(i,k,2) + psmlt(i,k)
-   qrs(i,k,1) = qrs(i,k,1) - psmlt(i,k)
-   t(i,k) = t(i,k) + xlf/cpm(i,k)*psmlt(i,k)
- endif
-enddo
-enddo
-!---------------------------------------------------------------
-! Vice [ms-1] : fallout of ice crystal [HDC 5a]
-!---------------------------------------------------------------
-do k = kte, kts, -1
-do i = its, ite
- if(qci(i,k,2).le.0.) then
-   work1c(i,k) = 0.
- else
-   xmi = den(i,k)*qci(i,k,2)/xni(i,k)
-   diameter  = max(min(dicon * sqrt(xmi),dimax), 1.e-25)
-   work1c(i,k) = 1.49e4*exp(log(diameter)*(1.31))
- endif
-enddo
-enddo
-!
-!  forward semi-laglangian scheme (JH), PCM (piecewise constant),  (linear)
-!
-do k = kte, kts, -1
-do i = its, ite
- denqci(i,k) = den(i,k)*qci(i,k,2)
-enddo
-enddo
-call nislfv_rain_plm(idim,kdim,den_tmp,denfac,t,delz_tmp,work1c,denqci,  &
-                  delqi,dtcld,1,0)
-do k = kts, kte
-do i = its, ite
- qci(i,k,2) = max(denqci(i,k)/den(i,k),0.)
-enddo
-enddo
-do i = its, ite
-fallc(i,1) = delqi(i)/delz(i,1)/dtcld
-enddo
-!
-!----------------------------------------------------------------
-!      rain (unit is mm/sec;kgm-2s-1: /1000*delt ===> m)==> mm for wrf
-!
-do i = its, ite
-fallsum = fall(i,1,1)+fall(i,1,2)+fallc(i,1)
-fallsum_qsi = fall(i,1,2)+fallc(i,1)
-if(fallsum.gt.0.) then
- rainncv(i) = fallsum*delz(i,1)/denr*dtcld*1000. + rainncv(i)
- rain(i) = fallsum*delz(i,1)/denr*dtcld*1000. + rain(i)
-endif
-if(fallsum_qsi.gt.0.) then
- tstepsnow(i)   = fallsum_qsi*delz(i,kts)/denr*dtcld*1000.            &
-                  +tstepsnow(i) 
-IF ( PRESENT (snowncv) .AND. PRESENT (snow)) THEN
- snowncv(i,lat) = fallsum_qsi*delz(i,kts)/denr*dtcld*1000.            & 
-                  +snowncv(i,lat)    
- snow(i,lat) = fallsum_qsi*delz(i,kts)/denr*dtcld*1000. + snow(i,lat)
-ENDIF
-endif
-IF ( PRESENT (snowncv) ) THEN
- if(fallsum.gt.0.)sr(i)=snowncv(i,lat)/(rainncv(i)+1.e-12)
-ELSE
- if(fallsum.gt.0.)sr(i)=tstepsnow(i)/(rainncv(i)+1.e-12)
-ENDIF
-enddo
-!
-!---------------------------------------------------------------
-! pimlt: instantaneous melting of cloud ice [HL A47] [RH83 A28]
-!       (T>T0: I->C)
-!---------------------------------------------------------------
-do k = kts, kte
-do i = its, ite
- supcol = t0c-t(i,k)
- xlf = xls-xl(i,k)
- if(supcol.lt.0.) xlf = xlf0
- if(supcol.lt.0.and.qci(i,k,2).gt.0.) then
-   qci(i,k,1) = qci(i,k,1) + qci(i,k,2)
-   t(i,k) = t(i,k) - xlf/cpm(i,k)*qci(i,k,2)
-   qci(i,k,2) = 0.
- endif
-!---------------------------------------------------------------
-! pihmf: homogeneous freezing of cloud water below -40c [HL A45]
-!        (T<-40C: C->I)
-!---------------------------------------------------------------
- if(supcol.gt.40..and.qci(i,k,1).gt.0.) then
-   qci(i,k,2) = qci(i,k,2) + qci(i,k,1)
-   t(i,k) = t(i,k) + xlf/cpm(i,k)*qci(i,k,1)
-   qci(i,k,1) = 0.
- endif
-!---------------------------------------------------------------
-! pihtf: heterogeneous freezing of cloud water [HL A44]
-!        (T0>T>-40C: C->I)
-!---------------------------------------------------------------
- if(supcol.gt.0..and.qci(i,k,1).gt.0.) then
-   supcolt=min(supcol,50.)
-!           pfrzdtc = min(pfrz1*(exp(pfrz2*supcol)-1.)                         &
-!              *den(i,k)/denr/xncr*qci(i,k,1)**2*dtcld,qci(i,k,1))
-   pfrzdtc = min(pfrz1*(exp(pfrz2*supcolt)-1.)                        &
-   *den(i,k)/denr/xncr*qci(i,k,1)*qci(i,k,1)*dtcld,qci(i,k,1))
-   qci(i,k,2) = qci(i,k,2) + pfrzdtc
-   t(i,k) = t(i,k) + xlf/cpm(i,k)*pfrzdtc
-   qci(i,k,1) = qci(i,k,1)-pfrzdtc
- endif
-!---------------------------------------------------------------
-! psfrz: freezing of rain water [HL A20] [LFO 45]
-!        (T<T0, R->S)
-!---------------------------------------------------------------
- if(supcol.gt.0..and.qrs(i,k,1).gt.0.) then
-   supcolt=min(supcol,50.)
-!           pfrzdtr = min(20.*pi**2*pfrz1*n0r*denr/den(i,k)                    &
-!                 *(exp(pfrz2*supcol)-1.)*rslope(i,k,1)**7*dtcld,              &
-!                 qrs(i,k,1))
-   temp = rslope(i,k,1)
-   temp = temp*temp*temp*temp*temp*temp*temp
-   pfrzdtr = min(20.*(pi*pi)*pfrz1*n0r*denr/den(i,k)                  &
-         *(exp(pfrz2*supcolt)-1.)*temp*dtcld,                         &
-         qrs(i,k,1))
-   qrs(i,k,2) = qrs(i,k,2) + pfrzdtr
-   t(i,k) = t(i,k) + xlf/cpm(i,k)*pfrzdtr
-   qrs(i,k,1) = qrs(i,k,1)-pfrzdtr
- endif
-enddo
-enddo
-!
-!----------------------------------------------------------------
-!     update the slope parameters for microphysics computation
-!
-do k = kts, kte
-do i = its, ite
- qrs_tmp(i,k,1) = qrs(i,k,1)
- qrs_tmp(i,k,2) = qrs(i,k,2)
-enddo
-enddo
-call slope_wsm5(qrs_tmp,den_tmp,denfac,t,rslope,rslopeb,rslope2,rslope3, &
-            work1,its,ite,kts,kte)
-!------------------------------------------------------------------
-!     work1:  the thermodynamic term in the denominator associated with
-!             heat conduction and vapor diffusion
-!             (ry88, y93, h85)
-!     work2: parameter associated with the ventilation effects(y93)
-!
-do k = kts, kte
-do i = its, ite
-!         work1(i,k,1) = diffac(xl(i,k),p(i,k),t(i,k),den(i,k),qs(i,k,1))
- work1(i,k,1) = ((((den(i,k))*(xl(i,k))*(xl(i,k)))*((t(i,k))+120.)    &
-              *(den(i,k)))/(1.414e3*(1.496e-6*((t(i,k))*sqrt(t(i,k))))&
-              *(den(i,k))*(rv*(t(i,k))*(t(i,k)))))                    &
-             +  p(i,k)/((qs(i,k,1))*(8.794e-5*exp(log(t(i,k))*(1.81))))
-!         work1(i,k,2) = diffac(xls,p(i,k),t(i,k),den(i,k),qs(i,k,2))
- work1(i,k,2) = ((((den(i,k))*(xls)*(xls))*((t(i,k))+120.)*(den(i,k)))&
-              /(1.414e3*(1.496e-6*((t(i,k))*sqrt(t(i,k))))*(den(i,k)) &
-              *(rv*(t(i,k))*(t(i,k))))                                &
-             + p(i,k)/(qs(i,k,2)*(8.794e-5*exp(log(t(i,k))*(1.81)))))
-!         work2(i,k) = venfac(p(i,k),t(i,k),den(i,k))
- work2(i,k) = (exp(.3333333*log(((1.496e-6 * ((t(i,k))*sqrt(t(i,k)))) &
-            *p(i,k))/(((t(i,k))+120.)*den(i,k)*(8.794e-5              &
-            *exp(log(t(i,k))*(1.81))))))*sqrt(sqrt(den0/(den(i,k))))) &
-             /sqrt((1.496e-6*((t(i,k))*sqrt(t(i,k))))                 &
-             /(((t(i,k))+120.)*den(i,k)))
-enddo 
-enddo 
-!
-!===============================================================
-!
-! warm rain processes
-!
-! - follows the processes in RH83 and LFO except for autoconcersion
-!
-!===============================================================
-!
-do k = kts, kte
-do i = its, ite
- supsat = max(q(i,k),qmin)-qs(i,k,1)
- satdt = supsat/dtcld
-!---------------------------------------------------------------
-! praut: auto conversion rate from cloud to rain [HDC 16]
-!        (C->R)
-!---------------------------------------------------------------
- if(qci(i,k,1).gt.qc0) then
-   praut(i,k) = qck1*exp(log(qci(i,k,1))*((7./3.)))
-   praut(i,k) = min(praut(i,k),qci(i,k,1)/dtcld)
- endif
-!---------------------------------------------------------------
-! pracw: accretion of cloud water by rain [HL A40] [LFO 51]
-!        (C->R)
-!---------------------------------------------------------------
- if(qrs(i,k,1).gt.qcrmin.and.qci(i,k,1).gt.qmin) then
-   pracw(i,k) = min(pacrr*rslope3(i,k,1)*rslopeb(i,k,1)               & 
-                *qci(i,k,1)*denfac(i,k),qci(i,k,1)/dtcld)
- endif
-!---------------------------------------------------------------
-! prevp: evaporation/condensation rate of rain [HDC 14]
-!        (V->R or R->V)
-!---------------------------------------------------------------
- if(qrs(i,k,1).gt.0.) then
-   coeres = rslope2(i,k,1)*sqrt(rslope(i,k,1)*rslopeb(i,k,1))
-   prevp(i,k) = (rh(i,k,1)-1.)*(precr1*rslope2(i,k,1)                 &
-                +precr2*work2(i,k)*coeres)/work1(i,k,1)
-   if(prevp(i,k).lt.0.) then
-     prevp(i,k) = max(prevp(i,k),-qrs(i,k,1)/dtcld)
-     prevp(i,k) = max(prevp(i,k),satdt/2)
-   else
-     prevp(i,k) = min(prevp(i,k),satdt/2)
-   endif
- endif
-enddo
-enddo
-enddo                  ! big loops
-END SUBROUTINE wsm52D_warm_rain
-
-
-
+                                                         
 END MODULE module_mp_wsm5
 !#endif
