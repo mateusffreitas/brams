@@ -709,7 +709,7 @@ END SUBROUTINE micro_wsm
                         start_of_simulation_second =.false.
                       ENDIF
 
-                      CALL wsm5_warm_rain(                         &
+                      CALL wsm5(                         &
                      TH,                        &! potential temperature    (K)
                      qv_curr,                   &! QV=qv_curr,     
                      qc_curr,                   &! QC=qc_curr,     
