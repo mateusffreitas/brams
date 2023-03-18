@@ -529,10 +529,8 @@ END SUBROUTINE micro_wsm
                      g,       &
                      cp,      &
                      cpv,     &
-                     r_d,     &
                      r_v,     &
                      svpt0,   &
-                     ep_1,    &
                      ep_2,    &
                      epsilon, &
                      xls,     &
@@ -543,24 +541,11 @@ END SUBROUTINE micro_wsm
                      cliq,    &
                      cice,    &
                      psat,    & 
-                    
                      RAINNC,                    &
                      RAINNCV,                   &
                      SNOWNC,                    &
                      SNOWNCV,                   &
-                     SR,                        &
-                     !
-                     refl_10cm,                 &
-                     diagflag,                  &
-                     do_radar_ref,              &
-                     ! 
-                     has_reqc,                  & 
-                     has_reqi,                  &  
-                     has_reqs,                  & 
-                     !
-                     re_cloud,                  & 
-                     re_ice,                    &
-                     re_snow,                   &
+                     SR,                        &              
                      IDS,IDE, JDS,JDE, KDS,KDE, &
                      IMS,IME, JMS,JME, KMS,KME, &
                      ITS,ITE, JTS,JTE, KTS,KTE, &

@@ -61,18 +61,15 @@ CONTAINS
 !===================================================================
 !
 
-   SUBROUTINE wsm5_warm_rain(th, q, qc, qr, qi, qs                            &
+  SUBROUTINE wsm5_warm_rain(th, q, qc, qr, qi, qs                            &
                  ,den, pii, p, delz                                &
-                 ,delt,g, cpd, cpv, rd, rv, t0c                    &
-                 ,ep1, ep2, qmin                                   &
+                 ,delt, cpd, cpv,rv, t0c                           &
+                 ,ep2, qmin                                        &
                  ,XLS, XLV0, XLF0, den0, denr                      &
                  ,cliq,cice,psat                                   &
                  ,rain, rainncv                                    &
                  ,snow, snowncv                                    &
-                 ,sr                                               &
-                 ,refl_10cm, diagflag, do_radar_ref                &
-                 ,has_reqc, has_reqi, has_reqs                     &  ! for radiation
-                 ,re_cloud, re_ice,   re_snow                      &  ! for radiation       
+                 ,sr                                               &                 
                  ,ids,ide, jds,jde, kds,kde                        &
                  ,ims,ime, jms,jme, kms,kme                        &
                  ,its,ite, jts,jte, kts,kte                        &
@@ -100,14 +97,11 @@ CONTAINS
                                                                p, &
                                                             delz
   REAL, INTENT(IN   ) ::                                    delt, &
-                                                               g, &
-                                                              rd, &
                                                               rv, &
                                                              t0c, &
                                                             den0, &
                                                              cpd, &
                                                              cpv, &
-                                                             ep1, &
                                                              ep2, &
                                                             qmin, &
                                                              XLS, &
@@ -121,19 +115,7 @@ CONTAINS
         INTENT(INOUT) ::                                    rain, &
                                                          rainncv, &
                                                               sr
-! for radiation connecting
-  INTEGER, INTENT(IN)::                                           &
-                                                        has_reqc, &
-                                                        has_reqi, &
-                                                        has_reqs
-  REAL, DIMENSION(ims:ime, kms:kme, jms:jme),                     &
-        INTENT(INOUT)::                                           &
-                                                        re_cloud, &
-                                                          re_ice, &
-                                                         re_snow
-!+---+-----------------------------------------------------------------+
-  REAL, DIMENSION(ims:ime, kms:kme, jms:jme), INTENT(INOUT)::     &  ! GT
-                                                       refl_10cm
+
 !+---+-----------------------------------------------------------------+
 
   REAL, DIMENSION( ims:ime , jms:jme ), OPTIONAL,                 &
@@ -144,10 +126,6 @@ CONTAINS
   REAL, DIMENSION( its:ite , kts:kte, 2 ) ::   qci, qrs
   INTEGER ::               i,j,k
 
-!+---+-----------------------------------------------------------------+
-
-      LOGICAL, OPTIONAL, INTENT(IN) :: diagflag
-      INTEGER, OPTIONAL, INTENT(IN) :: do_radar_ref
 !+---+-----------------------------------------------------------------+
 
   REAL, DIMENSION( its:ite , kts:kte ), INTENT(OUT) ::             &
@@ -171,8 +149,8 @@ CONTAINS
          CALL wsm52D_warm_rain(t, q(ims,kms,j), qci, qrs                     &
                     ,den(ims,kms,j)                                &
                     ,p(ims,kms,j), delz(ims,kms,j)                 &
-                    ,delt,g, cpd, cpv, rd, rv, t0c                 &
-                    ,ep1, ep2, qmin                                &
+                    ,delt, cpd, cpv, rv, t0c                       &
+                    ,ep2, qmin                                     &
                     ,XLS, XLV0, XLF0, den0, denr                   &
                     ,cliq,cice,psat                                &
                     ,j                                             &
@@ -193,8 +171,8 @@ CONTAINS
 !
   SUBROUTINE wsm52D_warm_rain(t, q                                          & 
                    ,qci, qrs, den, p, delz                        &
-                   ,delt,g, cpd, cpv, rd, rv, t0c                 &
-                   ,ep1, ep2, qmin                                &
+                   ,delt, cpd, cpv, rv, t0c                 &
+                   ,ep2, qmin                                &
                    ,XLS, XLV0, XLF0, den0, denr                   &
                    ,cliq,cice,psat                                &
                    ,lat                                           &
@@ -268,14 +246,11 @@ CONTAINS
                                                                p, &
                                                             delz
   REAL, INTENT(IN   ) ::                                    delt, &
-                                                               g, &
                                                              cpd, &
                                                              cpv, &
                                                              t0c, &
                                                             den0, &
-                                                              rd, &
                                                               rv, &
-                                                             ep1, &
                                                              ep2, &
                                                             qmin, &
                                                              XLS, &
