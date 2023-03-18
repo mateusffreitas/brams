@@ -59,8 +59,6 @@ CONTAINS
                  ,ep2, qmin                                        &
                  ,XLS, XLV0, XLF0, den0, denr                      &
                  ,cliq,cice,psat                                   &
-                 ,sr                                               &                 
-                 ,ids,ide, jds,jde, kds,kde                        &
                  ,ims,ime, jms,jme, kms,kme                        &
                  ,its,ite, jts,jte, kts,kte                        &
                  ,praut,prevp,pracw                                &
@@ -69,8 +67,7 @@ CONTAINS
   IMPLICIT NONE
 !-------------------------------------------------------------------
 !
-  INTEGER,      INTENT(IN   )    ::   ids,ide, jds,jde, kds,kde , &
-                                      ims,ime, jms,jme, kms,kme , &
+  INTEGER,      INTENT(IN   )    ::   ims,ime, jms,jme, kms,kme , &
                                       its,ite, jts,jte, kts,kte
   REAL, DIMENSION( ims:ime , kms:kme , jms:jme ),                 &
         INTENT(INOUT) ::                                          &
@@ -101,8 +98,6 @@ CONTAINS
                                                             cice, &
                                                             psat, &
                                                             denr
-  REAL, DIMENSION( ims:ime , jms:jme ),                           &
-        INTENT(INOUT) ::                                     sr
 
 !+---+-----------------------------------------------------------------+
 
@@ -139,10 +134,8 @@ CONTAINS
                     ,XLS, XLV0, XLF0, den0, denr                   &
                     ,cliq,cice,psat                                &
                     ,j                                             &
-                    ,sr(ims,j)                                     &
-                    ,ids,ide, jds,jde, kds,kde                     &
-                    ,ims,ime, jms,jme, kms,kme                     &
-                    ,its,ite, jts,jte, kts,kte                     &
+                    ,ims,ime, kms,kme                     &
+                    ,its,ite, kts,kte                     &
                     ,praut,prevp,pracw                             &
                                                                    )
       ENDDO
@@ -158,53 +151,19 @@ CONTAINS
                    ,ep2, qmin                                &
                    ,XLS, XLV0, XLF0, den0, denr                   &
                    ,cliq,cice,psat                                &
-                   ,lat                                           &
-                   ,sr                                            &
-                   ,ids,ide, jds,jde, kds,kde                     &
-                   ,ims,ime, jms,jme, kms,kme                     &
-                   ,its,ite, jts,jte, kts,kte                     &
+                   ,lat &
+                   ,ims,ime, kms,kme                     &
+                   ,its,ite, kts,kte                     &
                    ,praut,prevp,pracw                                  &
                                                                   )
 !-------------------------------------------------------------------
   IMPLICIT NONE
 !-------------------------------------------------------------------
 !
-!  This code is a 5-class mixed ice microphyiscs scheme (WSM5) of the 
-!  Single-Moment MicroPhyiscs (WSMMP). The WSMMP assumes that ice nuclei
-!  number concentration is a function of temperature, and seperate assumption
-!  is developed, in which ice crystal number concentration is a function
-!  of ice amount. A theoretical background of the ice-microphysics and related
-!  processes in the WSMMPs are described in Hong et al. (2004).
-!  Production terms in the WSM6 scheme are described in Hong and Lim (2006).
-!  All units are in m.k.s. and source/sink terms in kgkg-1s-1.
-!
-!  WSM5 cloud scheme
-!
-!  Coded by Song-You Hong (Yonsei Univ.)
-!             Jimy Dudhia (NCAR) and Shu-Hua Chen (UC Davis)
-!             Summer 2002
-!
-!  Implemented by Song-You Hong (Yonsei Univ.) and Jimy Dudhia (NCAR)
-!             Summer 2003
-!
-!  further modifications :
-!        semi-lagrangian sedimentation (JH,2010),hong, aug 2009
-!        ==> higher accuracy and efficient at lower resolutions
-!        reflectivity computation from greg thompson, lim, jun 2011
-!        ==> only diagnostic, but with removal of too large drops
-!        effective radius of hydrometeors, bae from kiaps, jan 2015
-!        ==> consistency in solar insolation of rrtmg radiation
-!        bug fix in melting terms, bae from kiaps, nov 2015
-!        ==> density of air is divided, which has not been
-!
-!  Reference) Hong, Dudhia, Chen (HDC, 2004) Mon. Wea. Rev.
-!             Rutledge, Hobbs (RH83, 1983) J. Atmos. Sci.
-!             Hong and Lim (HL, 2006) J. Korean Meteor. Soc.
-!
-  INTEGER,      INTENT(IN   )    ::   ids,ide, jds,jde, kds,kde , &
-                                      ims,ime, jms,jme, kms,kme , &
-                                      its,ite, jts,jte, kts,kte,  &
+  INTEGER,      INTENT(IN   )    ::   ims,ime, kms,kme , &
+                                      its,ite, kts,kte, &
                                       lat
+
   REAL, DIMENSION( its:ite , kts:kte ),                           &
         INTENT(INOUT) ::                                          &
                                                            t
@@ -241,9 +200,8 @@ CONTAINS
                                                             cice, &
                                                             psat, &
                                                             denr
-  REAL, DIMENSION( ims:ime ),                                     &
-        INTENT(INOUT) ::                                     sr
-! LOCAL VAR
+
+  ! LOCAL VAR
   REAL, DIMENSION( its:ite , kts:kte , 2) ::                      &
                                                               rh, &
                                                               qs, &
@@ -306,18 +264,7 @@ CONTAINS
 !
       cpmcal(x) = cpd*(1.-max(x,qmin))+max(x,qmin)*cpv
       xlcal(x) = xlv0-xlv1*(x-t0c)
-!----------------------------------------------------------------
-!     diffus: diffusion coefficient of the water vapor
-!     viscos: kinematic viscosity(m2s-1)
-!     diffus(x,y) = 8.794e-5 * exp(log(x)*(1.81)) / y        ! 8.794e-5*x**1.81/y
-!     viscos(x,y) = 1.496e-6 * (x*sqrt(x)) /(x+120.)/y  ! 1.496e-6*x**1.5/(x+120.)/y
-!     xka(x,y) = 1.414e3*viscos(x,y)*y
-!     diffac(a,b,c,d,e) = d*a*a/(xka(c,d)*rv*c*c)+1./(e*diffus(c,b))
-!     venfac(a,b,c) = exp(log((viscos(b,c)/diffus(b,a)))*((.3333333)))         &
-!                    /sqrt(viscos(b,c))*sqrt(sqrt(den0/c))
-!     conden(a,b,c,d,e) = (max(b,qmin)-c)/(1.+d*d/(rv*e)*c/(a*a))
-!
-!----------------------------------------------------------------
+
       idim = ite-its+1
       kdim = kte-kts+1
 !
@@ -1126,150 +1073,6 @@ CONTAINS
 !
   END SUBROUTINE nislfv_rain_plm
 
-!# else
-!#  include "mic-wsm5-3-5-code.h"
-!# endif
-! end of #ifndef XEON_OPTIMIZED_WSM5
-
-! remainder of routines are common to original and MIC version
-
-!+---+-----------------------------------------------------------------+
-!       subroutine refl10cm_wsm5 (qv1d, qr1d, qs1d,                       &
-!                        t1d, p1d, dBZ, kts, kte, ii, jj)
-
-!       IMPLICIT NONE
-
-! !..Sub arguments
-!       INTEGER, INTENT(IN):: kts, kte, ii, jj
-!       REAL, DIMENSION(kts:kte), INTENT(IN)::                            &
-!                       qv1d, qr1d, qs1d, t1d, p1d
-!       REAL, DIMENSION(kts:kte), INTENT(INOUT):: dBZ
-
-! !..Local variables
-!       REAL, DIMENSION(kts:kte):: temp, pres, qv, rho
-!       REAL, DIMENSION(kts:kte):: rr, rs
-!       REAL:: temp_C
-
-!       DOUBLE PRECISION, DIMENSION(kts:kte):: ilamr, ilams
-!       DOUBLE PRECISION, DIMENSION(kts:kte):: N0_r, N0_s
-!       DOUBLE PRECISION:: lamr, lams
-!       LOGICAL, DIMENSION(kts:kte):: L_qr, L_qs
-
-!       REAL, DIMENSION(kts:kte):: ze_rain, ze_snow
-!       DOUBLE PRECISION:: fmelt_s
-
-!       INTEGER:: i, k, k_0, kbot, n
-!       LOGICAL:: melti
-
-!       DOUBLE PRECISION:: cback, x, eta, f_d
-!       REAL, PARAMETER:: R=287.
-
-! !+---+
-
-!       do k = kts, kte
-!          dBZ(k) = -35.0
-!       enddo
-
-! !+---+-----------------------------------------------------------------+
-! !..Put column of data into local arrays.
-! !+---+-----------------------------------------------------------------+
-!       do k = kts, kte
-!          temp(k) = t1d(k)
-!          temp_C = min(-0.001, temp(K)-273.15)
-!          qv(k) = MAX(1.E-10, qv1d(k))
-!          pres(k) = p1d(k)
-!          rho(k) = 0.622*pres(k)/(R*temp(k)*(qv(k)+0.622))
-
-!          if (qr1d(k) .gt. 1.E-9) then
-!             rr(k) = qr1d(k)*rho(k)
-!             N0_r(k) = n0r
-!             lamr = (xam_r*xcrg(3)*N0_r(k)/rr(k))**(1./xcre(1))
-!             ilamr(k) = 1./lamr
-!             L_qr(k) = .true.
-!          else
-!             rr(k) = 1.E-12
-!             L_qr(k) = .false.
-!          endif
-
-!          if (qs1d(k) .gt. 1.E-9) then
-!             rs(k) = qs1d(k)*rho(k)
-!             N0_s(k) = min(n0smax, n0s*exp(-alpha*temp_C))
-!             lams = (xam_s*xcsg(3)*N0_s(k)/rs(k))**(1./xcse(1))
-!             ilams(k) = 1./lams
-!             L_qs(k) = .true.
-!          else
-!             rs(k) = 1.E-12
-!             L_qs(k) = .false.
-!          endif
-!       enddo
-
-! !+---+-----------------------------------------------------------------+
-! !..Locate K-level of start of melting (k_0 is level above).
-! !+---+-----------------------------------------------------------------+
-!       melti = .false.
-!       k_0 = kts
-!       do k = kte-1, kts, -1
-!          if ( (temp(k).gt.273.15) .and. L_qr(k) .and. L_qs(k+1) ) then
-!             k_0 = MAX(k+1, k_0)
-!             melti=.true.
-!             goto 195
-!          endif
-!       enddo
-!  195  continue
-
-! !+---+-----------------------------------------------------------------+
-! !..Assume Rayleigh approximation at 10 cm wavelength. Rain (all temps)
-! !.. and non-water-coated snow and graupel when below freezing are
-! !.. simple. Integrations of m(D)*m(D)*N(D)*dD.
-! !+---+-----------------------------------------------------------------+
-
-!       do k = kts, kte
-!          ze_rain(k) = 1.e-22
-!          ze_snow(k) = 1.e-22
-!          if (L_qr(k)) ze_rain(k) = N0_r(k)*xcrg(4)*ilamr(k)**xcre(4)
-!          if (L_qs(k)) ze_snow(k) = (0.176/0.93) * (6.0/PI)*(6.0/PI)     &
-!                                  * (xam_s/900.0)*(xam_s/900.0)          &
-!                                  * N0_s(k)*xcsg(4)*ilams(k)**xcse(4)
-!       enddo
-
-
-! !+---+-----------------------------------------------------------------+
-! !..Special case of melting ice (snow/graupel) particles.  Assume the
-! !.. ice is surrounded by the liquid water.  Fraction of meltwater is
-! !.. extremely simple based on amount found above the melting level.
-! !.. Uses code from Uli Blahak (rayleigh_soak_wetgraupel and supporting
-! !.. routines).
-! !+---+-----------------------------------------------------------------+
-
-!       if (melti .and. k_0.ge.kts+1) then
-!        do k = k_0-1, kts, -1
-
-! !..Reflectivity contributed by melting snow
-!           if (L_qs(k) .and. L_qs(k_0) ) then
-!            fmelt_s = MAX(0.005d0, MIN(1.0d0-rs(k)/rs(k_0), 0.99d0))
-!            eta = 0.d0
-!            lams = 1./ilams(k)
-!            do n = 1, nrbins
-!               x = xam_s * xxDs(n)**xbm_s
-!               call rayleigh_soak_wetgraupel (x,DBLE(xocms),DBLE(xobms), &
-!                     fmelt_s, melt_outside_s, m_w_0, m_i_0, lamda_radar, &
-!                     CBACK, mixingrulestring_s, matrixstring_s,          &
-!                     inclusionstring_s, hoststring_s,                    &
-!                     hostmatrixstring_s, hostinclusionstring_s)
-!               f_d = N0_s(k)*xxDs(n)**xmu_s * DEXP(-lams*xxDs(n))
-!               eta = eta + f_d * CBACK * simpson(n) * xdts(n)
-!            enddo
-!            ze_snow(k) = SNGL(lamda4 / (pi5 * K_w) * eta)
-!           endif
-!        enddo
-!       endif
-
-!       do k = kte, kts, -1
-!          dBZ(k) = 10.*log10((ze_rain(k)+ze_snow(k))*1.d18)
-!       enddo
-
-!       end subroutine refl10cm_wsm5
-!+---+-----------------------------------------------------------------+
 !-------------------------------------------------------------------
   SUBROUTINE wsm5init(den0,denr,dens,cl,cpv,allowed_to_read)
 !-------------------------------------------------------------------

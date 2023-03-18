@@ -540,8 +540,6 @@ END SUBROUTINE micro_wsm
                      cliq,    &
                      cice,    &
                      psat,    & 
-                     SR,                        &              
-                     IDS,IDE, JDS,JDE, KDS,KDE, &
                      IMS,IME, JMS,JME, KMS,KME, &
                      ITS,ITE, JTS,JTE, KTS,KTE, &
                      praut, prevp, pracw        &
