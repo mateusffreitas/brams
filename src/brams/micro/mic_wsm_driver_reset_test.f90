@@ -526,7 +526,6 @@ END SUBROUTINE micro_wsm
                      dz8w,                      &! deltaz
                      !
                      dt,      &                  ! time step              (s)
-                     g,       &
                      cp,      &
                      cpv,     &
                      r_v,     &
@@ -541,10 +540,6 @@ END SUBROUTINE micro_wsm
                      cliq,    &
                      cice,    &
                      psat,    & 
-                     RAINNC,                    &
-                     RAINNCV,                   &
-                     SNOWNC,                    &
-                     SNOWNCV,                   &
                      SR,                        &              
                      IDS,IDE, JDS,JDE, KDS,KDE, &
                      IMS,IME, JMS,JME, KMS,KME, &

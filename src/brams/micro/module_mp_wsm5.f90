@@ -67,8 +67,6 @@ CONTAINS
                  ,ep2, qmin                                        &
                  ,XLS, XLV0, XLF0, den0, denr                      &
                  ,cliq,cice,psat                                   &
-                 ,rain, rainncv                                    &
-                 ,snow, snowncv                                    &
                  ,sr                                               &                 
                  ,ids,ide, jds,jde, kds,kde                        &
                  ,ims,ime, jms,jme, kms,kme                        &
@@ -112,15 +110,10 @@ CONTAINS
                                                             psat, &
                                                             denr
   REAL, DIMENSION( ims:ime , jms:jme ),                           &
-        INTENT(INOUT) ::                                    rain, &
-                                                         rainncv, &
-                                                              sr
+        INTENT(INOUT) ::                                     sr
 
 !+---+-----------------------------------------------------------------+
 
-  REAL, DIMENSION( ims:ime , jms:jme ), OPTIONAL,                 &
-        INTENT(INOUT) ::                                    snow, &
-                                                         snowncv
 ! LOCAL VAR
   REAL, DIMENSION( its:ite , kts:kte ) ::   t
   REAL, DIMENSION( its:ite , kts:kte, 2 ) ::   qci, qrs
@@ -154,12 +147,10 @@ CONTAINS
                     ,XLS, XLV0, XLF0, den0, denr                   &
                     ,cliq,cice,psat                                &
                     ,j                                             &
-                    ,rain(ims,j),rainncv(ims,j)                    &
                     ,sr(ims,j)                                     &
                     ,ids,ide, jds,jde, kds,kde                     &
                     ,ims,ime, jms,jme, kms,kme                     &
                     ,its,ite, jts,jte, kts,kte                     &
-                    ,snow,snowncv                                  &
                     ,praut,prevp,pracw                             &
                                                                    )
       ENDDO
@@ -176,12 +167,10 @@ CONTAINS
                    ,XLS, XLV0, XLF0, den0, denr                   &
                    ,cliq,cice,psat                                &
                    ,lat                                           &
-                   ,rain,rainncv                                  &
                    ,sr                                            &
                    ,ids,ide, jds,jde, kds,kde                     &
                    ,ims,ime, jms,jme, kms,kme                     &
                    ,its,ite, jts,jte, kts,kte                     &
-                   ,snow,snowncv                                  &
                    ,praut,prevp,pracw                                  &
                                                                   )
 !-------------------------------------------------------------------
@@ -261,12 +250,7 @@ CONTAINS
                                                             psat, &
                                                             denr
   REAL, DIMENSION( ims:ime ),                                     &
-        INTENT(INOUT) ::                                    rain, &
-                                                         rainncv, &
-                                                              sr
-  REAL, DIMENSION( ims:ime, jms:jme ),     OPTIONAL,              &
-        INTENT(INOUT) ::                                    snow, &
-                                                         snowncv
+        INTENT(INOUT) ::                                     sr
 ! LOCAL VAR
   REAL, DIMENSION( its:ite , kts:kte , 2) ::                      &
                                                               rh, &
@@ -304,7 +288,6 @@ CONTAINS
                                                            psmlt
   INTEGER, DIMENSION( its:ite ) ::                                &
                                                            mstep
-  REAL, DIMENSION(its:ite) ::                             tstepsnow
   LOGICAL, DIMENSION( its:ite ) ::                        flgcld
 !#define WSM_NO_CONDITIONAL_IN_VECTOR
 !#ifdef WSM_NO_CONDITIONAL_IN_VECTOR
@@ -316,7 +299,6 @@ CONTAINS
             supcol, supcolt,            &
             coeres, supsat, dtcld, xmi, satdt,             &
             diameter,                         &
-            fallsum, fallsum_qsi,         &
             xlf, pfrzdtc, pfrzdtr
 ! variables for optimization
   REAL, DIMENSION( its:ite )           ::                    tvec1
@@ -375,17 +357,6 @@ CONTAINS
           delz_tmp(i,k) = delz(i,k)
           den_tmp(i,k) = den(i,k)
         enddo
-      enddo
-!
-!----------------------------------------------------------------
-!    initialize the surface rain, snow
-!
-      do i = its, ite
-        rainncv(i) = 0.
-        if(PRESENT (snowncv) .AND. PRESENT (snow)) snowncv(i,lat) = 0.
-        sr(i) = 0.
-! new local array to catch step snow
-        tstepsnow(i) = 0.
       enddo
 !
 !----------------------------------------------------------------
@@ -619,32 +590,6 @@ CONTAINS
         fallc(i,1) = delqi(i)/delz(i,1)/dtcld
       enddo
 !
-!----------------------------------------------------------------
-!      rain (unit is mm/sec;kgm-2s-1: /1000*delt ===> m)==> mm for wrf
-!
-      do i = its, ite
-        fallsum = fall(i,1,1)+fall(i,1,2)+fallc(i,1)
-        fallsum_qsi = fall(i,1,2)+fallc(i,1)
-        if(fallsum.gt.0.) then
-          rainncv(i) = fallsum*delz(i,1)/denr*dtcld*1000. + rainncv(i)
-          rain(i) = fallsum*delz(i,1)/denr*dtcld*1000. + rain(i)
-        endif
-        if(fallsum_qsi.gt.0.) then
-          tstepsnow(i)   = fallsum_qsi*delz(i,kts)/denr*dtcld*1000.            &
-                           +tstepsnow(i) 
-        IF ( PRESENT (snowncv) .AND. PRESENT (snow)) THEN
-          snowncv(i,lat) = fallsum_qsi*delz(i,kts)/denr*dtcld*1000.            & 
-                           +snowncv(i,lat)    
-          snow(i,lat) = fallsum_qsi*delz(i,kts)/denr*dtcld*1000. + snow(i,lat)
-        ENDIF
-        endif
-        IF ( PRESENT (snowncv) ) THEN
-          if(fallsum.gt.0.)sr(i)=snowncv(i,lat)/(rainncv(i)+1.e-12)
-        ELSE
-          if(fallsum.gt.0.)sr(i)=tstepsnow(i)/(rainncv(i)+1.e-12)
-        ENDIF
-      enddo
-!
 !---------------------------------------------------------------
 ! pimlt: instantaneous melting of cloud ice [HL A47] [RH83 A28]
 !       (T>T0: I->C)
@@ -788,7 +733,7 @@ CONTAINS
       enddo
     enddo                  ! big loops
   END SUBROUTINE wsm52D_warm_rain
- 
+! 
   SUBROUTINE wsm5(th, q, qc, qr, qi, qs                            &
                  ,den, pii, p, delz                                &
                  ,delt,g, cpd, cpv, rd, rv, t0c                    &

@@ -12,13 +12,7 @@
 !Including inline expansion statistical function 
 MODULE module_mp_wsm5
 !
-   !-srf
-   ! USE module_model_constants, only : RE_QC_BG, RE_QI_BG, RE_QS_BG
-   REAL    , PARAMETER :: RE_QC_BG     = 2.51E-6     ! effective radius of cloud for background (m)
-   REAL    , PARAMETER :: RE_QI_BG     = 5.01E-6     ! effective radius of ice for background (m)
-   REAL    , PARAMETER :: RE_QS_BG     = 10.01E-6    ! effective radius of snow for background (m)
-   !-srf
-!
+ 
    REAL, PARAMETER, PRIVATE :: dtcldcr     = 120. ! maximum time step for minor loops
    REAL, PARAMETER, PRIVATE :: n0r = 8.e6         ! intercept parameter rain
    REAL, PARAMETER, PRIVATE :: avtr = 841.9       ! a constant for terminal velocity of rain
@@ -65,8 +59,6 @@ CONTAINS
                  ,ep2, qmin                                        &
                  ,XLS, XLV0, XLF0, den0, denr                      &
                  ,cliq,cice,psat                                   &
-                 ,rain, rainncv                                    &
-                 ,snow, snowncv                                    &
                  ,sr                                               &                 
                  ,ids,ide, jds,jde, kds,kde                        &
                  ,ims,ime, jms,jme, kms,kme                        &
@@ -110,15 +102,10 @@ CONTAINS
                                                             psat, &
                                                             denr
   REAL, DIMENSION( ims:ime , jms:jme ),                           &
-        INTENT(INOUT) ::                                    rain, &
-                                                         rainncv, &
-                                                              sr
+        INTENT(INOUT) ::                                     sr
 
 !+---+-----------------------------------------------------------------+
 
-  REAL, DIMENSION( ims:ime , jms:jme ), OPTIONAL,                 &
-        INTENT(INOUT) ::                                    snow, &
-                                                         snowncv
 ! LOCAL VAR
   REAL, DIMENSION( its:ite , kts:kte ) ::   t
   REAL, DIMENSION( its:ite , kts:kte, 2 ) ::   qci, qrs
@@ -152,12 +139,10 @@ CONTAINS
                     ,XLS, XLV0, XLF0, den0, denr                   &
                     ,cliq,cice,psat                                &
                     ,j                                             &
-                    ,rain(ims,j),rainncv(ims,j)                    &
                     ,sr(ims,j)                                     &
                     ,ids,ide, jds,jde, kds,kde                     &
                     ,ims,ime, jms,jme, kms,kme                     &
                     ,its,ite, jts,jte, kts,kte                     &
-                    ,snow,snowncv                                  &
                     ,praut,prevp,pracw                             &
                                                                    )
       ENDDO
@@ -174,12 +159,10 @@ CONTAINS
                    ,XLS, XLV0, XLF0, den0, denr                   &
                    ,cliq,cice,psat                                &
                    ,lat                                           &
-                   ,rain,rainncv                                  &
                    ,sr                                            &
                    ,ids,ide, jds,jde, kds,kde                     &
                    ,ims,ime, jms,jme, kms,kme                     &
                    ,its,ite, jts,jte, kts,kte                     &
-                   ,snow,snowncv                                  &
                    ,praut,prevp,pracw                                  &
                                                                   )
 !-------------------------------------------------------------------
@@ -259,12 +242,7 @@ CONTAINS
                                                             psat, &
                                                             denr
   REAL, DIMENSION( ims:ime ),                                     &
-        INTENT(INOUT) ::                                    rain, &
-                                                         rainncv, &
-                                                              sr
-  REAL, DIMENSION( ims:ime, jms:jme ),     OPTIONAL,              &
-        INTENT(INOUT) ::                                    snow, &
-                                                         snowncv
+        INTENT(INOUT) ::                                     sr
 ! LOCAL VAR
   REAL, DIMENSION( its:ite , kts:kte , 2) ::                      &
                                                               rh, &
@@ -302,7 +280,6 @@ CONTAINS
                                                            psmlt
   INTEGER, DIMENSION( its:ite ) ::                                &
                                                            mstep
-  REAL, DIMENSION(its:ite) ::                             tstepsnow
   LOGICAL, DIMENSION( its:ite ) ::                        flgcld
 !#define WSM_NO_CONDITIONAL_IN_VECTOR
 !#ifdef WSM_NO_CONDITIONAL_IN_VECTOR
@@ -314,7 +291,6 @@ CONTAINS
             supcol, supcolt,            &
             coeres, supsat, dtcld, xmi, satdt,             &
             diameter,                         &
-            fallsum, fallsum_qsi,         &
             xlf, pfrzdtc, pfrzdtr
 ! variables for optimization
   REAL, DIMENSION( its:ite )           ::                    tvec1
@@ -373,17 +349,6 @@ CONTAINS
           delz_tmp(i,k) = delz(i,k)
           den_tmp(i,k) = den(i,k)
         enddo
-      enddo
-!
-!----------------------------------------------------------------
-!    initialize the surface rain, snow
-!
-      do i = its, ite
-        rainncv(i) = 0.
-        if(PRESENT (snowncv) .AND. PRESENT (snow)) snowncv(i,lat) = 0.
-        sr(i) = 0.
-! new local array to catch step snow
-        tstepsnow(i) = 0.
       enddo
 !
 !----------------------------------------------------------------
@@ -617,32 +582,6 @@ CONTAINS
         fallc(i,1) = delqi(i)/delz(i,1)/dtcld
       enddo
 !
-!----------------------------------------------------------------
-!      rain (unit is mm/sec;kgm-2s-1: /1000*delt ===> m)==> mm for wrf
-!
-      do i = its, ite
-        fallsum = fall(i,1,1)+fall(i,1,2)+fallc(i,1)
-        fallsum_qsi = fall(i,1,2)+fallc(i,1)
-        if(fallsum.gt.0.) then
-          rainncv(i) = fallsum*delz(i,1)/denr*dtcld*1000. + rainncv(i)
-          rain(i) = fallsum*delz(i,1)/denr*dtcld*1000. + rain(i)
-        endif
-        if(fallsum_qsi.gt.0.) then
-          tstepsnow(i)   = fallsum_qsi*delz(i,kts)/denr*dtcld*1000.            &
-                           +tstepsnow(i) 
-        IF ( PRESENT (snowncv) .AND. PRESENT (snow)) THEN
-          snowncv(i,lat) = fallsum_qsi*delz(i,kts)/denr*dtcld*1000.            & 
-                           +snowncv(i,lat)    
-          snow(i,lat) = fallsum_qsi*delz(i,kts)/denr*dtcld*1000. + snow(i,lat)
-        ENDIF
-        endif
-        IF ( PRESENT (snowncv) ) THEN
-          if(fallsum.gt.0.)sr(i)=snowncv(i,lat)/(rainncv(i)+1.e-12)
-        ELSE
-          if(fallsum.gt.0.)sr(i)=tstepsnow(i)/(rainncv(i)+1.e-12)
-        ENDIF
-      enddo
-!
 !---------------------------------------------------------------
 ! pimlt: instantaneous melting of cloud ice [HL A47] [RH83 A28]
 !       (T>T0: I->C)
@@ -787,30 +726,7 @@ CONTAINS
     enddo                  ! big loops
   END SUBROUTINE wsm52D_warm_rain
 ! ...................................................................
-!--------------------------------------------------------------------------
-      REAL FUNCTION fpvs(t,ice,rd,rv,cvap,cliq,cice,hvap,hsub,psat,t0c)
-!--------------------------------------------------------------------------
-      IMPLICIT NONE
-!--------------------------------------------------------------------------
-      REAL t,rd,rv,cvap,cliq,cice,hvap,hsub,psat,t0c,dldt,xa,xb,dldti,         &
-           xai,xbi,ttp,tr
-      INTEGER ice
-! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-      ttp=t0c+0.01
-      dldt=cvap-cliq
-      xa=-dldt/rv
-      xb=xa+hvap/(rv*ttp)
-      dldti=cvap-cice
-      xai=-dldti/rv
-      xbi=xai+hsub/(rv*ttp)
-      tr=ttp/t
-      if(t.lt.ttp.and.ice.eq.1) then
-        fpvs=psat*exp(log(tr)*(xai))*exp(xbi*(1.-tr))
-      else
-        fpvs=psat*exp(log(tr)*(xa))*exp(xb*(1.-tr))
-      endif
-! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-      END FUNCTION fpvs
+
 !------------------------------------------------------------------------------
       subroutine slope_wsm5(qrs,den,denfac,t,rslope,rslopeb,rslope2,rslope3,   &
                             vt,its,ite,kts,kte)
@@ -1437,101 +1353,7 @@ CONTAINS
       END FUNCTION rgmma
 
 !-----------------------------------------------------------------------
-     subroutine effectRad_wsm5 (t, qc, qi, qs, rho, qmin, t0c,        &
-                                re_qc, re_qi, re_qs, kts, kte, ii, jj)
-
-!-----------------------------------------------------------------------
-!  Compute radiation effective radii of cloud water, ice, and snow for 
-!  single-moment microphysics.
-!  These are entirely consistent with microphysics assumptions, not
-!  constant or otherwise ad hoc as is internal to most radiation
-!  schemes.  
-!  Coded and implemented by Soo ya Bae, KIAPS, January 2015.
-!-----------------------------------------------------------------------
-
-      implicit none
-
-!..Sub arguments
-      integer, intent(in) :: kts, kte, ii, jj
-      real, intent(in) :: qmin
-      real, intent(in) :: t0c
-      real, dimension( kts:kte ), intent(in)::  t
-      real, dimension( kts:kte ), intent(in)::  qc
-      real, dimension( kts:kte ), intent(in)::  qi
-      real, dimension( kts:kte ), intent(in)::  qs
-      real, dimension( kts:kte ), intent(in)::  rho
-      real, dimension( kts:kte ), intent(inout):: re_qc
-      real, dimension( kts:kte ), intent(inout):: re_qi
-      real, dimension( kts:kte ), intent(inout):: re_qs
-!..Local variables
-      integer:: i,k
-      integer :: inu_c
-      real, dimension( kts:kte ):: ni
-      real, dimension( kts:kte ):: rqc
-      real, dimension( kts:kte ):: rqi
-      real, dimension( kts:kte ):: rni
-      real, dimension( kts:kte ):: rqs
-      real :: temp
-      real :: lamdac
-      real :: supcol, n0sfac, lamdas
-      real :: diai      ! diameter of ice in m
-      logical :: has_qc, has_qi, has_qs
-!..Minimum microphys values
-      real, parameter :: R1 = 1.E-12
-      real, parameter :: R2 = 1.E-6
-!..Mass power law relations:  mass = am*D**bm
-      real, parameter :: bm_r = 3.0
-      real, parameter :: obmr = 1.0/bm_r
-      real, parameter :: nc0  = 3.E8
-!-----------------------------------------------------------------------
-      has_qc = .false.
-      has_qi = .false.
-      has_qs = .false.
-
-      do k = kts, kte
-        ! for cloud
-        rqc(k) = max(R1, qc(k)*rho(k))
-        if (rqc(k).gt.R1) has_qc = .true.
-        ! for ice
-        rqi(k) = max(R1, qi(k)*rho(k))
-        temp = (rho(k)*max(qi(k),qmin))
-        temp = sqrt(sqrt(temp*temp*temp))
-        ni(k) = min(max(5.38e7*temp,1.e3),1.e6)
-        rni(k)= max(R2, ni(k)*rho(k))
-        if (rqi(k).gt.R1 .and. rni(k).gt.R2) has_qi = .true.
-        ! for snow
-        rqs(k) = max(R1, qs(k)*rho(k))
-        if (rqs(k).gt.R1) has_qs = .true.
-      enddo
-
-      if (has_qc) then
-        do k=kts,kte
-          if (rqc(k).le.R1) CYCLE
-          lamdac   = (pidnc*nc0/rqc(k))**obmr
-          re_qc(k) =  max(2.51E-6,min(1.5*(1.0/lamdac),50.E-6))
-        enddo
-      endif
-
-     if (has_qi) then
-        do k=kts,kte
-          if (rqi(k).le.R1 .or. rni(k).le.R2) CYCLE
-          diai = 11.9*sqrt(rqi(k)/ni(k))
-          re_qi(k) = max(10.01E-6,min(0.75*0.163*diai,125.E-6))
-        enddo
-      endif
-
-      if (has_qs) then
-        do k=kts,kte
-          if (rqs(k).le.R1) CYCLE
-          supcol = t0c-t(k)
-          n0sfac = max(min(exp(alpha*supcol),n0smax/n0s),1.)
-          lamdas = sqrt(sqrt(pidn0s*n0sfac/rqs(k)))
-          re_qs(k) = max(25.E-6,min(0.5*(1./lamdas), 999.E-6))
-        enddo
-      endif
-
-      end subroutine effectRad_wsm5
-!-----------------------------------------------------------------------
+  
 !-srf 
  subroutine vssqrt(y,x,n)
       real*4 x(*),y(*)
