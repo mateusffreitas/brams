@@ -10,7 +10,7 @@
 !#endif
 
 !Including inline expansion statistical function 
-MODULE module_mp_wsm5
+MODULE module_mp_wsm5_warm_rain_processes
 !
  
    REAL, PARAMETER, PRIVATE :: dtcldcr     = 120. ! maximum time step for minor loops
@@ -1074,7 +1074,7 @@ CONTAINS
   END SUBROUTINE nislfv_rain_plm
 
 !-------------------------------------------------------------------
-  SUBROUTINE wsm5init(den0,denr,dens,cl,cpv,allowed_to_read)
+  SUBROUTINE wsm5init_warm_rain(den0,denr,dens,cl,cpv,allowed_to_read)
 !-------------------------------------------------------------------
   IMPLICIT NONE
 !-------------------------------------------------------------------
@@ -1132,7 +1132,7 @@ CONTAINS
 
 !+---+-----------------------------------------------------------------+
 
-  END SUBROUTINE wsm5init
+  END SUBROUTINE wsm5init_warm_rain
 ! ...................................................................
       REAL FUNCTION rgmma(x)
 !-------------------------------------------------------------------
@@ -1175,5 +1175,5 @@ CONTAINS
 !-srf
 !-----------------------------------------------------------------------
                                                          
-END MODULE module_mp_wsm5
+END MODULE module_mp_wsm5_warm_rain_processes
 !#endif
