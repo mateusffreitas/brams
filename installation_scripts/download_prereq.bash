@@ -7,9 +7,9 @@ mkdir -p $PREREQ_DL_DIR
 
 wget https://zlib.net/fossils/zlib-1.2.11.tar.gz -P $PREREQ_DL_DIR
 [[ $? -ne 0 ]] && { echo "Error while downloading zlib" ; exit 1 ; }
-wget ftp://ftp.unidata.ucar.edu/pub/netcdf/netcdf-4/szip-2.1.tar.gz -P $PREREQ_DL_DIR
+wget https://support.hdfgroup.org/ftp/lib-external/szip/2.1.1/src/szip-2.1.1.tar.gz -P $PREREQ_DL_DIR
 [[ $? -ne 0 ]] && { echo "Error while downloading szip" ; exit 1 ;}
-wget ftp://ftp.unidata.ucar.edu/pub/netcdf/netcdf-4/curl-7.26.0.tar.gz -P $PREREQ_DL_DIR
+wget https://curl.se/download/archeology/curl-7.26.0.tar.gz -P $PREREQ_DL_DIR
 [[ $? -ne 0 ]] && { echo "Error while downloading curl" ; exit 1 ;}
 wget https://github.com/Unidata/netcdf-c/archive/refs/tags/v4.8.1.tar.gz -O $PREREQ_DL_DIR/netcdf-c-4.8.1.tar.gz
 [[ $? -ne 0 ]] && { echo "Error while downloading netcdf-c" ; exit 1 ;}
