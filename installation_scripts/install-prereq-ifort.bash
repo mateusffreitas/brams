@@ -8,7 +8,7 @@ INSTALL_DIR=${INSTALL_DIR:-"${PWD}/intel-${INTEL_COMPILER_VERSION}-prereq-instal
 NUM_MAKE_JOBS=${NUM_MAKE_JOBS:-8}
 MPICH_VERSION=${MPICH_VERSION:-3.3.1}
 
-source ${INTEL_COMPILER_DIR}/setvars.sh
+source ${INTEL_COMPILER_DIR}/setvars.sh --force
 export PATH=${PREREQ_DIR}/bin:$PATH
 export LD_LIBRARY_PATH=${PREREQ_DIR}/lib:$LD_LIBRARY_PATH
 
@@ -29,20 +29,20 @@ then
   CC=icc ./configure --prefix=${PREREQ_DIR}
   make clean && make -j ${NUM_MAKE_JOBS}
   make install
-  [[ $? -ne 0 ]] && { echo "Error while installing zlib" ; exit 1 ; }
+  [[ $? -eq 0 ]] || { echo "Error while installing zlib" ; exit 1 ; }
   touch ../.zlib.done
   cd ..
 fi
 
 if [[ ! -f .szip.done ]]
 then
-  cp ${PREREQ_DL_DIR}/szip-2.1.tar.gz .
-  tar -xzvf szip-2.1.tar.gz
-  cd szip-2.1/
+  cp ${PREREQ_DL_DIR}/szip-2.1.1.tar.gz .
+  tar -xzvf szip-2.1.1.tar.gz
+  cd szip-2.1.1/
   CC=icc ./configure --prefix=${PREREQ_DIR}
   make clean && make -j $NUM_MAKE_JOBS
   make install
-  [[ $? -ne 0 ]] && { echo "Error while installing szip" ; exit 1 ; }
+  [[ $? -eq 0 ]] || { echo "Error while installing szip" ; exit 1 ; }
   touch ../.szip.done
   cd ..
 fi
@@ -55,7 +55,7 @@ then
   CC=icc ./configure --prefix=${PREREQ_DIR} --without-libssh2
   make clean && make -j $NUM_MAKE_JOBS
   make install
-  [[ $? -ne 0 ]] && { echo "Error while installing curl" ; exit 1 ; }
+  [[ $? -eq 0 ]] || { echo "Error while installing curl" ; exit 1 ; }
   touch ../.curl.done
   cd ..
 fi
@@ -67,9 +67,9 @@ then
   cd mpich-${MPICH_VERSION}/
   ./configure CC=icc FC=ifort CFLAGS=-O2 FFLAGS=-O2 CXXFLAGS=-O2 FCFLAGS=-O2 \
    --prefix=${PREREQ_DIR} --with-device=ch3
-  make clean &&  make -j $NUM_MAKE_JOBS
+  make clean && make -j $NUM_MAKE_JOBS
   make install
-  [[ $? -ne 0 ]] && { echo "Error while installing mpich-${MPICH_VERSION}" ; exit 1 ; }
+  [[ $? -eq 0 ]] || { echo "Error while installing mpich-${MPICH_VERSION}" ; exit 1 ; }
   touch ../.mpich-${MPICH_VERSION}.done
   cd ..
 fi
@@ -83,7 +83,7 @@ then
    --with-zlib=${PREREQ_DIR} --with-szlib=${PREREQ_DIR} --enable-parallel --enable-fortran
   make clean && make -j $NUM_MAKE_JOBS
   make install
-  [[ $? -ne 0 ]] && { echo "Error while installing hdf5" ; exit 1 ; }
+  [[ $? -eq 0 ]] || { echo "Error while installing hdf5" ; exit 1 ; }
   touch ../.hdf5-mpich-${MPICH_VERSION}.done
   cd ..
 fi
@@ -97,7 +97,7 @@ then
    ./configure --prefix=${PREREQ_DIR} --enable-netcdf4 --enable-shared --enable-dap
   make clean && make -j $NUM_MAKE_JOBS
   make install
-  [[ $? -ne 0 ]] && { echo "Error while installing netcdf-c" ; exit 1 ; }
+  [[ $? -eq 0 ]] || { echo "Error while installing netcdf-c" ; exit 1 ; }
   touch ../.netcdf-c-mpich-${MPICH_VERSION}.done
   cd ..
 fi
@@ -111,7 +111,7 @@ then
     CC=${PREREQ_DIR}/bin/mpicc ./configure --prefix=${PREREQ_DIR}
   make clean && make -j $NUM_MAKE_JOBS
   make install
-  [[ $? -ne 0 ]] && { echo "Error while installing netcdf-fortran" ; exit 1 ; }
+  [[ $? -eq 0 ]] || { echo "Error while installing netcdf-fortran" ; exit 1 ; }
   touch ../.netcdf-fortran-mpich-${MPICH_VERSION}.done
   cd ..
 fi
@@ -147,15 +147,13 @@ then
   make CC=icc FC=ifort clean
   make CC=icc FC=ifort
   make CC=icc FC=ifort lib
-
-  cp wgrib2/wgrib2 ${PREREQ_DIR}/bin/
+  
   cp wgrib2/libwgrib2.a ${PREREQ_DIR}/lib/
   cp ./lib/*.a ${PREREQ_DIR}/lib/
   cp ./lib/*.mod ${PREREQ_DIR}/include/
-  [[ $? -ne 0 ]] && { echo "Error while installing wgrib2" ; exit 1 ; }
+  cp wgrib2/wgrib2 ${PREREQ_DIR}/bin/
+  [[ $? -eq 0 ]] || { echo "Error while installing wgrib2" ; exit 1 ; }
 
   touch ../.wgrib2-mpich-${MPICH_VERSION}.done
   cd ..
 fi
-
-exit 0

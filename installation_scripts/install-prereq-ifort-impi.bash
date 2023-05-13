@@ -7,7 +7,7 @@ PREREQ_DIR=${PREREQ_DIR:-"${PWD}/opt-intel-impi-${INTEL_COMPILER_VERSION}"}
 INSTALL_DIR=${INSTALL_DIR:-"${PWD}/intel-impi-${INTEL_COMPILER_VERSION}-prereq-install"}
 NUM_MAKE_JOBS=${NUM_MAKE_JOBS:-8}
 
-source ${INTEL_COMPILER_DIR}/setvars.sh
+source ${INTEL_COMPILER_DIR}/setvars.sh --force
 export PATH=${PREREQ_DIR}/bin:$PATH
 export LD_LIBRARY_PATH=${PREREQ_DIR}/lib:$LD_LIBRARY_PATH
 
@@ -28,20 +28,20 @@ then
   CC=icc ./configure --prefix=${PREREQ_DIR}
   make clean && make -j ${NUM_MAKE_JOBS}
   make install
-  [[ $? -ne 0 ]] && { echo "Error while installing zlib" ; exit 1 ; }
+  [[ $? -eq 0 ]] || { echo "Error while installing zlib" ; exit 1 ; }
   touch ../.zlib.done
   cd ..
 fi
 
 if [[ ! -f .szip.done ]]
 then
-  cp ${PREREQ_DL_DIR}/szip-2.1.tar.gz .
-  tar -xzvf szip-2.1.tar.gz
-  cd szip-2.1/
+  cp ${PREREQ_DL_DIR}/szip-2.1.1.tar.gz .
+  tar -xzvf szip-2.1.1.tar.gz
+  cd szip-2.1.1/
   CC=icc ./configure --prefix=${PREREQ_DIR}
   make clean && make -j $NUM_MAKE_JOBS
   make install
-  [[ $? -ne 0 ]] && { echo "Error while installing szip" ; exit 1 ; }
+  [[ $? -eq 0 ]] || { echo "Error while installing szip" ; exit 1 ; }
   touch ../.szip.done
   cd ..
 fi
@@ -54,7 +54,7 @@ then
   CC=icc ./configure --prefix=${PREREQ_DIR} --without-libssh2
   make clean && make -j $NUM_MAKE_JOBS
   make install
-  [[ $? -ne 0 ]] && { echo "Error while installing curl" ; exit 1 ; }
+  [[ $? -eq 0 ]] || { echo "Error while installing curl" ; exit 1 ; }
   touch ../.curl.done
   cd ..
 fi
@@ -68,7 +68,7 @@ then
    --with-zlib=${PREREQ_DIR} --with-szlib=${PREREQ_DIR} --enable-parallel --enable-fortran
   make clean && make -j $NUM_MAKE_JOBS
   make install
-  [[ $? -ne 0 ]] && { echo "Error while installing hdf5" ; exit 1 ; }
+  [[ $? -eq 0 ]] || { echo "Error while installing hdf5" ; exit 1 ; }
   touch ../.hdf5-impi.done
   cd ..
 fi
@@ -82,7 +82,7 @@ then
    ./configure --prefix=${PREREQ_DIR} --enable-netcdf4 --enable-shared --enable-dap
   make clean && make -j $NUM_MAKE_JOBS
   make install
-  [[ $? -ne 0 ]] && { echo "Error while installing netcdf-c" ; exit 1 ; }
+  [[ $? -eq 0 ]] || { echo "Error while installing netcdf-c" ; exit 1 ; }
   touch ../.netcdf-c-impi.done
   cd ..
 fi
@@ -96,7 +96,7 @@ then
     CC=mpiicc ./configure --prefix=${PREREQ_DIR}
   make clean && make -j $NUM_MAKE_JOBS
   make install
-  [[ $? -ne 0 ]] && { echo "Error while installing netcdf-fortran" ; exit 1 ; }
+  [[ $? -eq 0 ]] || { echo "Error while installing netcdf-fortran" ; exit 1 ; }
   touch ../.netcdf-fortran-impi.done
   cd ..
 fi
@@ -137,10 +137,8 @@ then
   cp ./lib/*.a ${PREREQ_DIR}/lib/
   cp ./lib/*.mod ${PREREQ_DIR}/include/
   cp wgrib2/wgrib2 ${PREREQ_DIR}/bin/
-
-  [[ $? -ne 0 ]] && { echo "Error while installing wgrib2" ; exit 1 ; }
+  [[ $? -eq 0 ]] || { echo "Error while installing wgrib2" ; exit 1 ; }
 
   touch ../.wgrib2-impi.done
+  cd ..
 fi
-
-exit 0

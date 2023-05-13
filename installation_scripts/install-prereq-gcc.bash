@@ -26,20 +26,20 @@ then
   CC=gcc ./configure --prefix=${PREREQ_DIR}
   make clean && make -j ${NUM_MAKE_JOBS}
   make install
-  [[ $? -ne 0 ]] && { echo "Error while installing zlib" ; exit 1 ; }
+  [[ $? -eq 0 ]] || { echo "Error while installing zlib" ; exit 1 ; }
   touch ../.zlib.done
   cd ..
 fi
 
 if [[ ! -f .szip.done ]]
 then
-  cp ${PREREQ_DL_DIR}/szip-2.1.tar.gz .
-  tar -xzvf szip-2.1.tar.gz
-  cd szip-2.1/
+  cp ${PREREQ_DL_DIR}/szip-2.1.1.tar.gz .
+  tar -xzvf szip-2.1.1.tar.gz
+  cd szip-2.1.1/
   CC=gcc ./configure --prefix=${PREREQ_DIR}
   make clean && make -j $NUM_MAKE_JOBS
   make install
-  [[ $? -ne 0 ]] && { echo "Error while installing szip" ; exit 1 ; }
+  [[ $? -eq 0 ]] || { echo "Error while installing szip" ; exit 1 ; }
   touch ../.szip.done
   cd ..
 fi
@@ -52,7 +52,7 @@ then
   CC=gcc ./configure --prefix=${PREREQ_DIR} --without-libssh2
   make clean && make -j $NUM_MAKE_JOBS
   make install
-  [[ $? -ne 0 ]] && { echo "Error while installing curl" ; exit 1 ; }
+  [[ $? -eq 0 ]] || { echo "Error while installing curl" ; exit 1 ; }
   touch ../.curl.done
   cd ..
 fi
@@ -67,7 +67,7 @@ then
     CXXFLAGS=-O2  --prefix=${PREREQ_DIR} --with-device=ch3
   make clean &&  make -j $NUM_MAKE_JOBS
   make install
-  [[ $? -ne 0 ]] && { echo "Error while installing mpich-${MPICH_VERSION}" ; exit 1 ; }
+  [[ $? -eq 0 ]] || { echo "Error while installing mpich-${MPICH_VERSION}" ; exit 1 ; }
   touch ../.mpich-${MPICH_VERSION}.done
   cd ..
 fi
@@ -82,7 +82,7 @@ then
     --enable-parallel --enable-fortran
   make clean && make -j $NUM_MAKE_JOBS
   make install
-  [[ $? -ne 0 ]] && { echo "Error while installing hdf5" ; exit 1 ; }
+  [[ $? -eq 0 ]] || { echo "Error while installing hdf5" ; exit 1 ; }
   touch ../.hdf5-mpich-${MPICH_VERSION}.done
   cd ..
 fi
@@ -96,7 +96,7 @@ then
    ./configure --prefix=${PREREQ_DIR} --enable-netcdf4 --enable-shared --enable-dap
   make clean && make -j $NUM_MAKE_JOBS
   make install
-  [[ $? -ne 0 ]] && { echo "Error while installing netcdf-c" ; exit 1 ; }
+  [[ $? -eq 0 ]] || { echo "Error while installing netcdf-c" ; exit 1 ; }
   touch ../.netcdf-c-mpich-${MPICH_VERSION}.done
   cd ..
 fi
@@ -110,7 +110,7 @@ then
     CC=${PREREQ_DIR}/bin/mpicc ./configure --prefix=${PREREQ_DIR}
   make clean && make -j $NUM_MAKE_JOBS
   make install
-  [[ $? -ne 0 ]] && { echo "Error while installing netcdf-fortran" ; exit 1 ; }
+  [[ $? -eq 0 ]] || { echo "Error while installing netcdf-fortran" ; exit 1 ; }
   touch ../.netcdf-fortran-mpich-${MPICH_VERSION}.done
   cd ..
 fi
@@ -151,11 +151,8 @@ then
   cp ./lib/*.a ${PREREQ_DIR}/lib/
   cp ./lib/*.mod ${PREREQ_DIR}/include/
   cp wgrib2/wgrib2 ${PREREQ_DIR}/bin/
-
-  [[ $? -ne 0 ]] && { echo "Error while installing wgrib2" ; exit 1 ; }
+  [[ $? -eq 0 ]] || { echo "Error while installing wgrib2" ; exit 1 ; }
 
   touch ../.wgrib2-mpich-${MPICH_VERSION}.done
   cd ..
 fi
-
-exit 0

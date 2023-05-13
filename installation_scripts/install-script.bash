@@ -37,21 +37,15 @@ case $1 in
     echo Installing with ifort
     ifort_env
 
-    ./install-inteloneapi-offline.bash
-    [[ $? -ne 0 ]] && { echo "Error while installing intel oneapi" ; exit 1 ; }
-
-    ./install-prereq-ifort.bash
-    [[ $? -ne 0 ]] && { echo "Error while installing prerequisites" ; exit 1 ; }
+    . install-inteloneapi-offline.bash
+    . install-prereq-ifort.bash
   ;;
   "ifort-impi")
     echo Installing with ifort and intel mpi
     ifort_impi_env
 
-    ./install-inteloneapi-offline.bash
-    [[ $? -ne 0 ]] && { echo "Error while installing intel oneapi" ; exit 1 ; }
-
-    ./install-prereq-ifort-impi.bash
-    [[ $? -ne 0 ]] && { echo "Error while installing prerequisites" ; exit 1 ; }
+    . install-inteloneapi-offline.bash
+    . install-prereq-ifort-impi.bash
   ;;
   "gcc")
     echo Installing with gcc
@@ -59,31 +53,26 @@ case $1 in
 
     if [[ ${GCC_VERSION} -ge 100000 ]]
     then
-        ./install-prereq-gcc10+.bash
+        . install-prereq-gcc10+.bash
     else
-        ./install-prereq-gcc.bash
+        . install-prereq-gcc.bash
     fi
-    [[ $? -ne 0 ]] && { echo "Error while installing prerequisites" ; exit 1 ; }
-
    ;;
   "download")
      echo Downloading prerequisites source files
-    ./download_prereq.bash
-    [[ $? -ne 0 ]] && { echo "Error while downloading prerequisites " ; exit 1 ; }
+    . download_prereq.bash
   ;;
   "brams-ifort")
      echo Installing BRAMS with ifort
      ifort_env
 
-     ./install-brams-ifort.bash
-     [[ $? -ne 0 ]] && { echo "Error while installing brams with ifort " ; exit 1 ; }
+     . install-brams-ifort.bash
   ;;
   "brams-ifort-impi")
      echo Installing BRAMS with ifort and intel mpi
      ifort_impi_env
 
-     ./install-brams-ifort-impi.bash
-     [[ $? -ne 0 ]] && { echo "Error while installing brams with ifort " ; exit 1 ; }
+     . install-brams-ifort-impi.bash
   ;;
   "brams-gcc")
      echo Installing BRAMS with gcc
@@ -91,12 +80,10 @@ case $1 in
 
      if [[ ${GCC_VERSION} -ge 100000 ]]
      then
-        ./install-brams-gcc10+.bash
+        . install-brams-gcc10+.bash
      else
-        ./install-brams-gcc.bash
+        . install-brams-gcc.bash
      fi
-     [[ $? -ne 0 ]] && { echo "Error while installing brams with gcc " ; exit 1 ; }
   ;;
 
 esac
-

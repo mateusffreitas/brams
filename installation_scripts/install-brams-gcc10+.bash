@@ -14,9 +14,8 @@ cd $BRAMS_DIR/build
 make clean
 make
 make install
-[[ $? -ne 0 ]] && { echo "Error while installing BRAMS" ; exit 1 ;}
+[[ $? -eq 0 ]] || { echo "Error while installing BRAMS" ; exit 1 ;}
 
-exit 0
-
-
-
+make pre-brams
+make install-pre-brams
+[[ $? -eq 0 ]] || { echo "Error while installing PRE-BRAMS" ; exit 1 ;}

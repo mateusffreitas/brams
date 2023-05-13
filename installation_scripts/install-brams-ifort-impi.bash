@@ -5,7 +5,7 @@ INTEL_COMPILER_DIR=${INTEL_COMPILER_DIR:-"${PWD}/inteloneapi-${INTEL_COMPILER_VE
 BRAMS_DIR=${BRAMS_DIR:-"${PWD}/../"}
 BRAMS_INSTALL_DIR=${BRAMS_INSTALL_DIR:-"${HOME}/brams-6.0-ifort-impi"}
 
-source ${INTEL_COMPILER_DIR}/setvars.sh
+source ${INTEL_COMPILER_DIR}/setvars.sh --force
 export PATH=${PREREQ_DIR}/bin:$PATH
 export LD_LIBRARY_PATH=${PREREQ_DIR}/lib:$LD_LIBRARY_PATH
 
@@ -19,8 +19,4 @@ make clean
 make FPCOMP=mpiifort CPCOMP=mpiicc CCOMP=icc FCOMP=ifort -f Make_utils
 make
 make install
-
-make pre-brams
-make install-pre-brams
-[[ $? -ne 0 ]] && { echo "Error while installing BRAMS" ; exit 1 ;}
-exit 0
+[[ $? -eq 0 ]] || { echo "Error while installing BRAMS" ; exit 1 ;}
