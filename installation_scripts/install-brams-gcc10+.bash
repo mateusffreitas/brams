@@ -15,7 +15,3 @@ make clean
 make
 make install
 [[ $? -eq 0 ]] || { echo "Error while installing BRAMS" ; exit 1 ;}
-
-make pre-brams
-make install-pre-brams
-[[ $? -eq 0 ]] || { echo "Error while installing PRE-BRAMS" ; exit 1 ;}
