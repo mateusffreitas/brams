@@ -55,7 +55,7 @@ module modTimeLineFRN
    end interface
 
    type t_sit
-    character(len=32) :: nome
+    character(len=256) :: nome
     real :: lat 
     real :: lon
     integer :: xpos
@@ -72,10 +72,10 @@ module modTimeLineFRN
    !! Número total de sites (obtidos do arquivo de entrada)
    integer :: count_var
    !! Numero de variáveis por estação
-   character(len=32), allocatable :: estvar(:)
+   character(len=256), allocatable :: estvar(:)
 
    type vvar
-      character(len=32)  :: varName
+      character(len=256)  :: varName
       character(len=256) :: varDesc
       character(len=16)  :: varUnit
    end type vvar
@@ -307,7 +307,7 @@ contains
     character(len=256) :: campos3(3)
     integer :: count, rsp, i, j, n
     real :: val, dist, d1, d2
-    character(len=32) :: nome
+    character(len=256) :: nome
     real :: lat(1)
     real :: lon(1)
     integer :: xpos
@@ -971,12 +971,12 @@ function getUnitInVarList(varName) result(varU)
    character(len=*), parameter :: procedureName = 'getUnitInVarList' ! Nome da função
 
    !Variables (input):
-   character(len=32), intent(in) :: varName
+   character(len=256), intent(in) :: varName
    character(len=16) :: varU
 
    !Local variables:
    integer :: i
-   character(len=32) :: vnam
+   character(len=256) :: vnam
 
    !Code:
    varU = ''
@@ -1022,12 +1022,12 @@ function getDescInVarList(varName) result(varU)
    character(len=*), parameter :: procedureName = 'getUnitInVarList' ! Nome da função
 
    !Variables (input):
-   character(len=32), intent(in) :: varName
+   character(len=256), intent(in) :: varName
    character(len=256) :: varU
 
    !Local variables:
    integer :: i
-   character(len=32) :: vnam
+   character(len=256) :: vnam
 
    !Code:
    varU = ''
