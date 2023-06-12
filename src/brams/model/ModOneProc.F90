@@ -1352,14 +1352,23 @@ contains
           !          call SynchronizedTimeStamp(TS_INTEG) ! timestamp CFL
 
           ! output, if required
-
-          instFlag = (frqanl>0.0 .and. IOUTPUT/=0)
-          if (instFlag) then
-             instFlag = &
-                  mod(time,frqanl)<dtlongn(1)    .or.  &
-                  time>=timmax - 0.01*dtlongn(1) .or.  &
-                  iflag==1
-          end if
+		  if(IOUTPUT /= 10) then
+          	instFlag = (frqanl>0.0 .and. IOUTPUT/=0)
+          	if (instFlag) then
+            	 instFlag = &
+                 	 mod(time,frqanl)<dtlongn(1)    .or.  &
+                  	time>=timmax - 0.01*dtlongn(1) .or.  &
+                  	iflag==1
+         	 end if
+         else
+           	instFlag = .true.
+          	if (instFlag) then
+            	 instFlag = &
+                 	 mod(time,10800.)<dtlongn(1)    .or.  & !Forçado para saída a cada 3 h
+                  	time>=timmax - 0.01*dtlongn(1) .or.  &
+                  	iflag==1
+         	 end if     
+         end if  	
 
           liteFlag = (frqlite>0.0)
           if (liteFlag) then
