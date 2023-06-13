@@ -1249,6 +1249,10 @@ subroutine OutputFields(histFlag, instFlag, liteFlag, meanFlag)
            call saveVFM(histFlag, instFlag, liteFlag, meanFlag, nvMax, ngrids, &
                 willwrite, maxNFields)
 
+		case (10)
+           call saveVFM(histFlag, instFlag, liteFlag, meanFlag, nvMax, ngrids, &
+                willwrite, maxNFields)		   
+
         case (3)
            call saveBinMPIIO(histFlag, instFlag, liteFlag, meanFlag, nvMax, &
                 ngrids, willwrite, maxNFields)
