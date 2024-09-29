@@ -315,7 +315,7 @@ contains
     integer :: fileNumber
     integer :: localXpos
     integer :: localYpos
-    character(len=8) :: varname
+    character(len=64) :: varname
     integer :: totsec
  
 
