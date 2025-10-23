@@ -1364,7 +1364,7 @@ contains
            	instFlag = .true.
           	if (instFlag) then
             	 instFlag = &
-                 	 mod(time,10800.)<dtlongn(1)    .or.  & !Forçado para saída a cada 3 h
+                        mod(time,3600.)<dtlongn(1)    .or.  & !Forçado para saída a cada 3 h
                   	time>=timmax - 0.01*dtlongn(1) .or.  &
                   	iflag==1
          	 end if     
