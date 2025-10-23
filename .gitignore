@@ -4,6 +4,7 @@ log.txt
 
 #Sources in build
 ./build/*.f90
+./build/*.F90
 
 # Prerequisites
 *.d
@@ -37,6 +38,8 @@ log.txt
 *.exe
 *.out
 *.app
+build/pre
+build/brams-6.0
 
 #documents
 /doc/html/*
