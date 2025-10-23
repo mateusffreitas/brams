@@ -60,7 +60,7 @@ include objects_model.mk
 ifeq ($(WGRIBDIR),)
 WGRIB_LIB  =
 else
-WGRIB_LIB  =-L$(WGRIBDIR) -lwgrib2_api -lwgrib2 
+WGRIB_LIB  =-L$(WGRIBDIR) -lwgrib2_ftn_api -lwgrib2 
 endif
 
 ifeq ($(MPIDIR),)
@@ -131,18 +131,29 @@ endif
 
 ifeq ($(notdir $(FCOMP)),pgf90)
 JULES_DEFS = $(JULES_DEFS0)
-FC_FLAGS=-fast -O3 -fastsse -Munroll=n:4 #-Mipa=fast,inline,safe  -Msmart
-CCFLAGS=-O2
+FC_FLAGS=-tp host -fast -O3 -fastsse -Munroll=n:4 -Mfree #-Mipa=fast,inline,safe  -Msmart
+CCFLAGS=-tp host -O3
 FPP=-Mpreprocess
 endif
 
 ifeq ($(notdir $(FCOMP)),ifort)
 JULES_DEFS = $(JULES_DEFS0) INTEL_FORTRAN
-FC_FLAGS=-O3
-CCFLAGS=-O3
+FC_FLAGS=-O3 -march=core-avx2 -fma -ftz -fomit-frame-pointer -align array64byte # -xHOST
+CCFLAGS=-O3 -march=core-avx2 -fma -ftz -fomit-frame-pointer #-xHOST
     # For intel compiler debugging
 	#FC_FLAGS=-O0 -mcmodel=large -check bounds -traceback -fpe0 -check uninit -init=snan,arrays
 	#CCFLAGS=-O0
+FPP=-fpp
+FPP_VARSI = INTEL
+endif
+
+ifeq ($(notdir $(FCOMP)),ifx)
+JULES_DEFS = $(JULES_DEFS0) INTEL_FORTRAN
+FC_FLAGS=-O3 -march=core-avx2  -fma -ftz -fomit-frame-pointer -align array64byte #-xCASCADELAKE
+CCFLAGS=-O3 -march=core-avx2  -fma -ftz -fomit-frame-pointer  -fpermissive -std=gnu89 #-xCASCADELAKE
+	    # For intel compiler debugging
+	    # 	#FC_FLAGS=-O0 -mcmodel=large -check bounds -traceback -fpe0 -check uninit -init=snan,arrays
+	    # 		#CCFLAGS=-O0
 FPP=-fpp
 FPP_VARSI = INTEL
 endif
@@ -164,18 +175,26 @@ FC_LOADER=$(FC) #-traceback
 CC_LOADER=$(CC)
 endif
 
+ifeq ($(notdir $(FPCOMP)),mpiifx) 
+	JULES_DEFS = $(JULES_DEFS0) INTEL_FORTRAN
+	FC=$(FPCOMP) #-traceback
+	CC=$(CPCOMP)
+	FC_LOADER=$(FC) #-traceback
+	CC_LOADER=$(CC)
+endif
+
 ifeq ($(notdir $(FCOMP)),gfortran)
 JULES_DEFS = $(JULES_DEFS0) GNU_FORTRAN
 #FC_FLAGS=-O3 -ffree-form -ffree-line-length-none -fbacktrace -g -fcheck=bounds -fcheck=all -finit-real=nan # -Wall -ffpe-trap=invalid,zero
-FC_FLAGS=-ffree-form -ffree-line-length-none -fbacktrace -g -fno-range-check
+FC_FLAGS=-O3 -ffree-form -ffree-line-length-none -fno-range-check
 
 ifeq ($(GCC_VER_GTE10),)
      FC_FLAGS +=-fallow-argument-mismatch
 endif
 
 OT_FLAGS=-O3
-#CCFLAGS=-O2
-CCFLAGS=-O0
+CCFLAGS=-O3
+#CCFLAGS=-O0
 FPP=-cpp
 FC=$(FPCOMP) $(OT_FLAGS)
 endif

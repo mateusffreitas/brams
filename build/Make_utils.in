@@ -90,21 +90,31 @@ endif
 
 
 ifeq ($(notdir $(FCOMP)),pgf90)
-FC_FLAGS=-fast -O3 -fastsse -Munroll=n:4 #-Mipa=fast,inline,safe  -Msmart
-CCFLAGS=-O3
+FC_FLAGS=-tp host -fast -O3 -fastsse -Munroll=n:4 -Mfree #-Mipa=fast,inline,safe  -Msmart
+CCFLAGS=-tp host -O3
 #FC_FLAGS=-O0 -traceback -Mbounds -Mchkptr -Mchkstk 
 #CCFLAGS=-O0 -traceback -Mbounds 
 FPP=-Mpreprocess
 endif 
 
 ifeq ($(notdir $(FCOMP)),ifort)
-FC_FLAGS=-O3
-CCFLAGS=-O3
+FC_FLAGS=-O3 -fma -ftz -fomit-frame-pointer -align array64byte -xHOST
+CCFLAGS=-O3 -fma -ftz -fomit-frame-pointer -xHOST
  # For intel compiler debugging
          #FC_FLAGS=-O0 -mcmodel=large -check bounds -traceback -fpe0 -check uninit -init=snan,arrays
          #CCFLAGS=-O0
  
 
+FPP=-fpp
+endif
+
+ifeq ($(notdir $(FCOMP)),ifx)
+FC_FLAGS=-O3 -fma -ftz -fomit-frame-pointer -align array64byte -march=core-avx2
+CCFLAGS=-O3 -fma -ftz -fomit-frame-pointer -fpermissive -std=gnu89 -march=core-avx2
+ # For intel compiler debugging
+       #    FC_FLAGS=-O0 -mcmodel=large -check bounds -traceback -fpe0 -check uninit -init=snan,arrays
+       #     CCFLAGS=-O0 
+ 
 FPP=-fpp
 endif
 
@@ -124,16 +134,25 @@ FC_LOADER=$(FC) #-traceback
 CC_LOADER=$(CC)
 endif
 
+ifeq ($(notdir $(FPCOMP)),mpiifx) #INTEL LLVM MPI COMPILER
+FC=$(FPCOMP) #-traceback
+CC=$(CPCOMP)
+
+FC_LOADER=$(FC) #-traceback
+CC_LOADER=$(CC)
+endif
+
+
 ifeq ($(notdir $(FCOMP)),gfortran)
-FC_FLAGS=-O3 -ffree-form -ffree-line-length-none -static
+FC_FLAGS=-O3 -ffree-form -ffree-line-length-none
 #FC_FLAGS=-O0 -ffree-form -ffree-line-length-none -fcheck=bounds -fbacktrace -fcheck=bounds -g -fcheck=all -finit-real=nan # -Wall -ffpe-trap=invalid,zero
 
 ifeq ($(GCC_VER_GTE10),)
      FC_FLAGS +=-fallow-argument-mismatch
 endif
 
-CCFLAGS=-O3 -DLITTLE
-#CCFLAGS=-O0 -DLITTLE
+CCFLAGS=-O3
+#CCFLAGS=-O0
 FPP=-cpp 
 endif 
 

@@ -12,7 +12,7 @@ utilsMod.o \
 chem1_list.o \
 dump.o
 
-WGRIB_LIB  =-L$(WGRIBDIR)/lib -lwgrib2_api -lwgrib2 
+WGRIB_LIB  =-L$(WGRIBDIR)/lib -lwgrib2_ftn_api -lwgrib2
 
 all: $(PRE)
 
