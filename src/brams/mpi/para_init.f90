@@ -1463,14 +1463,14 @@ subroutine domain_decomposition_dump(fUnit)
         if(colsInx<minColValid) then
           write(*,fmt='(A)') 'ERR: Grid set incompatible for Runge Kupta'
           write(*,fmt='(A,I5.5,A,I5,A,I5)') 'Processor: ',jnode,', Cols:',colsInX,' for a minimum of ',minColValid
-          err=dumpMessage(c_tty,c_yes,header,' !!! ',c_fatal&
+          err=dumpMessage(c_tty,c_yes,header,' !!! ',c_warning&
           ,'Number of columns in X less than allowed. Please, increase NNXP in RAMSIN '//&
           'or decrease the amount of processors')
         endif
         if(colsInY<minColValid) then
           write(*,fmt='(A)') 'ERR: Grid set incompatible for Runge Kupta'
           write(*,fmt='(A,I5.5,A,I5,A,I5)') 'Processor: ',jnode,', Cols:',colsInY,' for a minimum of ',minColValid
-          err=dumpMessage(c_tty,c_yes,header,' !!! ',c_fatal&
+          err=dumpMessage(c_tty,c_yes,header,' !!! ',c_warning&
              ,'Number of columns in Y less than allowed. Please, increase NNYP in RAMSIN '//&
              'or decrease the amount of processors')
         endif
