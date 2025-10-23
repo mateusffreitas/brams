@@ -646,7 +646,7 @@ end function writeVar2D
     character(len=2) :: clev
     integer :: sout
     integer :: l,n,v,seconds,totsec,secc,i
-    character(len=10) :: cdate !"YYYYMMDDHH" 
+    character(len=12) :: cdate !"YYYYMMDDHHMM"
     integer :: iyy,imm,idd,ihh,hh,mm,ss
     integer :: count
     character(len=256) :: linha
@@ -675,9 +675,8 @@ end function writeVar2D
 40    close(unit=87)
     realVarIn = count-1
 
-
     write(clev,fmt="(I2.2)") oneNamelistFile%inplevs
-    write(cdate,fmt='(I4,I2.2,I2.2,I2.2)') iyear1,imonth1,idate1,itime1
+    write(cdate,fmt='(I4,I2.2,I2.2,I4.4)') iyear1,imonth1,idate1,itime1
 
     !do n=1,nsites
     !  print *,mynum,n,sites(n)%nome
