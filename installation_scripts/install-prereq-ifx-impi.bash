@@ -24,9 +24,8 @@ export FC=ifx
 export F77=ifx
 export F90=ifx
 
-which mpiifx &> /dev/null
-if [[ $? -ne 0 ]] 
-then
+which mpiifx &>/dev/null
+if [[ $? -ne 0 ]]; then
   export MPIFC="mpiifort -fc=ifx"
   export MPIF77="mpiifort -fc=ifx"
   export MPIF90="mpiifort -fc=ifx"
@@ -40,81 +39,89 @@ else
   export MPICXX="mpiicpx"
 fi
 
-if [[ ! -f .zlib.done ]]
-then
+if [[ ! -f .zlib.done ]]; then
   cp ${PREREQ_DL_DIR}/zlib-1.2.11.tar.gz .
   tar -xzvf zlib-1.2.11.tar.gz
   cd zlib-1.2.11/
   ./configure --prefix=${PREREQ_DIR}
   make clean && make -j ${NUM_MAKE_JOBS}
   make install
-  [[ $? -eq 0 ]] || { echo "Error while installing zlib" ; exit 1 ; }
+  [[ $? -eq 0 ]] || {
+    echo "Error while installing zlib"
+    exit 1
+  }
   touch ../.zlib.done
   cd ..
 fi
 
-if [[ ! -f .szip.done ]]
-then
+if [[ ! -f .szip.done ]]; then
   cp ${PREREQ_DL_DIR}/szip-2.1.1.tar.gz .
   tar -xzvf szip-2.1.1.tar.gz
   cd szip-2.1.1/
   ./configure --prefix=${PREREQ_DIR}
   make clean && make -j $NUM_MAKE_JOBS
   make install
-  [[ $? -eq 0 ]] || { echo "Error while installing szip" ; exit 1 ; }
+  [[ $? -eq 0 ]] || {
+    echo "Error while installing szip"
+    exit 1
+  }
   touch ../.szip.done
   cd ..
 fi
 
- 
-if [[ ! -f .hdf5-impi.done ]]
-then
+if [[ ! -f .hdf5-impi.done ]]; then
   cp ${PREREQ_DL_DIR}/hdf5-1.14.5.tar.gz .
   tar -xzvf hdf5-1.14.5.tar.gz
   cd hdf5-1.14.5
   autoreconf -i -f
   ./configure --prefix=${PREREQ_DIR} CFLAGS=-I${PREREQ_DIR}/include CPPFLAGS=-I${PREREQ_DIR}/include LDFLAGS=-L${PREREQ_DIR}/lib CC="${MPICC}" FC="${MPIFC}" CXX="${MPICXX}" F90="${MPIF90}" F77="${MPIF77}" \
-   --with-zlib=${PREREQ_DIR} --with-szlib=${PREREQ_DIR} --enable-parallel --enable-fortran
+    --with-zlib=${PREREQ_DIR} --with-szlib=${PREREQ_DIR} --enable-parallel --enable-fortran
   automake -a -f
   make clean && make -j $NUM_MAKE_JOBS
   make install
-  [[ $? -eq 0 ]] || { echo "Error while installing hdf5" ; exit 1 ; }
+  [[ $? -eq 0 ]] || {
+    echo "Error while installing hdf5"
+    exit 1
+  }
   touch ../.hdf5-impi.done
   cd ..
 fi
 
-if [[ ! -f .netcdf-c-impi.done ]]
-then
+if [[ ! -f .netcdf-c-impi.done ]]; then
   cp ${PREREQ_DL_DIR}/netcdf-c-4.8.1.tar.gz .
   tar -xzvf netcdf-c-4.8.1.tar.gz
   cd netcdf-c-4.8.1/
-  CPPFLAGS=-I${PREREQ_DIR}/include LDFLAGS=-L${PREREQ_DIR}/lib CFLAGS='-O3'  \
-   CC="${MPICC}" FC="${MPIFC}" CXX="${MPICXX}" F90="${MPIF90}" F77="${MPIF77}" \
-   ./configure --prefix=${PREREQ_DIR} --enable-netcdf4 --enable-shared --disable-dap
+  CPPFLAGS=-I${PREREQ_DIR}/include LDFLAGS=-L${PREREQ_DIR}/lib CFLAGS='-O3' \
+    CC="${MPICC}" FC="${MPIFC}" CXX="${MPICXX}" F90="${MPIF90}" F77="${MPIF77}" \
+    ./configure --prefix=${PREREQ_DIR} --enable-netcdf4 --enable-shared --disable-dap
   make clean && make -j $NUM_MAKE_JOBS
   make install
-  [[ $? -eq 0 ]] || { echo "Error while installing netcdf-c" ; exit 1 ; }
+  [[ $? -eq 0 ]] || {
+    echo "Error while installing netcdf-c"
+    exit 1
+  }
   touch ../.netcdf-c-impi.done
   cd ..
 fi
 
-if [[ ! -f .netcdf-fortran-impi.done ]]
-then
+if [[ ! -f .netcdf-fortran-impi.done ]]; then
   cp ${PREREQ_DL_DIR}/netcdf-fortran-4.5.3.tar.gz .
   tar -xzvf netcdf-fortran-4.5.3.tar.gz
   cd netcdf-fortran-4.5.3/
   CPPFLAGS=-I${PREREQ_DIR}/include LDFLAGS=-L${PREREQ_DIR}/lib CFLAGS='-O3' \
-  CC="${MPICC}" FC="${MPIFC}" CXX="${MPICXX}" F90="${MPIF90}" F77="${MPIF77}" \
-  ./configure --prefix=${PREREQ_DIR}
+    CC="${MPICC}" FC="${MPIFC}" CXX="${MPICXX}" F90="${MPIF90}" F77="${MPIF77}" \
+    ./configure --prefix=${PREREQ_DIR}
   make clean && make -j $NUM_MAKE_JOBS
   make install
-  [[ $? -eq 0 ]] || { echo "Error while installing netcdf-fortran" ; exit 1 ; }
+  [[ $? -eq 0 ]] || {
+    echo "Error while installing netcdf-fortran"
+    exit 1
+  }
   touch ../.netcdf-fortran-impi.done
   cd ..
 fi
 
-if [[ ! -f .wgrib2-ifx.done ]]
-then
+if [[ ! -f .wgrib2-ifx.done ]]; then
   cp ${PREREQ_DL_DIR}/wgrib2-3.7.0.tar.gz .
   tar -xzvf wgrib2-3.7.0.tar.gz
   cd wgrib2-3.7.0
@@ -123,4 +130,3 @@ then
   time make -j $NUM_MAKE_JOBS
   make install
 fi
-
