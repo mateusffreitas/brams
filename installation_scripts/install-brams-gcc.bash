@@ -1,8 +1,10 @@
 #!/bin/bash
 # Use in BRAMS-6.0 folder
-PREREQ_DIR=${PREREQ_DIR:-"${PWD}/opt-gcc"}
+PREREQ_DIR=${PREREQ_DIR:-"${HOME}/opt-gcc"}
 BRAMS_DIR=${BRAMS_DIR:-"${PWD}/../"}
 BRAMS_INSTALL_DIR=${BRAMS_INSTALL_DIR:-"${HOME}/brams-6.0-gcc"}
+PRE_BRAMS=${PRE_BRAMS:-1}
+
 export PATH=${PREREQ_DIR}/bin:$PATH
 export LD_LIBRARY_PATH=${PREREQ_DIR}/lib:$LD_LIBRARY_PATH
 
@@ -16,6 +18,8 @@ make
 make install
 [[ $? -eq 0 ]] || { echo "Error while installing BRAMS" ; exit 1 ;}
 
-make pre-brams
-make install-pre-brams
-[[ $? -eq 0 ]] || { echo "Error while installing PRE-BRAMS" ; exit 1 ;}
+if [[ $PRE_BRAMS -eq 1 ]]; then
+  make pre-brams
+  make install-pre-brams
+  [[ $? -eq 0 ]] || { echo "Error while installing PRE-BRAMS" ; exit 1 ;}
+fi

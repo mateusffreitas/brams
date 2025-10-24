@@ -61,12 +61,7 @@ case $1 in
     echo Installing with gcc
     gcc_env
 
-    if [[ ${GCC_VERSION} -ge 100000 ]]
-    then
-        . install-prereq-gcc10+.bash
-    else
-        . install-prereq-gcc.bash
-    fi
+    . install-prereq-gcc.bash
    ;;
   "download")
      echo Downloading prerequisites source files
