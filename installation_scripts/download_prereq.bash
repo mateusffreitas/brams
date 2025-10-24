@@ -15,7 +15,7 @@ wget $WGET_OPTS https://github.com/Unidata/netcdf-c/archive/refs/tags/v4.8.1.tar
 [[ $? -eq 0 ]] || { echo "Error while downloading netcdf-c" ; exit 1 ;}
 wget $WGET_OPTS https://github.com/Unidata/netcdf-fortran/archive/refs/tags/v4.5.3.tar.gz -O $PREREQ_DL_DIR/netcdf-fortran-4.5.3.tar.gz
 [[ $? -eq 0 ]] || { echo "Error while downloading netcdf-fortran" ; exit 1 ;}
-wget $WGET_OPTS  https://github.com/NOAA-EMC/wgrib2/archive/refs/tags/v3.7.0.tar.gz  -P $PREREQ_DL_DIR -O wgrib2-3.7.0.tar.gz
+wget $WGET_OPTS  https://github.com/NOAA-EMC/wgrib2/archive/refs/tags/v3.7.0.tar.gz  -O $PREREQ_DL_DIR/wgrib2-3.7.0.tar.gz
 [[ $? -eq 0 ]] || { echo "Error while downloading wgrib2" ; exit 1 ;}
 wget $WGET_OPTS https://github.com/HDFGroup/hdf5/releases/download/hdf5_1.14.5/hdf5-1.14.5.tar.gz -P $PREREQ_DL_DIR
 [[ $? -eq 0 ]] || { echo "Error while downloading hdf5" ; exit 1 ;}
