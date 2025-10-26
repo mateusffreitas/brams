@@ -129,7 +129,7 @@ if [[ ! -f .wgrib2.done ]]; then
   cp ${PREREQ_DL_DIR}/wgrib2-3.7.0.tar.gz .
   tar -xzvf wgrib2-3.7.0.tar.gz
   cd wgrib2-3.7.0
-  mkdir build && cd build
+  mkdir -p build && cd build
   cmake .. -DCMAKE_INSTALL_PREFIX=${PREREQ_DIR}/ -DCMAKE_INSTALL_LIBDIR=${PREREQ_DIR}/lib -DMAKE_FTN_API=ON
   time make -j $NUM_MAKE_JOBS
   make install
