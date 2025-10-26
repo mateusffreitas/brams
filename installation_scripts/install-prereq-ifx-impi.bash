@@ -126,7 +126,14 @@ if [[ ! -f .wgrib2-ifx.done ]]; then
   tar -xzvf wgrib2-3.7.0.tar.gz
   cd wgrib2-3.7.0
   mkdir -p build && cd build
-  cmake .. -DCMAKE_INSTALL_PREFIX=${PREREQ_DIR}/ -DMAKE_FTN_API=ON
-  time make -j $NUM_MAKE_JOBS
+  cmake .. -DCMAKE_INSTALL_PREFIX=${PREREQ_DIR}/ \
+   -DCMAKE_INSTALL_LIBDIR=${PREREQ_DIR}/lib -DMAKE_FTN_API=ON
+  make -j $NUM_MAKE_JOBS
   make install
+    [[ $? -eq 0 ]] || {
+    echo "Error while installing wgrib2"
+    exit 1
+  }
+  touch ../../.wgrib2-ifx.done
+  cd ../../
 fi
