@@ -7,6 +7,12 @@ gcc_env() {
   export BRAMS_INSTALL_DIR=${BRAMS_INSTALL_DIR:-"${HOME}/brams-6.0-gcc"}
 }
 
+nvfortran_env() {
+  export PREREQ_DIR=${PREREQ_DIR:-"${HOME}/opt-nvfortran"}
+  export INSTALL_DIR=${INSTALL_DIR:-"${HOME}/nvfortran-prereq-install"}
+  export BRAMS_INSTALL_DIR=${BRAMS_INSTALL_DIR:-"${HOME}/brams-6.0-nvfortran"}
+}
+
 intel_env() {
   export INTEL_COMPILER_VERSION=${INTEL_COMPILER_VERSION:-"latest"}
 }
@@ -62,6 +68,12 @@ case $1 in
 
   . install-prereq-gcc.bash
   ;;
+  "nvfortran")
+  echo Installing with nvfortran
+  nvfortran_env
+
+  . install-prereq-nvfortran.bash
+  ;;
 "download")
   echo Downloading prerequisites source files
   . download_prereq.bash
@@ -89,6 +101,12 @@ case $1 in
   gcc_env
 
   . install-brams-gcc.bash
+  ;;
+  "brams-nvfortran")
+  echo Installing BRAMS with nvfortran
+  nvfortran_env
+
+  . install-brams-nvfortran.bash
   ;;
 
 esac
